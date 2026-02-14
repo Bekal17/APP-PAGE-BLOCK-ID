@@ -80,7 +80,14 @@ const TrustAnalytics = () => {
       setResult(data);
     } catch (err) {
       const e = err as FetchTrustScoreError;
-      setError(e.detail ?? (e.status === 503 ? "Trust API unavailable. Is the backend running?" : "Request failed."));
+      const message =
+        e.detail ??
+        (e.status === 503
+          ? "Trust API unavailable. Is the FastAPI backend running on the configured URL?"
+          : e.status === 400
+            ? "Invalid wallet address."
+            : "Request failed.");
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -91,7 +98,9 @@ const TrustAnalytics = () => {
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="animate-slide-up">
           <h1 className="text-2xl font-bold text-foreground tracking-tight">Trust Analytics</h1>
-          <p className="text-sm text-muted-foreground mt-1">Look up a Solana wallet for real-time trust score from the AI backend</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            Paste a Solana wallet address and fetch a real-time trust score from the AI backend (blockchain data).
+          </p>
         </div>
 
         {/* Wallet lookup */}
@@ -137,7 +146,7 @@ const TrustAnalytics = () => {
               </div>
               <TrustScoreRing score={87} size={160} />
               <p className="text-xs text-muted-foreground mt-4 text-center max-w-[200px]">
-                Enter a wallet above to fetch a live score from the blockchain
+                Enter a Solana wallet above and click &quot;Get trust score&quot; to fetch a live score from the backend.
               </p>
             </div>
 

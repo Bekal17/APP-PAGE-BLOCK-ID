@@ -1,5 +1,7 @@
 /**
  * Client for AI trust backend POST /trust-score.
+ * Request: { wallet: string }
+ * Response: { wallet, trust_score (0–100), risk_level (Low|Medium|High), metrics }
  */
 
 import type { TrustScoreResult } from "@/types/trust";
