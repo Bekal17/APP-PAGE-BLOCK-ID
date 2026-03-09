@@ -147,6 +147,18 @@
   .stat-label {
     @apply text-xs font-medium uppercase tracking-widest text-muted-foreground;
   }
+
+  .card-hover-glow {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: all 0.25s ease;
+  }
+
+  .card-hover-glow:hover {
+    border-color: rgba(34, 211, 238, 0.7);
+    box-shadow:
+      0 0 0 1px rgba(34, 211, 238, 0.4),
+      0 0 20px rgba(34, 211, 238, 0.15);
+  }
 }
 
 @layer utilities {

@@ -17,6 +17,7 @@ const getScoreColor = (s: number) => {
 };
 
 const GlobalSearch = () => {
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -59,6 +60,13 @@ const GlobalSearch = () => {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setFocused(true)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && query.trim() !== "") {
+              navigate(`/analytics?wallet=${encodeURIComponent(query.trim())}`);
+              setQuery("");
+              setFocused(false);
+            }
+          }}
           placeholder="Search wallet or ID"
           className="flex-1 bg-transparent py-3 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
         />
