@@ -1,5 +1,6 @@
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
+import logo from "@/assets/blockid_logo.svg";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import {
@@ -9,7 +10,6 @@ import {
   Route,
   Users,
   X,
-  Activity,
   Wallet,
   UserCircle,
 } from "lucide-react";
@@ -46,9 +46,12 @@ const MobileNav = ({ open, onClose }: MobileNavProps) => {
       <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={onClose} />
       <aside className="absolute left-0 top-0 bottom-0 w-72 bg-sidebar border-r border-sidebar-border p-4 animate-slide-up">
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3 px-3">
-            <Activity className="w-5 h-5 text-primary" />
-            <span className="text-lg font-bold gradient-text">blockID</span>
+          <div className="flex items-center min-w-[240px] px-3">
+            <img
+              src={logo}
+              alt="BlockID"
+              className="h-16 w-auto object-contain shrink-0"
+            />
           </div>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
             <X className="w-5 h-5" />

@@ -1,18 +1,13 @@
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import logo from "@/assets/blockid_logo.svg";
 import {
   LayoutDashboard,
   Shield,
-  UserCircle,
   Route,
   Users,
-  Activity,
   Fingerprint,
-  Wallet,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
 const navItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
@@ -22,25 +17,24 @@ const navItems = [
   { title: "Social", url: "/social", icon: Users },
 ];
 
-const formatSolanaAddress = (address: string) => {
-  if (address.length <= 10) return address;
-  return `${address.slice(0, 4)}...${address.slice(-4)}`;
-};
-
 const AppSidebar = () => {
   const location = useLocation();
-  const { publicKey, connected } = useWallet();
-  const { setVisible } = useWalletModal();
-  const displayAddress = publicKey ? formatSolanaAddress(publicKey.toBase58()) : null;
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-sidebar border-r border-sidebar-border p-4">
+    <aside className="hidden lg:flex flex-col w-72 min-h-screen bg-sidebar border-r border-sidebar-border p-4">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-3 py-4 mb-6">
-        <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center glow-border">
-          <Activity className="w-4 h-4 text-primary" />
-        </div>
-        <span className="text-lg font-bold gradient-text tracking-tight">blockID</span>
+      <div className="flex items-center gap-3 px-4 py-4 mb-6">
+        <img
+          src={logo}
+          alt="BlockID"
+          className="h-8 w-auto shrink-0"
+        />
+        <span className="text-lg font-bold tracking-tight">
+          <span className="text-white">Block</span>
+          <span className="bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">
+            ID
+          </span>
+        </span>
       </div>
 
       {/* Navigation */}
@@ -68,34 +62,6 @@ const AppSidebar = () => {
           );
         })}
       </nav>
-
-      {/* Footer - Wallet */}
-      <div className="glass-card p-3 mt-4">
-        {connected && displayAddress ? (
-          <button
-            onClick={() => setVisible(true)}
-            className="flex items-center gap-2 w-full text-left rounded-lg hover:bg-muted/50 transition-colors p-1 -m-1"
-            title="Change wallet"
-          >
-            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
-              <UserCircle className="w-4 h-4 text-primary" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate font-mono">{displayAddress}</p>
-              <p className="text-xs text-muted-foreground">Solana • Click to change</p>
-            </div>
-          </button>
-        ) : (
-          <Button
-            onClick={() => setVisible(true)}
-            variant="outline"
-            className="w-full gap-2"
-          >
-            <Wallet className="w-4 h-4" />
-            Connect Wallet
-          </Button>
-        )}
-      </div>
     </aside>
   );
 };

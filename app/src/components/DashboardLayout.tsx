@@ -1,7 +1,9 @@
 import { ReactNode, useState } from "react";
 import AppSidebar from "@/components/AppSidebar";
+import logo from "@/assets/blockid_logo.svg";
 import MobileNav from "@/components/MobileNav";
 import GlobalSearch from "@/components/GlobalSearch";
+import WalletIndicator from "@/components/WalletIndicator";
 import { Menu } from "lucide-react";
 
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
@@ -14,13 +16,24 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
 
       <div className="flex-1 flex flex-col min-w-0">
         {/* Top bar with search */}
-        <header className="flex items-center gap-4 px-4 md:px-6 lg:px-8 py-3 border-b border-border">
-          <button onClick={() => setMobileOpen(true)} className="lg:hidden text-muted-foreground hover:text-foreground transition-colors">
-            <Menu className="w-5 h-5" />
-          </button>
-          <span className="lg:hidden text-lg font-bold gradient-text">blockID</span>
-          <div className="hidden sm:block flex-1">
+        <header className="flex items-center h-20 gap-4 px-4 md:px-6 lg:px-8 border-b border-border">
+          <div className="flex items-center gap-4 shrink-0">
+            <button onClick={() => setMobileOpen(true)} className="lg:hidden text-muted-foreground hover:text-foreground transition-colors">
+              <Menu className="w-5 h-5" />
+            </button>
+            <div className="flex items-center min-w-[240px] lg:hidden">
+              <img
+                src={logo}
+                alt="BlockID"
+                className="h-16 w-auto object-contain shrink-0"
+              />
+            </div>
+          </div>
+          <div className="hidden sm:flex flex-1 justify-center min-w-0">
             <GlobalSearch />
+          </div>
+          <div className="flex items-center gap-4 ml-auto shrink-0">
+            <WalletIndicator />
           </div>
         </header>
         {/* Mobile search */}

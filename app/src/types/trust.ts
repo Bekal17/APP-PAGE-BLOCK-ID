@@ -18,9 +18,21 @@ export interface TrustMetrics {
   risk_flags: string[];
 }
 
+/** Simple status for Trust UI (Simple Mode). */
+export type SimpleStatus = "SAFE" | "REVIEW" | "RISKY";
+
+/** Risk color for Trust UI (Simple Mode). */
+export type RiskColor = "GREEN" | "AMBER" | "RED";
+
 export interface TrustScoreResult {
   wallet: string;
   trust_score: number;
   risk_level: RiskLevel;
   metrics: TrustMetrics;
+  /** Optional: from summary-compact endpoint. Derived from risk_level if absent. */
+  simple_status?: SimpleStatus;
+  /** Optional: from summary-compact endpoint. Derived from risk_level if absent. */
+  risk_color?: RiskColor;
+  /** Optional: from summary-compact endpoint. Fallback message derived if absent. */
+  summary_message?: string;
 }
