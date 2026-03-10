@@ -1,77 +1,124 @@
-# App (Trust Ledger)
+# BlockID — Wallet Trust Intelligence
 
-This app includes the **AI Trust Scoring Engine** in `ai-engine/`. To run the trust API from this folder: `npm run dev:api` (or see `ai-engine/README.md`).
+> AI-powered on-chain identity and trust scoring for the Solana ecosystem.
 
-**Trust Analytics (UI)** – On the Trust Analytics page, paste a Solana wallet and click "Get trust score" to fetch a live score from the backend. Set `VITE_TRUST_API_URL` (e.g. `http://localhost:8000`) if the API runs on a different origin.
+**Live App:** [app.blockidscore.fun](https://app.blockidscore.fun) · **API Dashboard:** [api.blockidscore.fun](https://api.blockidscore.fun)
 
-## Project info
+---
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## What is BlockID?
 
-## How can I edit this code?
+BlockID is a trust intelligence platform that analyzes Solana wallets using on-chain data, behavioral signals, and AI clustering to produce a real-time **Trust Score** (0–100). It helps users, protocols, and businesses identify risky wallets, scam clusters, and suspicious activity before it's too late.
 
-There are several ways of editing your application.
+---
 
-**Use Lovable**
+## Key Features
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+### 🔍 Wallet Trust Scoring
+Every wallet gets a score from 0–100 based on transaction history, counterparty risk, cluster membership, and behavioral patterns. Scores are computed in real-time and stored in PostgreSQL for fast retrieval.
 
-Changes made via Lovable will be committed automatically to this repo.
+### 🕸️ AI Investigation Graph
+Visualize wallet relationships as an interactive network graph. Trace money flows, identify scam clusters, and follow connections across the Solana network — similar to Arkham Intelligence but purpose-built for trust analysis.
 
-**Use your preferred IDE**
+### 📊 Real-time Analytics
+Track wallet activity over time with timeline events, counterparty analysis, token flow heatmaps, and behavioral fingerprinting. All data updates automatically as new on-chain activity is detected.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### 🔌 B2B API
+Integrate BlockID trust scoring directly into your product via REST API. Built for exchanges, DeFi protocols, wallets, and compliance teams.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+```
+GET  /v1/score/{wallet}         → Single wallet score
+POST /v1/score/batch            → Up to 50 wallets at once
+```
 
-Follow these steps:
+API keys are managed via the [API Dashboard](https://api.blockidscore.fun) with usage tracking and quota management.
 
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React + TypeScript + Vite + Tailwind CSS + shadcn/ui |
+| Backend | FastAPI (Python) + asyncpg |
+| Database | PostgreSQL (Railway) |
+| Auth | Supabase (Google OAuth) |
+| Blockchain | Solana Web3.js + Helius RPC |
+| Deployment | Vercel (frontend) + Railway (backend) |
+
+---
+
+## Architecture
+
+```
+app.blockidscore.fun          api.blockidscore.fun
+  (Consumer App)                (B2B API Dashboard)
+        │                               │
+        └──────────┬────────────────────┘
+                   │
+     Railway FastAPI Backend
+                   │
+          PostgreSQL Database
+                   │
+         Solana RPC (Helius)
+```
+
+---
+
+## Quick Start (Local Dev)
+
+### Prerequisites
+- Node.js 18+
+- Python 3.11+
+- PostgreSQL
+
+### Frontend
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+git clone https://github.com/Bekal17/APP-PAGE-BLOCK-ID
+cd APP-PAGE-BLOCK-ID/app
+cp .env.example .env   # fill in your values
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Environment Variables
+```env
+VITE_TRUST_API_URL=https://blockid-backend-production.up.railway.app
+VITE_EXPLORER_API_URL=https://blockid-backend-production.up.railway.app
+```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Backend
+```sh
+git clone https://github.com/Bekal17/BACKEND-BLOCK-ID
+cd BACKEND-BLOCK-ID
+pip install -r requirements.txt
+uvicorn backend_blockid.api_server.server:app --host 0.0.0.0 --port 8001 --reload
+```
 
-**Use GitHub Codespaces**
+---
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## B2B API Plans
 
-## What technologies are used for this project?
+| Plan | Price | Requests/month |
+|---|---|---|
+| Free | $0 | 100 |
+| Pro | $29/mo | 50,000 |
+| Enterprise | $199/mo | Unlimited |
 
-This project is built with:
+Get your API key at [api.blockidscore.fun](https://api.blockidscore.fun).
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+---
 
-## How can I deploy this project?
+## Roadmap
 
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
+- [ ] Webhook notifications for risk events
+- [ ] Paddle billing integration
+- [ ] Multi-chain support (Ethereum, Base)
+- [ ] SDK (TypeScript + Python)
+- [ ] On-chain trust score oracle (Solana program)
 
-## Can I connect a custom domain to my Lovable project?
+---
 
-Yes, you can!
+## License
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Proprietary — © 2026 BlockID. All rights reserved.
