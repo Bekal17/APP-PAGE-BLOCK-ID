@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import ForceGraph2D from "react-force-graph-2d";
 import { getGraph, getGraphCache, setGraphCache } from "@/services/blockidApi";
 
