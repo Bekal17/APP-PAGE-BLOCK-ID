@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { Maximize2, Minimize2 } from "lucide-react";
 import WalletOverview from "./WalletOverview";
 import BehaviorSignals from "@/components/blockid/BehaviorSignals";
 import RiskDrivers from "./RiskDrivers";
@@ -67,6 +68,15 @@ export default function InvestigationLayout({
 }: Props) {
   const [showNetwork, setShowNetwork] = useState(true);
   const [activeTab, setActiveTab] = useState("counterparties");
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsFullscreen(false);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   const syntheticNodes = clusterMembers.map((m) => ({ id: m, risk_tier: "HIGH" }));
   const syntheticLinks = clusterMembers.map((m) => ({ source: wallet, target: m }));
@@ -123,7 +133,25 @@ export default function InvestigationLayout({
       {/* Wallet Network Graph (Cluster Expansion) */}
       <section className="space-y-4">
         <h2 className="text-lg font-semibold text-foreground">Wallet Network Graph</h2>
-        <WalletGraph wallet={wallet} graphData={graphData} onSelectWallet={onSelectWallet} />
+        <div className="relative">
+          <div
+            className={
+              isFullscreen
+                ? "fixed inset-0 z-50 bg-black w-screen h-screen"
+                : "relative"
+            }
+          >
+            <button
+              type="button"
+              onClick={() => setIsFullscreen(!isFullscreen)}
+              className="absolute top-2 right-2 z-10 p-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 text-foreground"
+              aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+            >
+              {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
+            </button>
+            <WalletGraph wallet={wallet} graphData={graphData} onSelectWallet={onSelectWallet} />
+          </div>
+        </div>
       </section>
 
       {/* Network Intelligence */}
