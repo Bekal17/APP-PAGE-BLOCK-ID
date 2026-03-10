@@ -65,13 +65,22 @@ function nodeColorByRisk(risk: number | undefined): string {
   return "#ef4444";                   // low score = red = dangerous
 }
 
+export interface WalletGraphHandle {
+  zoomToFit: (duration?: number, padding?: number) => void;
+}
+
 interface WalletGraphProps {
   wallet: string;
   graphData?: NormalizedGraphData | null;
   onSelectWallet?: (wallet: string) => void;
+  hideResetButton?: boolean;
+  fullscreen?: boolean;
 }
 
-export default function WalletGraph({ wallet, graphData: graphDataProp, onSelectWallet }: WalletGraphProps) {
+const WalletGraph = forwardRef<WalletGraphHandle, WalletGraphProps>(function WalletGraph(
+  { wallet, graphData: graphDataProp, onSelectWallet, hideResetButton, fullscreen },
+  ref
+) {
   const containerRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const graphRef = useRef<any>(null);
@@ -171,7 +180,8 @@ export default function WalletGraph({ wallet, graphData: graphDataProp, onSelect
     const updateSize = () => {
       requestAnimationFrame(() => {
         if (el && el.offsetWidth > 0) {
-          setDimensions({ width: el.offsetWidth, height: 300 });
+          const h = fullscreen ? el.offsetHeight : 300;
+          setDimensions({ width: el.offsetWidth, height: h > 0 ? h : 300 });
         }
       });
     };
@@ -179,7 +189,11 @@ export default function WalletGraph({ wallet, graphData: graphDataProp, onSelect
     const observer = new ResizeObserver(updateSize);
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [fullscreen]);
+
+  useImperativeHandle(ref, () => ({
+    zoomToFit: (duration = 400, padding = 60) => graphRef.current?.zoomToFit(duration, padding),
+  }), []);
 
   const nodeColor = useCallback((node: GraphNode) => nodeColorByRisk(node.risk), []);
   const nodeVal = useCallback((node: GraphNode) => (node.connections ?? 0) * 0.8 + 1, []);
@@ -236,8 +250,13 @@ export default function WalletGraph({ wallet, graphData: graphDataProp, onSelect
     );
   }
 
+  const containerHeight = fullscreen ? "100%" : "320px";
+
   return (
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900/80 relative" style={{ width: "100%", height: "320px", overflow: "hidden" }}>
+    <div
+      className={`relative overflow-hidden ${fullscreen ? "" : "rounded-2xl border border-zinc-800 bg-zinc-900/80"}`}
+      style={{ width: "100%", height: containerHeight }}
+    >
       {clusterExpansionDetected && (
         <div className="px-4 py-2 bg-amber-500/10 border-b border-amber-500/30 flex items-center gap-2">
           <span className="text-amber-500 font-medium">Cluster Expansion Detected</span>
@@ -246,16 +265,18 @@ export default function WalletGraph({ wallet, graphData: graphDataProp, onSelect
           </span>
         </div>
       )}
-      <div ref={containerRef} style={{ width: "100%", height: "320px", display: "block", position: "relative" }}>
-        <div style={{ position: "absolute", top: "8px", right: "8px", zIndex: 10 }}>
-          <button
-            type="button"
-            onClick={() => graphRef.current?.zoomToFit(400)}
-            className="px-3 py-1.5 text-xs rounded-lg bg-zinc-800 hover:bg-zinc-700 text-foreground"
-          >
-            Reset View
-          </button>
-        </div>
+      <div ref={containerRef} style={{ width: "100%", height: fullscreen ? "100%" : "320px", display: "block", position: "relative" }}>
+        {!hideResetButton && (
+          <div style={{ position: "absolute", top: "8px", right: "8px", zIndex: 10 }}>
+            <button
+              type="button"
+              onClick={() => graphRef.current?.zoomToFit(400)}
+              className="px-3 py-1.5 text-xs rounded-lg bg-zinc-800 hover:bg-zinc-700 text-foreground"
+            >
+              Reset View
+            </button>
+          </div>
+        )}
         <ForceGraph2D
           ref={graphRef}
           graphData={{
@@ -306,4 +327,6 @@ export default function WalletGraph({ wallet, graphData: graphDataProp, onSelect
       </div>
     </div>
   );
-}
+});
+
+export default WalletGraph;

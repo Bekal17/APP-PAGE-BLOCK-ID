@@ -1,5 +1,6 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { Maximize2, Minimize2 } from "lucide-react";
+import type { WalletGraphHandle } from "@/components/investigation/WalletGraph";
 import WalletOverview from "./WalletOverview";
 import BehaviorSignals from "@/components/blockid/BehaviorSignals";
 import RiskDrivers from "./RiskDrivers";
@@ -69,6 +70,7 @@ export default function InvestigationLayout({
   const [showNetwork, setShowNetwork] = useState(true);
   const [activeTab, setActiveTab] = useState("counterparties");
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const walletGraphRef = useRef<WalletGraphHandle>(null);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -135,21 +137,63 @@ export default function InvestigationLayout({
         <h2 className="text-lg font-semibold text-foreground">Wallet Network Graph</h2>
         <div className="relative">
           <div
-            className={
-              isFullscreen
-                ? "fixed inset-0 z-50 bg-black w-screen h-screen"
-                : "relative"
-            }
+            className={isFullscreen ? "fixed inset-0 z-50 bg-black" : "relative"}
+            style={isFullscreen ? { width: "100vw", height: "100vh" } : undefined}
           >
-            <button
-              type="button"
-              onClick={() => setIsFullscreen(!isFullscreen)}
-              className="absolute top-2 right-2 z-10 p-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 text-foreground"
-              aria-label={isFullscreen ? "Exit fullscreen" : "Fullscreen"}
+            {isFullscreen && (
+              <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-4 py-3 bg-black/80">
+                <span className="text-sm font-mono text-foreground truncate">{wallet}</span>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => walletGraphRef.current?.zoomToFit(400)}
+                    className="px-3 py-1.5 text-xs rounded-lg bg-zinc-800 hover:bg-zinc-700 text-foreground"
+                  >
+                    Reset View
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsFullscreen(false)}
+                    className="p-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 text-foreground"
+                    aria-label="Exit fullscreen"
+                  >
+                    <Minimize2 size={20} />
+                  </button>
+                </div>
+              </div>
+            )}
+            {!isFullscreen && (
+              <div className="absolute top-3 right-3 flex gap-2 z-10">
+                <button
+                  type="button"
+                  onClick={() => walletGraphRef.current?.zoomToFit(400)}
+                  className="px-3 py-1.5 text-xs rounded-lg bg-zinc-800 hover:bg-zinc-700 text-foreground"
+                >
+                  Reset View
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsFullscreen(true)}
+                  className="p-2 rounded-lg bg-zinc-800/80 hover:bg-zinc-700 text-foreground"
+                  aria-label="Fullscreen"
+                >
+                  <Maximize2 size={20} />
+                </button>
+              </div>
+            )}
+            <div
+              className={isFullscreen ? "absolute left-0 right-0 bottom-0" : ""}
+              style={isFullscreen ? { top: 48, width: "100%", height: "calc(100vh - 48px)" } : undefined}
             >
-              {isFullscreen ? <Minimize2 size={20} /> : <Maximize2 size={20} />}
-            </button>
-            <WalletGraph wallet={wallet} graphData={graphData} onSelectWallet={onSelectWallet} />
+              <WalletGraph
+                ref={walletGraphRef}
+                wallet={wallet}
+                graphData={graphData}
+                onSelectWallet={onSelectWallet}
+                hideResetButton
+                fullscreen={isFullscreen}
+              />
+            </div>
           </div>
         </div>
       </section>
