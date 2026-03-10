@@ -18,7 +18,7 @@ import {
 } from "@/components/InvestigatorProgress";
 
 const APP_BASE_URL = "https://app.blockidscore.fun";
-const API_BASE = "http://172.22.80.1:8001";
+const API_BASE = import.meta.env.VITE_EXPLORER_API_URL || "https://blockid-backend-production.up.railway.app";
 
 const formatSolanaAddress = (address: string) => {
   if (!address) return "";
