@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ForceGraph2D from "react-force-graph-2d";
 import { getGraph, getGraphCache, setGraphCache } from "@/services/blockidApi";
 
@@ -65,22 +65,15 @@ function nodeColorByRisk(risk: number | undefined): string {
   return "#ef4444";                   // low score = red = dangerous
 }
 
-export interface WalletGraphHandle {
-  zoomToFit: (duration?: number, padding?: number) => void;
-}
-
 interface WalletGraphProps {
   wallet: string;
   graphData?: NormalizedGraphData | null;
   onSelectWallet?: (wallet: string) => void;
-  hideResetButton?: boolean;
-  fullscreen?: boolean;
+  topRightSlot?: React.ReactNode;
+  fillContainer?: boolean;
 }
 
-const WalletGraph = forwardRef<WalletGraphHandle, WalletGraphProps>(function WalletGraph(
-  { wallet, graphData: graphDataProp, onSelectWallet, hideResetButton, fullscreen },
-  ref
-) {
+export default function WalletGraph({ wallet, graphData: graphDataProp, onSelectWallet, topRightSlot, fillContainer }: WalletGraphProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const graphRef = useRef<any>(null);
@@ -180,8 +173,8 @@ const WalletGraph = forwardRef<WalletGraphHandle, WalletGraphProps>(function Wal
     const updateSize = () => {
       requestAnimationFrame(() => {
         if (el && el.offsetWidth > 0) {
-          const h = fullscreen ? el.offsetHeight : 300;
-          setDimensions({ width: el.offsetWidth, height: h > 0 ? h : 300 });
+          const h = fillContainer ? el.offsetHeight : 300;
+          setDimensions({ width: el.offsetWidth, height: h });
         }
       });
     };
@@ -189,11 +182,7 @@ const WalletGraph = forwardRef<WalletGraphHandle, WalletGraphProps>(function Wal
     const observer = new ResizeObserver(updateSize);
     observer.observe(el);
     return () => observer.disconnect();
-  }, [fullscreen]);
-
-  useImperativeHandle(ref, () => ({
-    zoomToFit: (duration = 400, padding = 60) => graphRef.current?.zoomToFit(duration, padding),
-  }), []);
+  }, [fillContainer]);
 
   const nodeColor = useCallback((node: GraphNode) => nodeColorByRisk(node.risk), []);
   const nodeVal = useCallback((node: GraphNode) => (node.connections ?? 0) * 0.8 + 1, []);
@@ -250,33 +239,32 @@ const WalletGraph = forwardRef<WalletGraphHandle, WalletGraphProps>(function Wal
     );
   }
 
-  const containerHeight = fullscreen ? "100%" : "320px";
+  const containerSize = fillContainer ? { width: "100%", height: "100%" } : { width: "100%", height: "320px" };
 
   return (
     <div
-      className={`relative overflow-hidden ${fullscreen ? "" : "rounded-2xl border border-zinc-800 bg-zinc-900/80"}`}
-      style={{ width: "100%", height: containerHeight }}
+      className={`rounded-2xl border border-zinc-800 bg-zinc-900/80 relative overflow-hidden ${fillContainer ? "flex flex-col h-full" : ""}`}
+      style={{ width: "100%", height: fillContainer ? "100%" : "320px" }}
     >
       {clusterExpansionDetected && (
-        <div className="px-4 py-2 bg-amber-500/10 border-b border-amber-500/30 flex items-center gap-2">
+        <div className="px-4 py-2 bg-amber-500/10 border-b border-amber-500/30 flex items-center gap-2 shrink-0">
           <span className="text-amber-500 font-medium">Cluster Expansion Detected</span>
           <span className="text-muted-foreground text-sm">
             ({graphData.links.length} connections in network)
           </span>
         </div>
       )}
-      <div ref={containerRef} style={{ width: "100%", height: fullscreen ? "100%" : "320px", display: "block", position: "relative" }}>
-        {!hideResetButton && (
-          <div style={{ position: "absolute", top: "8px", right: "8px", zIndex: 10 }}>
-            <button
-              type="button"
-              onClick={() => graphRef.current?.zoomToFit(400)}
-              className="px-3 py-1.5 text-xs rounded-lg bg-zinc-800 hover:bg-zinc-700 text-foreground"
-            >
-              Reset View
-            </button>
-          </div>
-        )}
+      <div ref={containerRef} className={fillContainer ? "flex-1 min-h-0 relative" : ""} style={{ ...containerSize, display: "block", position: "relative" }}>
+        <div className="absolute top-3 right-3 flex gap-2 z-10">
+          <button
+            type="button"
+            onClick={() => graphRef.current?.zoomToFit(400)}
+            className="px-3 py-1.5 text-xs rounded-lg bg-zinc-800 hover:bg-zinc-700 text-foreground"
+          >
+            Reset View
+          </button>
+          {topRightSlot}
+        </div>
         <ForceGraph2D
           ref={graphRef}
           graphData={{
@@ -327,6 +315,4 @@ const WalletGraph = forwardRef<WalletGraphHandle, WalletGraphProps>(function Wal
       </div>
     </div>
   );
-});
-
-export default WalletGraph;
+}

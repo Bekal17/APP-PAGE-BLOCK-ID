@@ -235,6 +235,24 @@ export default function TrustAnalytics() {
             <Button onClick={() => fetchScore()} disabled={loading || !wallet.trim()}>
               {loading ? "Loading..." : "Get Score"}
             </Button>
+            {score !== null && !error && (
+              <Button
+                variant="outline"
+                disabled={loading || !wallet.trim()}
+                onClick={async () => {
+                  setLoading(true);
+                  try {
+                    await fetch(`${import.meta.env.VITE_EXPLORER_API_URL ?? "http://172.22.80.1:8001"}/wallet/recalculate/${wallet.trim()}`, { method: "POST" });
+                    await fetchScore();
+                  } catch {
+                    setLoading(false);
+                  }
+                }}
+                className="rounded-lg border-border bg-transparent hover:bg-accent/50 gap-2 whitespace-nowrap"
+              >
+                {loading ? "Analyzing..." : "Recalculate Score"}
+              </Button>
+            )}
           </CardContent>
         </Card>
 
