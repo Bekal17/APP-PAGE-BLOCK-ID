@@ -5,7 +5,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import {
   LayoutDashboard,
-  Shield,
+  Compass,
   Fingerprint,
   Route,
   Users,
@@ -17,10 +17,10 @@ import { Button } from "@/components/ui/button";
 
 const navItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Trust Analytics", url: "/analytics", icon: Shield },
+  { title: "Explore", url: "/explore", icon: Compass },
   { title: "Identity", url: "/identity", icon: Fingerprint },
   { title: "Smart Router", url: "/router", icon: Route },
-  { title: "Social", url: "/social", icon: Users },
+  { title: "Profile", url: "/profile", icon: Users },
 ];
 
 interface MobileNavProps {
