@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import logo from "@/assets/blockid_logo.svg";
 import {
   LayoutDashboard,
-  Shield,
+  Compass,
   Route,
   Users,
   Fingerprint,
@@ -11,10 +11,10 @@ import {
 
 const navItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Trust Analytics", url: "/analytics", icon: Shield },
+  { title: "Explore", url: "/explore", icon: Compass },
   { title: "Identity", url: "/identity", icon: Fingerprint },
   { title: "Smart Router", url: "/router", icon: Route },
-  { title: "Social", url: "/social", icon: Users },
+  { title: "Profile", url: "/profile", icon: Users },
 ];
 
 const AppSidebar = () => {

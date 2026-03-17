@@ -1,0 +1,1771 @@
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useCallback, useEffect, useState } from "react";
+import {
+  getGraph,
+  setGraphCache,
+  getSocialProfile,
+  getWalletPosts,
+  getWalletBalance,
+  likePost,
+  uploadAvatarPhoto,
+  uploadBannerPhoto,
+  getWalletNFTs,
+  setNFTAvatar,
+  setNFTBanner,
+  removeAvatar,
+  removeBanner,
+  getFollowers,
+  getFollowing,
+} from "@/services/blockidApi";
+import { normalizeGraphResponse } from "@/components/investigation/WalletGraph";
+import DashboardLayout from "@/components/DashboardLayout";
+import DashboardOnboarding from "@/components/DashboardOnboarding";
+import ScoreRing from "@/components/blockid/ScoreRing";
+import RiskBadge from "@/components/blockid/RiskBadge";
+import WalletActivityChart from "@/components/blockid/WalletActivityChart";
+import RiskExposureRadar from "@/components/blockid/dashboard/RiskExposureRadar";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import {
+  ShareInvestigationModal,
+  buildFullReport,
+  buildTwitterReport,
+} from "@/components/dashboard/ShareInvestigationModal";
+import {
+  AlertTriangle,
+  Clock,
+  ArrowLeftRight,
+  Users,
+  DollarSign,
+  FileText,
+  Heart,
+  MessageSquare,
+  Shield,
+  Camera,
+  Image,
+  Trash2,
+  X,
+  ExternalLink,
+} from "lucide-react";
+import {
+  InvestigatorProgress,
+  type InvestigatorStep,
+} from "@/components/InvestigatorProgress";
+
+const APP_BASE_URL = "https://app.blockidscore.fun";
+const API_BASE =
+  import.meta.env.VITE_EXPLORER_API_URL ||
+  "https://blockid-backend-production.up.railway.app";
+
+const formatSolanaAddress = (address: string) => {
+  if (!address) return "";
+  if (address.length <= 12) return address;
+  return `${address.slice(0, 4)}...${address.slice(-4)}`;
+};
+
+const truncateWalletLong = (address: string) => {
+  if (!address) return "";
+  if (address.length <= 16) return address;
+  return `${address.slice(0, 8)}...${address.slice(-8)}`;
+};
+
+const riskColorMap: Record<string, string> = {
+  GREEN: "GREEN",
+  AMBER: "ORANGE",
+  YELLOW: "ORANGE",
+  ORANGE: "ORANGE",
+  RED: "RED",
+};
+
+const getStatusMessage = (riskColor: string, riskTier: string) => {
+  const rc = riskColor?.toUpperCase();
+  if (rc === "RED") return "Review recommended";
+  if (rc === "AMBER" || rc === "ORANGE" || rc === "YELLOW") return "Caution advised";
+  return "Safe";
+};
+
+const buildRiskAlerts = (data: {
+  primary_risk_driver?: string | null;
+  propagation_signal?: string;
+  cluster?: { cluster_id?: string; size?: number } | null;
+  badges?: string[];
+}) => {
+  const alerts: string[] = [];
+  const sig = (data.propagation_signal ?? "").toUpperCase();
+  if (sig === "HIGH" || sig === "MEDIUM") {
+    alerts.push("Interaction with high-risk wallet");
+  }
+  if (data.cluster) {
+    alerts.push("Cluster exposure detected");
+  }
+  if (data.primary_risk_driver) {
+    if (data.primary_risk_driver.includes("SCAM") || data.primary_risk_driver.includes("CLUSTER")) {
+      if (!alerts.some((a) => a.includes("Cluster"))) {
+        alerts.push("Cluster exposure detected");
+      }
+    } else {
+      alerts.push("Suspicious token interaction");
+    }
+  }
+  if (data.badges?.some((b) => b.includes("SCAM") || b.includes("RISK"))) {
+    alerts.push("Suspicious token interaction");
+  }
+  return [...new Set(alerts)];
+};
+
+interface DashboardData {
+  risk_level?: string;
+  risk_tier?: string;
+  trust_score: number;
+  risk_color: string;
+  summary_message: string;
+  recommended_actions: string[];
+  counterparties: { wallet: string; risk_tier: string }[];
+  evidence?: { tx_hash: string; reason: string; timestamp?: string }[];
+  timeline_events?: { time: string; event: string; counterparty?: string }[];
+  propagation_signal?: string;
+  primary_risk_driver?: string | null;
+  cluster?: { cluster_id?: string; size?: number } | null;
+  badges?: string[];
+  wallet_age_months?: number;
+  wallet_first_seen?: string;
+  wallet_age_days?: number;
+  exposure_ratio?: number;
+  fingerprint?: string;
+  category?: string;
+  volume_30d?: number;
+  transactions?: number;
+  unique_counterparties?: number;
+}
+
+const formatWalletAge = (firstSeen?: string, months?: number, days?: number): string => {
+  if (days != null && days > 0) {
+    if (days < 30) return `${days} days`;
+    if (days < 365) return `${Math.round(days / 30)} mo`;
+    return `${(days / 365).toFixed(1)} years`;
+  }
+  if (firstSeen) {
+    try {
+      const date = new Date(firstSeen);
+      if (Number.isNaN(date.getTime())) return "Unknown";
+      const now = new Date();
+      const diffMs = now.getTime() - date.getTime();
+      const years = diffMs / (1000 * 60 * 60 * 24 * 365.25);
+      if (years < 0) return "Unknown";
+      if (years < 1) return `${Math.round(years * 12)} mo`;
+      return `${years.toFixed(1)} years`;
+    } catch {
+      return "Unknown";
+    }
+  }
+  if (months != null && months > 0) {
+    if (months < 12) return `${months} mo`;
+    return `${(months / 12).toFixed(1)} years`;
+  }
+  return "Unknown";
+};
+
+const formatVolume = (val?: number) => {
+  if (val == null || val <= 0) return "$0";
+  if (val >= 1_000_000) return `$${(val / 1_000_000).toFixed(1)}M`;
+  if (val >= 1_000) return `$${(val / 1_000).toFixed(1)}K`;
+  return `$${val.toLocaleString()}`;
+};
+
+const formatRelativeTime = (iso?: string) => {
+  if (!iso) return "";
+  const date = new Date(iso);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffSec = Math.floor(diffMs / 1000);
+  if (diffSec < 60) return "just now";
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin} min ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr} hr${diffHr > 1 ? "s" : ""} ago`;
+  const diffDay = Math.floor(diffHr / 24);
+  return `${diffDay} day${diffDay > 1 ? "s" : ""} ago`;
+};
+
+const Profile = () => {
+  const { publicKey, connected } = useWallet();
+  const { toast } = useToast();
+  const [profile, setProfile] = useState<any | null>(null);
+  const [posts, setPosts] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<"wallet" | "posts">("posts");
+  const [loading, setLoading] = useState(true);
+
+  const [walletLoading, setWalletLoading] = useState(false);
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [walletDashboard, setWalletDashboard] = useState<any>(null);
+  const [investigatorStep, setInvestigatorStep] =
+    useState<InvestigatorStep | null>(null);
+  const [investigatorDone, setInvestigatorDone] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [showAvatarMenu, setShowAvatarMenu] = useState(false);
+  const [showBannerMenu, setShowBannerMenu] = useState(false);
+  const [showNFTModal, setShowNFTModal] = useState<"avatar" | "banner" | null>(
+    null
+  );
+  const [nfts, setNfts] = useState<any[]>([]);
+  const [nftsLoading, setNftsLoading] = useState(false);
+  const [balance, setBalance] = useState<any>(null);
+  const [balanceLoading, setBalanceLoading] = useState(true);
+  const [showFollowModal, setShowFollowModal] = useState<
+    "followers" | "following" | null
+  >(null);
+  const [followList, setFollowList] = useState<any[]>([]);
+  const [followListLoading, setFollowListLoading] = useState(false);
+
+  useEffect(() => {
+    if (!showAvatarMenu && !showBannerMenu) return;
+    const handleClick = () => {
+      setShowAvatarMenu(false);
+      setShowBannerMenu(false);
+    };
+    const id = setTimeout(() => {
+      document.addEventListener("click", handleClick);
+    }, 0);
+    return () => {
+      clearTimeout(id);
+      document.removeEventListener("click", handleClick);
+    };
+  }, [showAvatarMenu, showBannerMenu]);
+
+  const address = publicKey?.toBase58();
+  const walletAddress = address ?? "REPLACE_WITH_CONNECTED_WALLET";
+  const walletUrl = address ? `${APP_BASE_URL}/wallet/${address}` : "";
+  const canShare = !!address && !!data && !walletLoading && !error;
+  const [shareInvestigationOpen, setShareInvestigationOpen] = useState(false);
+  const [graphData, setGraphData] =
+    useState<ReturnType<typeof normalizeGraphResponse> | null>(null);
+
+  useEffect(() => {
+    const wallet = publicKey?.toString() ?? "";
+    if (!wallet) {
+      setProfile(null);
+      setPosts([]);
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setLoading(true);
+
+    const run = async () => {
+      try {
+        const [profileRes, postsRes] = await Promise.all([
+          getSocialProfile(wallet),
+          getWalletPosts(wallet),
+        ]);
+        if (!cancelled) {
+          setProfile(profileRes);
+          const p = profileRes.posts ?? postsRes.posts ?? postsRes ?? [];
+          setPosts(Array.isArray(p) ? p : []);
+        }
+      } catch (e) {
+        console.error("Failed to load profile/posts", e);
+        if (!cancelled) {
+          setProfile(null);
+          setPosts([]);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+
+    run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [publicKey]);
+
+  useEffect(() => {
+    const wallet = address ?? "";
+    if (!wallet) {
+      setBalance(null);
+      setBalanceLoading(false);
+      return;
+    }
+    setBalanceLoading(true);
+    getWalletBalance(wallet)
+      .then(setBalance)
+      .catch(() => setBalance(null))
+      .finally(() => setBalanceLoading(false));
+  }, [address]);
+
+  const loadDashboardData = useCallback(async () => {
+    try {
+      setError(null);
+      const res = await fetch(
+        `${API_BASE}/wallet/${encodeURIComponent(walletAddress)}/dashboard`
+      );
+      const json = await res.json();
+      if (!res.ok)
+        throw new Error(json?.detail ?? "Failed to load wallet dashboard");
+      setWalletDashboard(json);
+      const bp =
+        json.behavioral_pattern ??
+        json.fingerprint ??
+        json.category ??
+        json.profile ??
+        "";
+      const profileVal = json.profile;
+      const profileStr =
+        typeof profileVal === "string"
+          ? profileVal
+          : Array.isArray(profileVal)
+          ? profileVal.join(", ")
+          : "";
+      setData({
+        trust_score: json.trust_score ?? 0,
+        risk_tier: json.risk_tier ?? "LOW",
+        risk_color: json.risk_color ?? "GREEN",
+        summary_message: json.summary_message ?? "",
+        recommended_actions: json.recommended_actions ?? json.reasons ?? [],
+        counterparties: json.counterparties ?? [],
+        evidence: json.evidence ?? [],
+        timeline_events: json.timeline_events ?? [],
+        propagation_signal: json.propagation_signal,
+        primary_risk_driver: json.primary_risk_driver,
+        cluster: json.cluster,
+        badges: json.badges ?? [],
+        wallet_age_months:
+          json.wallet_age_months ??
+          (json.wallet_age_days != null
+            ? Math.round(json.wallet_age_days / 30)
+            : undefined) ??
+          json.wallet_age,
+        wallet_first_seen: json.wallet_first_seen ?? json.first_seen,
+        wallet_age_days: json.wallet_age_days,
+        transactions: json.transactions ?? json.activity?.transactions,
+        unique_counterparties:
+          json.unique_counterparties ?? json.activity?.unique_counterparties,
+        exposure_ratio: json.exposure_ratio ?? json.risk_exposure ?? 0,
+        volume_30d:
+          json.volume_30d ??
+          json.volume_30d_usd ??
+          json.activity?.volume_30d,
+        fingerprint: bp || profileStr,
+        category: json.category ?? (bp || profileStr),
+      });
+    } catch (err) {
+      console.error("Failed to load wallet dashboard", err);
+      setError(
+        err instanceof Error ? err.message : "Could not load wallet data"
+      );
+      setData(null);
+      setWalletDashboard(null);
+    } finally {
+      setWalletLoading(false);
+      setInvestigatorStep(null);
+      setInvestigatorDone(false);
+    }
+  }, [walletAddress]);
+
+  useEffect(() => {
+    if (
+      !walletAddress ||
+      walletAddress === "REPLACE_WITH_CONNECTED_WALLET" ||
+      !connected
+    ) {
+      setData(null);
+      setWalletDashboard(null);
+      setError(null);
+      setInvestigatorStep(null);
+      setInvestigatorDone(false);
+      return;
+    }
+
+    setWalletLoading(true);
+    setError(null);
+    setInvestigatorStep(null);
+    setInvestigatorDone(false);
+
+    let eventSource: EventSource | null = null;
+
+    const run = async () => {
+      try {
+        const checkRes = await fetch(
+          `${API_BASE}/wallet/${encodeURIComponent(walletAddress)}/needs-refresh`
+        );
+        const checkJson = await checkRes.json();
+
+        if (checkJson.cached === true && checkJson.needs_refresh === false) {
+          setInvestigatorStep(null);
+          setInvestigatorDone(true);
+          setWalletLoading(false);
+          await loadDashboardData();
+          return;
+        }
+
+        const investigateUrl = `${API_BASE}/investigate/${encodeURIComponent(
+          walletAddress
+        )}`;
+        eventSource = new EventSource(investigateUrl);
+
+        eventSource.onmessage = (event) => {
+          try {
+            const parsed = JSON.parse(event.data);
+            if (parsed.step === "fetch_tx") setInvestigatorStep("fetch_tx");
+            else if (parsed.step === "build_network")
+              setInvestigatorStep("build_network");
+            else if (parsed.step === "detect_drainer")
+              setInvestigatorStep("detect_drainer");
+            else if (parsed.step === "compute_score")
+              setInvestigatorStep("compute_score");
+
+            if (parsed.status === "done") {
+              eventSource?.close();
+              setInvestigatorDone(true);
+              setWalletLoading(false);
+              loadDashboardData();
+            }
+          } catch {
+            // ignore parse errors
+          }
+        };
+
+        eventSource.onerror = () => {
+          eventSource?.close();
+          setWalletLoading(false);
+          loadDashboardData();
+        };
+      } catch {
+        setWalletLoading(false);
+        setInvestigatorDone(true);
+        await loadDashboardData();
+      }
+    };
+
+    run();
+
+    return () => {
+      eventSource?.close();
+    };
+  }, [walletAddress, connected, loadDashboardData]);
+
+  useEffect(() => {
+    if (!address || !connected) return;
+    async function preloadGraph() {
+      try {
+        const graph = await getGraph(address);
+        const normalized = normalizeGraphResponse(graph);
+        setGraphCache(address, normalized);
+        setGraphData(normalized);
+      } catch {
+        setGraphData(null);
+      }
+    }
+    preloadGraph();
+  }, [address, connected]);
+
+  const trustScore = walletDashboard?.trust_score ?? data?.trust_score ?? 0;
+  const riskTier = walletDashboard?.risk_tier ?? data?.risk_tier ?? "LOW";
+  const riskExposure = walletDashboard?.risk_exposure;
+  const activity = walletDashboard?.activity;
+  const badges = walletDashboard?.badges;
+
+  const score = trustScore;
+  const riskColor =
+    riskColorMap[data?.risk_color?.toUpperCase() ?? ""] ?? "GREEN";
+  const summaryMessage = data?.summary_message ?? "";
+  const recommendedActions = data?.recommended_actions ?? [];
+  const riskAlerts = data ? buildRiskAlerts(data) : [];
+  const counterpartyItems = (data?.counterparties ?? [])
+    .filter(
+      (c) =>
+        (c.risk_tier ?? "").toUpperCase() === "HIGH" ||
+        (c.risk_tier ?? "").toUpperCase() === "MEDIUM"
+    )
+    .slice(0, 5)
+    .map((c) => ({
+      label: `Unknown wallet transfer — ${(c.risk_tier ?? "MEDIUM").toUpperCase()} risk`,
+      wallet: c.wallet,
+      risk: c.risk_tier,
+    }));
+  const evidenceItems = (data?.evidence ?? [])
+    .slice(0, Math.max(0, 5 - counterpartyItems.length))
+    .map((e) => ({
+      label: `${e.reason} — HIGH risk`,
+      wallet: "",
+      risk: "HIGH",
+    }));
+  const suspiciousItems = [...counterpartyItems, ...evidenceItems].slice(0, 5);
+  const totalTx = data?.transactions ?? data?.timeline_events?.length ?? 0;
+  const uniqueCounterparties =
+    data?.unique_counterparties ??
+    new Set(data?.counterparties?.map((c) => c.wallet) ?? []).size;
+
+  const getBehaviorPatterns = (data: DashboardData | null, score: number): string[] => {
+    if (!data) return ["No pattern detected"];
+
+    // Priority 1: use reasons from backend if available
+    const reasons: string[] = walletDashboard?.reasons ?? [];
+
+    if (reasons.length > 0) {
+      const patterns: string[] = [];
+      const reasonSet = new Set(reasons);
+
+      // === HIGH RISK PATTERNS ===
+      if (reasonSet.has("MEGA_DRAINER") || reasonSet.has("DRAINER_FLOW") || reasonSet.has("DRAINER_FLOW_DETECTED")) {
+        patterns.push("Drainer pattern detected");
+        patterns.push("Elevated propagation risk");
+        return patterns;
+      }
+      if (reasonSet.has("RUG_PULL_DEPLOYER")) {
+        patterns.push("Rug pull deployer");
+        patterns.push("Elevated propagation risk");
+        return patterns;
+      }
+      if (
+        reasonSet.has("SCAM_CLUSTER_MEMBER") ||
+        reasonSet.has("SCAM_CLUSTER_MEMBER_SMALL") ||
+        reasonSet.has("SCAM_CLUSTER_MEMBER_LARGE")
+      ) {
+        patterns.push("Cluster-linked wallet");
+        patterns.push("Elevated risk exposure");
+        return patterns;
+      }
+      if (reasonSet.has("HIGH_RISK_TOKEN_INTERACTION") || reasonSet.has("SUSPICIOUS_TOKEN_MINT")) {
+        patterns.push("Suspicious token activity");
+        patterns.push("Elevated risk exposure");
+        return patterns;
+      }
+      if (reasonSet.has("BLACKLISTED_CREATOR")) {
+        patterns.push("Blacklisted creator");
+        patterns.push("Elevated risk exposure");
+        return patterns;
+      }
+
+      // === MEDIUM RISK PATTERNS ===
+      if (reasonSet.has("HIGH_VALUE_OUTFLOW")) {
+        patterns.push("High value outflow detected");
+        return patterns;
+      }
+      if (reasonSet.has("VICTIM_OF_SCAM")) {
+        patterns.push("Previous scam victim");
+        patterns.push("Monitor interactions");
+        return patterns;
+      }
+
+      // === LOW RISK / INFO PATTERNS ===
+      if (reasonSet.has("LOW_ACTIVITY")) {
+        patterns.push("Low on-chain activity");
+        patterns.push("Insufficient data for full analysis");
+        return patterns;
+      }
+      if (reasonSet.has("NEW_WALLET")) {
+        patterns.push("New wallet");
+        patterns.push("No history available");
+        return patterns;
+      }
+
+      // === POSITIVE PATTERNS ===
+      if (reasonSet.has("MEGA_DRAINER") === false) {
+        if (reasonSet.has("DEX_TRADER") || reasonSet.has("DEX_TRADER_10_PLUS") || reasonSet.has("DEX_TRADER_50_PLUS")) {
+          patterns.push("Active DEX trader");
+        }
+        if (reasonSet.has("NFT_COLLECTOR") || reasonSet.has("NFT_10_PLUS")) {
+          patterns.push("NFT collector");
+        }
+        if (reasonSet.has("LONG_HISTORY") || reasonSet.has("MULTI_YEAR_ACTIVITY") || reasonSet.has("AGE_3Y") || reasonSet.has("AGE_5Y")) {
+          patterns.push("Long-term holder");
+        }
+        if (reasonSet.has("LOW_RISK_CLUSTER") || reasonSet.has("FAR_FROM_SCAM_CLUSTER")) {
+          patterns.push("Low-risk network");
+        }
+        if (reasonSet.has("CLEAN_HISTORY") || reasonSet.has("NO_SCAM_HISTORY")) {
+          patterns.push("No drainer pattern");
+        }
+        if (reasonSet.has("DAO_MEMBER")) {
+          patterns.push("DAO participant");
+        }
+        if (patterns.length > 0) return patterns;
+      }
+    }
+
+    // Priority 2: fallback to score-based if no reasons
+    if (score > 80) {
+      return ["Long-term holder", "Low-risk network", "No drainer pattern"];
+    }
+    if (score >= 40) {
+      return ["Active trader", "Moderate exposure"];
+    }
+    if (score >= 20) {
+      return ["Elevated risk exposure", "Review recommended"];
+    }
+    return ["Cluster-linked wallet", "Elevated risk exposure"];
+  };
+
+  const behaviorPatterns = getBehaviorPatterns(data, score);
+  const walletAgeStr = formatWalletAge(data?.wallet_first_seen, data?.wallet_age_months, data?.wallet_age_days);
+  const volumeStr = formatVolume(data?.volume_30d);
+
+  const investigationReportProps =
+    address && data
+      ? {
+          walletAddress: address,
+          shortAddress: formatSolanaAddress(address),
+          trustScore: score,
+          riskTier,
+          walletAge: walletAgeStr,
+          totalTx,
+          uniqueCounterparties,
+          volume30d: volumeStr,
+          behaviorPatterns,
+        }
+      : null;
+
+  const fullReportText = investigationReportProps
+    ? buildFullReport(investigationReportProps)
+    : "";
+  const twitterReportText = investigationReportProps
+    ? buildTwitterReport(investigationReportProps)
+    : "";
+
+  const handleCopyInvestigationReport = () => {
+    if (!fullReportText) return;
+    navigator.clipboard.writeText(fullReportText);
+    toast({ title: "Investigation report copied" });
+  };
+
+  const handleShareInvestigationTwitter = () => {
+    if (!twitterReportText) return;
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+      twitterReportText
+    )}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  const handleShareInvestigationTelegram = () => {
+    if (!twitterReportText || !walletUrl) return;
+    const url = `https://t.me/share/url?url=${encodeURIComponent(
+      walletUrl
+    )}&text=${encodeURIComponent(twitterReportText)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  const handleRecalculate = async () => {
+    if (!address) return;
+    try {
+      setAnalyzing(true);
+      const res = await fetch(
+        `${API_BASE}/wallet/recalculate/${encodeURIComponent(address)}`,
+        {
+          method: "POST",
+        }
+      );
+      if (!res.ok) throw new Error("Recalculate failed");
+      await loadDashboardData();
+      toast({ title: "Score recalculated successfully" });
+    } catch (err) {
+      console.error("Recalculate error", err);
+      toast({
+        title: "Failed to recalculate score",
+        variant: "destructive",
+      });
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const cardClass =
+    "rounded-2xl border border-border bg-card/40 backdrop-blur p-6 transition-shadow hover:shadow-[0_0_20px_rgba(0,255,200,0.15)]";
+
+  if (!connected || !publicKey) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
+          <Shield className="w-12 h-12 mb-4 opacity-30" />
+          <p className="text-lg font-medium">Connect your wallet</p>
+          <p className="text-sm mt-1">
+            Connect wallet to view your BlockID profile
+          </p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const bannerUrl = profile?.banner_url as string | undefined;
+  const avatarUrl = profile?.avatar_url as string | undefined;
+  const avatarType = profile?.avatar_type as string | undefined;
+  const avatarIsAnimated = profile?.avatar_is_animated === true;
+  const handle = profile?.handle as string | undefined;
+  const profileWallet = profile?.wallet ?? address;
+  const wallet = address ?? "";
+  const followerCount = profile?.follower_count ?? profile?.followers_count ?? 0;
+  const followingCount = profile?.following_count ?? 0;
+  const profileScore =
+    typeof profile?.trust_score === "number"
+      ? profile.trust_score
+      : (walletDashboard?.trust_score ?? data?.trust_score ?? 0);
+  const trustBadgeClass =
+    profileScore >= 70
+      ? "bg-green-500/20 text-green-400"
+      : profileScore >= 40
+      ? "bg-orange-500/20 text-orange-400"
+      : "bg-red-500/20 text-red-400";
+
+  const isOwnProfile =
+    profileWallet && address
+      ? profileWallet.toString() === address.toString()
+      : true;
+
+  const [likeLoading, setLikeLoading] = useState<Record<string | number, boolean>>(
+    {}
+  );
+
+  const handleLikePost = async (post: any) => {
+    if (!address || !post?.id) return;
+    setLikeLoading((prev) => ({ ...prev, [post.id]: true }));
+    try {
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === post.id
+            ? { ...p, likes_count: (p.likes_count ?? 0) + 1 }
+            : p
+        )
+      );
+      await likePost(address, post.id);
+    } catch (e) {
+      console.error("Failed to like post", e);
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === post.id
+            ? { ...p, likes_count: Math.max((p.likes_count ?? 1) - 1, 0) }
+            : p
+        )
+      );
+    } finally {
+      setLikeLoading((prev) => ({ ...prev, [post.id]: false }));
+    }
+  };
+
+  return (
+    <DashboardLayout>
+      <div className="w-full max-w-screen-2xl mx-auto p-4 md:p-8 space-y-6">
+        {/* Banner */}
+        <div className="relative w-full h-44 rounded-xl">
+          <div className="absolute inset-0 rounded-xl overflow-hidden">
+            {profile?.banner_url ? (
+              <div
+                className="absolute inset-0"
+                style={{
+                  backgroundImage: `url(${profile.banner_url})`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
+              />
+            ) : (
+              <div className="absolute inset-0 bg-gradient-to-r from-zinc-800 via-zinc-700 to-zinc-800" />
+            )}
+          </div>
+
+          {publicKey?.toString() === wallet && (
+            <div className="absolute bottom-3 right-3 z-50">
+              <button
+                onClick={() => setShowBannerMenu(!showBannerMenu)}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-black/60 hover:bg-black/80 text-white text-xs font-medium rounded-lg backdrop-blur-sm transition-colors"
+              >
+                <Image className="w-3.5 h-3.5" />
+                Edit Banner
+              </button>
+
+              {showBannerMenu && (
+                <div className="absolute bottom-full right-0 mt-1 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl py-1 w-44">
+                  <label className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/30 cursor-pointer transition-colors">
+                    <Camera className="w-4 h-4 text-primary" />
+                    Upload Photo
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/gif,image/webp"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file || !publicKey) return;
+                        try {
+                          const res = await uploadBannerPhoto(
+                            publicKey.toString(),
+                            file
+                          );
+                          if (res.success) {
+                            setProfile((p: any) => ({
+                              ...p,
+                              banner_url: res.banner_url,
+                              banner_type: "PHOTO",
+                            }));
+                          }
+                        } catch (err) {
+                          console.error(err);
+                        }
+                        setShowBannerMenu(false);
+                      }}
+                    />
+                  </label>
+
+                  <button
+                    onClick={async () => {
+                      setShowBannerMenu(false);
+                      setShowNFTModal("banner");
+                      setNftsLoading(true);
+                      try {
+                        const data = await getWalletNFTs(wallet);
+                        setNfts(data.nfts ?? data ?? []);
+                      } catch {
+                        setNfts([]);
+                      }
+                      setNftsLoading(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/30 transition-colors"
+                  >
+                    <Image className="w-4 h-4 text-yellow-400" />
+                    Choose NFT
+                  </button>
+
+                  {profile?.banner_url && (
+                    <button
+                      onClick={async () => {
+                        if (!publicKey) return;
+                        try {
+                          await removeBanner(publicKey.toString());
+                          setProfile((p: any) => ({
+                            ...p,
+                            banner_url: null,
+                            banner_type: "NONE",
+                          }));
+                        } catch {}
+                        setShowBannerMenu(false);
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-muted/30 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Remove Banner
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Profile row */}
+          <div className="flex items-end gap-4 -mt-10 ml-6 relative z-10">
+            <div className="relative w-20 h-20">
+              {avatarType === "NFT" && avatarUrl ? (
+                avatarIsAnimated ? (
+                  <video
+                    src={avatarUrl}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    className="w-20 h-20 object-cover"
+                    style={{
+                      borderRadius: "8px",
+                      border: "2px solid gold",
+                      boxShadow: "0 0 8px rgba(255,215,0,0.5)",
+                    }}
+                  />
+                ) : (
+                  <img
+                    src={avatarUrl}
+                    alt={handle ?? profileWallet}
+                    className="w-20 h-20 object-cover"
+                    style={{
+                      borderRadius: "8px",
+                      border: "2px solid gold",
+                      boxShadow: "0 0 8px rgba(255,215,0,0.5)",
+                    }}
+                  />
+                )
+              ) : avatarType === "PHOTO" && avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={handle ?? profileWallet}
+                  className="w-20 h-20 object-cover rounded-full border-2 border-white"
+                />
+              ) : (
+                <div className="w-20 h-20 rounded-full bg-zinc-700 border-2 border-zinc-600 flex items-center justify-center text-2xl font-bold text-foreground">
+                  {(profile?.handle ?? wallet ?? "?")[0]?.toUpperCase() ?? "?"}
+                </div>
+              )}
+
+              {publicKey?.toString() === wallet && (
+                <button
+                  onClick={() => setShowAvatarMenu(!showAvatarMenu)}
+                  className="absolute inset-0 rounded-full bg-black/50 opacity-0 hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer"
+                  style={{
+                    borderRadius:
+                      profile?.avatar_type === "NFT" ? "8px" : "50%",
+                  }}
+                >
+                  <Camera className="w-5 h-5 text-white" />
+                </button>
+              )}
+
+              {showAvatarMenu && publicKey?.toString() === wallet && (
+                <div className="absolute top-full left-0 mt-1 z-50 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl py-1 w-44">
+                  <label className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/30 cursor-pointer transition-colors">
+                    <Camera className="w-4 h-4 text-primary" />
+                    Upload Photo
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/gif,image/webp"
+                      className="hidden"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file || !publicKey) return;
+                        try {
+                          const res = await uploadAvatarPhoto(
+                            publicKey.toString(),
+                            file
+                          );
+                          if (res.success) {
+                            setProfile((p: any) => ({
+                              ...p,
+                              avatar_url: res.avatar_url,
+                              avatar_type: "PHOTO",
+                            }));
+                          }
+                        } catch (err) {
+                          console.error(err);
+                        }
+                        setShowAvatarMenu(false);
+                      }}
+                    />
+                  </label>
+
+                  <button
+                    onClick={async () => {
+                      setShowAvatarMenu(false);
+                      setShowNFTModal("avatar");
+                      setNftsLoading(true);
+                      try {
+                        const data = await getWalletNFTs(wallet);
+                        setNfts(data.nfts ?? data ?? []);
+                      } catch {
+                        setNfts([]);
+                      }
+                      setNftsLoading(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/30 transition-colors"
+                  >
+                    <Image className="w-4 h-4 text-yellow-400" />
+                    Choose NFT
+                  </button>
+
+                  {profile?.avatar_url && (
+                    <button
+                      onClick={async () => {
+                        if (!publicKey) return;
+                        try {
+                          await removeAvatar(publicKey.toString());
+                          setProfile((p: any) => ({
+                            ...p,
+                            avatar_url: null,
+                            avatar_type: "NONE",
+                          }));
+                        } catch {}
+                        setShowAvatarMenu(false);
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-muted/30 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      Remove
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="flex-1 pb-2">
+              <p className="text-lg font-bold text-foreground">
+                {profile?.handle ? `@${profile.handle}` : wallet.length > 16 ? `${wallet.slice(0, 8)}...${wallet.slice(-8)}` : wallet}
+              </p>
+              <p className="text-xs text-muted-foreground font-mono">
+                {wallet.length > 16 ? `${wallet.slice(0, 8)}...${wallet.slice(-8)}` : wallet || "—"}
+              </p>
+              <div className="flex items-center gap-3 mt-1">
+                <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${trustBadgeClass}`}>
+                  ⬡ {Math.round(profileScore)}
+                </span>
+                <button
+                  onClick={async () => {
+                    setShowFollowModal("followers");
+                    setFollowListLoading(true);
+                    try {
+                      const data = await getFollowers(wallet);
+                      setFollowList(data.followers ?? data ?? []);
+                    } catch {
+                      setFollowList([]);
+                    }
+                    setFollowListLoading(false);
+                  }}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {followerCount} Followers
+                </button>
+                <button
+                  onClick={async () => {
+                    setShowFollowModal("following");
+                    setFollowListLoading(true);
+                    try {
+                      const data = await getFollowing(wallet);
+                      setFollowList(data.following ?? data ?? []);
+                    } catch {
+                      setFollowList([]);
+                    }
+                    setFollowListLoading(false);
+                  }}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {followingCount} Following
+                </button>
+              </div>
+              {profile?.badges &&
+                (() => {
+                  try {
+                    const list =
+                      typeof profile.badges === "string"
+                        ? JSON.parse(profile.badges)
+                        : profile.badges;
+                    return Array.isArray(list) && list.length > 0 ? (
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {list.map((badge: string) => (
+                          <span
+                            key={badge}
+                            className="px-2 py-0.5 rounded-full text-xs font-medium bg-primary/15 text-primary border border-primary/20"
+                          >
+                            {badge}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null;
+                  } catch {
+                    return null;
+                  }
+                })()}
+              {!isOwnProfile && (
+                <div className="flex items-center gap-2 mt-2">
+                  <Button
+                    size="sm"
+                    className="h-7 px-3 rounded-full text-xs"
+                    variant="default"
+                  >
+                    Follow
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="h-7 px-3 rounded-full text-xs"
+                    variant="outline"
+                  >
+                    Endorse
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+
+        {/* Tab switcher */}
+        <div className="border-b border-border flex gap-6 text-sm">
+          <button
+            className={`pb-2 px-1 -mb-px border-b-2 transition-colors ${
+              activeTab === "posts"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+            onClick={() => setActiveTab("posts")}
+          >
+            Posts
+          </button>
+          <button
+            className={`pb-2 px-1 -mb-px border-b-2 transition-colors ${
+              activeTab === "wallet"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground"
+            }`}
+            onClick={() => setActiveTab("wallet")}
+          >
+            Wallet
+          </button>
+        </div>
+
+        {/* Tab content */}
+        {activeTab === "wallet" ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 animate-slide-up">
+            {/* 0. Portfolio Balance - above Wallet Health */}
+            <div className="col-span-1 md:col-span-2 lg:col-span-12">
+              <div className="glass-card p-5 mb-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-semibold text-foreground">
+                    Portfolio
+                  </h3>
+                  {balance && (
+                    <span className="text-xs text-muted-foreground">
+                      Solana
+                    </span>
+                  )}
+                </div>
+
+                {balanceLoading ? (
+                  <div className="animate-pulse space-y-2">
+                    <div className="h-8 bg-zinc-700 rounded w-1/3" />
+                    <div className="h-4 bg-zinc-700 rounded w-1/2" />
+                  </div>
+                ) : !balance ? (
+                  <p className="text-sm text-muted-foreground">
+                    Unable to fetch balance
+                  </p>
+                ) : (
+                  <>
+                    {/* Total USD Value */}
+                    <div className="mb-4">
+                      <p className="text-3xl font-bold text-foreground">
+                        $
+                        {(balance.total_usd_value ?? 0).toLocaleString(
+                          "en-US",
+                          {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          }
+                        )}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Total Portfolio Value
+                      </p>
+                    </div>
+
+                    {/* SOL Balance */}
+                    <div className="flex items-center justify-between py-2.5 border-b border-zinc-800">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-xs font-bold text-white">
+                          ◎
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-foreground">
+                            SOL
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Solana
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-medium text-foreground">
+                          {(balance.sol_balance ?? 0).toLocaleString("en-US", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 4,
+                          })}{" "}
+                          SOL
+                        </p>
+                        {(balance.sol_usd_value ?? 0) > 0 && (
+                          <p className="text-xs text-muted-foreground">
+                            $
+                            {(balance.sol_usd_value ?? 0).toLocaleString(
+                              "en-US",
+                              {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              }
+                            )}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Token List */}
+                    {balance.tokens?.slice(0, 5).map((token: any, i: number) => (
+                      <div
+                        key={token.mint ?? token.symbol ?? i}
+                        className="flex items-center justify-between py-2.5 border-b border-zinc-800 last:border-0"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <div className="relative w-8 h-8 shrink-0">
+                            <div className="absolute inset-0 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-bold text-foreground">
+                              {token.symbol?.[0] ?? "?"}
+                            </div>
+                            {token.logo_uri && (
+                              <img
+                                src={token.logo_uri}
+                                alt={token.symbol}
+                                className="absolute inset-0 w-full h-full rounded-full object-cover"
+                                onError={(e) => {
+                                  e.currentTarget.style.visibility = "hidden";
+                                }}
+                              />
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-foreground">
+                              {token.symbol}
+                            </p>
+                            <p className="text-xs text-muted-foreground max-w-[120px] truncate">
+                              {token.name}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-medium text-foreground">
+                            {(token.balance ?? 0).toLocaleString("en-US", {
+                              minimumFractionDigits: 0,
+                              maximumFractionDigits: 4,
+                            })}
+                          </p>
+                          {token.usd_value && (
+                            <p className="text-xs text-muted-foreground">
+                              $
+                              {(token.usd_value ?? 0).toLocaleString("en-US", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Empty tokens */}
+                    {balance.tokens?.length === 0 &&
+                      (balance.sol_balance ?? 0) === 0 && (
+                        <p className="text-xs text-muted-foreground text-center py-2 mt-2">
+                          No assets found
+                        </p>
+                      )}
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* 1. Wallet Health - col-span-12 */}
+            <div
+              className={`${cardClass} col-span-1 md:col-span-2 lg:col-span-12`}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-foreground">
+                  Wallet Health
+                </h2>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-lg border-border bg-transparent hover:bg-accent/50 gap-2"
+                    disabled={!canShare}
+                    onClick={() => setShareInvestigationOpen(true)}
+                  >
+                    <FileText className="w-4 h-4" />
+                    Share Your Score
+                  </Button>
+                  <Button
+                    size="sm"
+                    disabled={analyzing || !address}
+                    onClick={handleRecalculate}
+                    className="rounded-lg bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white px-4 py-2 transition"
+                  >
+                    {analyzing ? "Analyzing..." : "Recalculate Score"}
+                  </Button>
+                  <a
+                    href="https://daemonprotocol.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 text-xs font-medium text-muted-foreground hover:text-foreground rounded-lg transition-colors"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    Investigate on Daemon
+                  </a>
+                </div>
+              </div>
+              {walletLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-pulse text-muted-foreground">
+                    Loading...
+                  </div>
+                </div>
+              ) : error ? (
+                <p className="text-sm text-destructive py-4">{error}</p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
+                  {/* Column 1: Trust Score */}
+                  <ScoreRing
+                    score={score}
+                    riskColor={riskColor}
+                    riskTier={data?.risk_level ?? data?.risk_tier}
+                  />
+
+                  {/* Column 2: Wallet Age, Activity Profile */}
+                  <div className="space-y-6 min-w-0">
+                    <div className="flex items-start gap-3">
+                      <Clock className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Wallet Age
+                        </p>
+                        <p className="font-medium text-foreground">
+                          {walletLoading
+                            ? "—"
+                            : formatWalletAge(
+                                data?.wallet_first_seen,
+                                data?.wallet_age_months,
+                                data?.wallet_age_days
+                              )}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Activity Profile
+                      </p>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <ArrowLeftRight className="w-4 h-4 text-muted-foreground shrink-0" />
+                          <span className="text-muted-foreground">
+                            Transactions:
+                          </span>
+                          <span className="font-medium text-foreground">
+                            {walletLoading ? "0" : totalTx}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <Users className="w-4 h-4 text-muted-foreground shrink-0" />
+                          <span className="text-muted-foreground">
+                            Unique Counterparties:
+                          </span>
+                          <span className="font-medium text-foreground">
+                            {walletLoading ? "0" : uniqueCounterparties}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <DollarSign className="w-4 h-4 text-muted-foreground shrink-0" />
+                          <span className="text-muted-foreground">
+                            30D Volume:
+                          </span>
+                          <span className="font-medium text-foreground">
+                            {walletLoading ? "$0" : formatVolume(data?.volume_30d)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Column 3: Behavioral Pattern, Summary */}
+                  <div className="space-y-6 min-w-0 md:col-span-2 lg:col-span-1">
+                    <div>
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Behavioral Pattern
+                      </p>
+                      <ul className="space-y-1.5">
+                        {(walletLoading
+                          ? ["No pattern detected"]
+                          : getBehaviorPatterns(data, score)
+                        ).map((pattern, i) => (
+                          <li
+                            key={i}
+                            className="flex items-start gap-2 text-sm"
+                          >
+                            <span className="text-primary mt-1">•</span>
+                            <span className="text-foreground">{pattern}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div>
+                      <p className="text-sm text-muted-foreground">Summary</p>
+                      <p className="text-foreground text-sm mt-1">
+                        {walletLoading
+                          ? "—"
+                          : summaryMessage || "No major threats detected."}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 2. Risk Alerts - col-span-6 */}
+            <div
+              className={`${cardClass} col-span-1 md:col-span-2 lg:col-span-6`}
+            >
+              <h2 className="text-lg font-semibold text-foreground mb-4">
+                Risk Alerts
+              </h2>
+              {walletLoading ? (
+                <p className="text-sm text-muted-foreground">Loading...</p>
+              ) : riskAlerts.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No active risk alerts detected.
+                </p>
+              ) : (
+                <ul className="space-y-2">
+                  {riskAlerts.map((alert, i) => (
+                    <li
+                      key={i}
+                      className="flex items-start gap-2 text-sm"
+                    >
+                      <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                      <span className="text-foreground">{alert}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* 3. Suspicious Interactions - col-span-6 */}
+            <div
+              className={`${cardClass} col-span-1 md:col-span-2 lg:col-span-6`}
+            >
+              <h2 className="text-lg font-semibold text-foreground mb-4">
+                Suspicious Interactions
+              </h2>
+              {walletLoading ? (
+                <p className="text-sm text-muted-foreground">Loading...</p>
+              ) : suspiciousItems.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No suspicious interactions detected.
+                </p>
+              ) : (
+                <ul className="space-y-3">
+                  {suspiciousItems.map((item, i) => (
+                    <li
+                      key={i}
+                      className="flex items-center justify-between gap-4 py-2 border-b border-zinc-800 last:border-0"
+                    >
+                      <span className="text-sm text-foreground">
+                        {item.label}
+                      </span>
+                      {item.wallet && (
+                        <span className="text-xs font-mono text-muted-foreground shrink-0">
+                          {formatSolanaAddress(item.wallet)}
+                        </span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* 4. Trust Improvement Tips - col-span-6 */}
+            <div
+              className={`${cardClass} col-span-1 md:col-span-2 lg:col-span-6`}
+            >
+              <h2 className="text-lg font-semibold text-foreground mb-4">
+                Trust Improvement Tips
+              </h2>
+              {walletLoading ? (
+                <p className="text-sm text-muted-foreground">Loading...</p>
+              ) : recommendedActions.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No recommendations at this time.
+                </p>
+              ) : (
+                <ul className="space-y-2">
+                  {recommendedActions.map((action, i) => (
+                    <li
+                      key={i}
+                      className="flex items-start gap-2 text-sm"
+                    >
+                      <span className="text-primary mt-1">•</span>
+                      <span className="text-foreground">{action}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            {/* 5. Activity Overview - col-span-6 */}
+            <div
+              className={`${cardClass} col-span-1 md:col-span-2 lg:col-span-6`}
+            >
+              <h2 className="text-sm font-semibold text-foreground mb-4">
+                Activity Overview
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <p className="stat-label">Total Transactions</p>
+                  <p className="stat-value mt-1">
+                    {walletLoading ? "—" : totalTx}
+                  </p>
+                </div>
+                <div>
+                  <p className="stat-label">Unique Counterparties</p>
+                  <p className="stat-value mt-1">
+                    {walletLoading ? "—" : uniqueCounterparties}
+                  </p>
+                </div>
+                <div>
+                  <p className="stat-label">30D Volume</p>
+                  <p className="stat-value mt-1">
+                    {walletLoading ? "—" : "—"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 6. Wallet Activity Chart - full width */}
+            <WalletActivityChart />
+
+            {/* 7. Risk Exposure Radar */}
+            <RiskExposureRadar riskTier={riskColor} />
+          </div>
+        ) : (
+          <div className="space-y-3 animate-slide-up">
+            {loading ? (
+              <>
+                {[0, 1].map((i) => (
+                  <div
+                    key={i}
+                    className="glass-card p-4 flex flex-col gap-3 animate-pulse"
+                  >
+                    <div className="h-3 w-32 bg-muted/60 rounded" />
+                    <div className="h-3 w-full bg-muted/50 rounded" />
+                    <div className="h-3 w-2/3 bg-muted/40 rounded" />
+                    <div className="flex items-center justify-between pt-2">
+                      <div className="h-3 w-16 bg-muted/40 rounded" />
+                      <div className="flex gap-3">
+                        <div className="h-3 w-10 bg-muted/40 rounded" />
+                        <div className="h-3 w-10 bg-muted/40 rounded" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </>
+            ) : posts.length === 0 ? (
+              <div className="glass-card p-6 text-center text-sm text-muted-foreground">
+                No posts yet.
+              </div>
+            ) : (
+              posts.map((post) => (
+                <div
+                  key={post.id}
+                  className="glass-card p-4 flex flex-col gap-3"
+                >
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>{formatRelativeTime(post.created_at)}</span>
+                    {post.is_hidden && (
+                      <span className="px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 flex items-center gap-1">
+                        ⚠️ Hidden by moderation
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-foreground whitespace-pre-wrap">
+                    {post.content}
+                  </p>
+                  <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
+                    <button
+                      className="flex items-center gap-1 hover:text-primary transition-colors disabled:opacity-60"
+                      disabled={likeLoading[post.id]}
+                      onClick={() => handleLikePost(post)}
+                    >
+                      <Heart
+                        className={`w-3.5 h-3.5 ${
+                          likeLoading[post.id] ? "animate-pulse" : ""
+                        }`}
+                      />
+                      <span>{post.likes_count ?? 0}</span>
+                    </button>
+                    <div className="flex items-center gap-1">
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      <span>{post.replies_count ?? 0}</span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {analyzing && (
+          <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+            <div className="bg-gray-900 p-8 rounded-xl text-center">
+              <div className="animate-pulse text-purple-400 text-lg mb-4">
+                🧠 BlockID AI analyzing wallet...
+              </div>
+              <div className="text-gray-400 text-sm space-y-1">
+                <div>Fetching transactions...</div>
+                <div>Analyzing wallet behavior...</div>
+                <div>Running risk model...</div>
+                <div>Updating trust score...</div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {investigationReportProps && (
+          <ShareInvestigationModal
+            open={shareInvestigationOpen}
+            onOpenChange={setShareInvestigationOpen}
+            {...investigationReportProps}
+            onCopyReport={handleCopyInvestigationReport}
+            onShareTwitter={handleShareInvestigationTwitter}
+            onShareTelegram={handleShareInvestigationTelegram}
+          />
+        )}
+
+        {showFollowModal !== null && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+            onClick={() => setShowFollowModal(null)}
+          >
+            <div
+              className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 w-full max-w-sm mx-4 max-h-[70vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-foreground capitalize">
+                  {showFollowModal}
+                </h3>
+                <button onClick={() => setShowFollowModal(null)}>
+                  <X className="w-5 h-5 text-muted-foreground hover:text-foreground" />
+                </button>
+              </div>
+
+              {followListLoading ? (
+                <div className="text-center py-8 text-muted-foreground text-sm">
+                  Loading...
+                </div>
+              ) : followList.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground text-sm">
+                  No {showFollowModal} yet.
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {followList.map((item: any, i: number) => {
+                    const w =
+                      item.wallet ?? item.from_wallet ?? item.to_wallet ?? "";
+                    const h = item.handle;
+                    const score =
+                      item.trust_score ?? item.score;
+                    return (
+                      <div
+                        key={i}
+                        className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/20 transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-zinc-700 flex items-center justify-center text-sm font-bold text-foreground">
+                            {(h ?? w)[0]?.toUpperCase() ?? "?"}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-foreground">
+                              {h
+                                ? `@${h}`
+                                : w.length > 10
+                                  ? `${w.slice(0, 6)}...${w.slice(-4)}`
+                                  : w || "—"}
+                            </p>
+                            {score !== undefined && (
+                              <p className="text-xs text-muted-foreground">
+                                Score: {Math.round(score)}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {showNFTModal !== null && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+            onClick={() => setShowNFTModal(null)}
+          >
+            <div
+              className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-foreground">
+                  Choose NFT as{" "}
+                  {showNFTModal === "avatar" ? "Avatar" : "Banner"}
+                </h3>
+                <button onClick={() => setShowNFTModal(null)}>
+                  <X className="w-5 h-5 text-muted-foreground hover:text-foreground" />
+                </button>
+              </div>
+
+              {nftsLoading ? (
+                <div className="text-center py-8 text-muted-foreground text-sm">
+                  Loading your NFTs...
+                </div>
+              ) : nfts.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground text-sm">
+                  No NFTs found in this wallet.
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 gap-3">
+                  {nfts.map((nft: any) => (
+                    <button
+                      key={nft.mint ?? nft.id}
+                      onClick={async () => {
+                        if (!publicKey) return;
+                        try {
+                          if (showNFTModal === "avatar") {
+                            const res = await setNFTAvatar(
+                              publicKey.toString(),
+                              nft.mint ?? nft.id
+                            );
+                            if (res.success) {
+                              setProfile((p: any) => ({
+                                ...p,
+                                avatar_url: res.avatar_url ?? nft.image,
+                                avatar_type: "NFT",
+                                avatar_nft_mint: nft.mint,
+                                avatar_nft_name: nft.name,
+                              }));
+                            }
+                          } else {
+                            const res = await setNFTBanner(
+                              publicKey.toString(),
+                              nft.mint ?? nft.id
+                            );
+                            if (res.success) {
+                              setProfile((p: any) => ({
+                                ...p,
+                                banner_url: res.banner_url ?? nft.image,
+                                banner_type: "NFT",
+                              }));
+                            }
+                          }
+                        } catch (err) {
+                          console.error(err);
+                        }
+                        setShowNFTModal(null);
+                      }}
+                      className="relative aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-yellow-400 transition-all group"
+                    >
+                      {nft.image ? (
+                        <img
+                          src={nft.image}
+                          alt={nft.name ?? "NFT"}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-xs text-muted-foreground p-1 text-center">
+                          {nft.name ?? "NFT"}
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-1">
+                        <p className="text-xs text-white truncate w-full">
+                          {nft.name ?? "Select"}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </DashboardLayout>
+  );
+};
+
+export default Profile;

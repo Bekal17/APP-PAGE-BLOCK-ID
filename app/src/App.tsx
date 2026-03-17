@@ -8,8 +8,9 @@ import SolanaWalletProvider from "@/components/SolanaWalletProvider";
 import Dashboard from "./pages/Dashboard";
 import TrustAnalytics from "./pages/TrustAnalytics";
 import Identity from "./pages/Identity";
+import Explore from "./pages/Explore";
 import SmartRouter from "./pages/SmartRouter";
-import Social from "./pages/Social";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,9 +38,10 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/analytics" element={<TrustAnalytics />} />
+            <Route path="/explore" element={<Explore />} />
             <Route path="/identity" element={<Identity />} />
             <Route path="/router" element={<SmartRouter />} />
-            <Route path="/social" element={<Social />} />
+            <Route path="/profile" element={<Profile />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
