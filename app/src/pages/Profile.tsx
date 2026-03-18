@@ -1,5 +1,6 @@
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useCallback, useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import {
   getGraph,
   setGraphCache,
@@ -7,6 +8,7 @@ import {
   getWalletPosts,
   getWalletBalance,
   likePost,
+  unlikePost,
   uploadAvatarPhoto,
   uploadBannerPhoto,
   getWalletNFTs,
@@ -16,6 +18,10 @@ import {
   removeBanner,
   getFollowers,
   getFollowing,
+  followWallet,
+  endorseWallet,
+  getPrivacySettings,
+  repostPost,
 } from "@/services/blockidApi";
 import { normalizeGraphResponse } from "@/components/investigation/WalletGraph";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -46,7 +52,9 @@ import {
   Trash2,
   X,
   ExternalLink,
+  Repeat2,
 } from "lucide-react";
+import WalletHoverCard from "@/components/WalletHoverCard";
 import {
   InvestigatorProgress,
   type InvestigatorStep,
@@ -189,6 +197,8 @@ const formatRelativeTime = (iso?: string) => {
 
 const Profile = () => {
   const { publicKey, connected } = useWallet();
+  const { walletParam } = useParams<{ walletParam: string }>();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [profile, setProfile] = useState<any | null>(null);
   const [posts, setPosts] = useState<any[]>([]);
@@ -217,6 +227,21 @@ const Profile = () => {
   >(null);
   const [followList, setFollowList] = useState<any[]>([]);
   const [followListLoading, setFollowListLoading] = useState(false);
+  const [viewedPrivacy, setViewedPrivacy] = useState<any>(null);
+  const [likedPostIds, setLikedPostIds] = useState<Set<number>>(new Set());
+  const [likeLoading, setLikeLoading] = useState<
+    Record<string | number, boolean>
+  >({});
+  const [repostedPostIds, setRepostedPostIds] = useState<Set<number>>(
+    new Set()
+  );
+  const [repostDropdownId, setRepostDropdownId] = useState<number | null>(
+    null
+  );
+  const [repostTargetId, setRepostTargetId] = useState<number | null>(
+    null
+  );
+  const [quoteText, setQuoteText] = useState("");
 
   useEffect(() => {
     if (!showAvatarMenu && !showBannerMenu) return;
@@ -233,16 +258,25 @@ const Profile = () => {
     };
   }, [showAvatarMenu, showBannerMenu]);
 
+  useEffect(() => {
+    if (repostDropdownId === null) return;
+    const handleClick = () => setRepostDropdownId(null);
+    setTimeout(() => {
+      document.addEventListener("click", handleClick);
+    }, 0);
+    return () => document.removeEventListener("click", handleClick);
+  }, [repostDropdownId]);
+
   const address = publicKey?.toBase58();
-  const walletAddress = address ?? "REPLACE_WITH_CONNECTED_WALLET";
-  const walletUrl = address ? `${APP_BASE_URL}/wallet/${address}` : "";
+  const wallet = walletParam ?? address ?? "";
+  const walletAddress = wallet || "REPLACE_WITH_CONNECTED_WALLET";
+  const walletUrl = wallet ? `${APP_BASE_URL}/wallet/${wallet}` : "";
   const canShare = !!address && !!data && !walletLoading && !error;
   const [shareInvestigationOpen, setShareInvestigationOpen] = useState(false);
   const [graphData, setGraphData] =
     useState<ReturnType<typeof normalizeGraphResponse> | null>(null);
 
   useEffect(() => {
-    const wallet = publicKey?.toString() ?? "";
     if (!wallet) {
       setProfile(null);
       setPosts([]);
@@ -280,10 +314,9 @@ const Profile = () => {
     return () => {
       cancelled = true;
     };
-  }, [publicKey]);
+  }, [wallet]);
 
   useEffect(() => {
-    const wallet = address ?? "";
     if (!wallet) {
       setBalance(null);
       setBalanceLoading(false);
@@ -294,7 +327,31 @@ const Profile = () => {
       .then(setBalance)
       .catch(() => setBalance(null))
       .finally(() => setBalanceLoading(false));
-  }, [address]);
+  }, [wallet]);
+
+  useEffect(() => {
+    if (!wallet) {
+      setViewedPrivacy(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadPrivacy = async () => {
+      try {
+        const privacy = await getPrivacySettings(wallet);
+        if (!cancelled) setViewedPrivacy(privacy);
+      } catch {
+        if (!cancelled) setViewedPrivacy(null);
+      }
+    };
+
+    loadPrivacy();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [wallet]);
 
   const loadDashboardData = useCallback(async () => {
     try {
@@ -694,8 +751,7 @@ const Profile = () => {
   const avatarType = profile?.avatar_type as string | undefined;
   const avatarIsAnimated = profile?.avatar_is_animated === true;
   const handle = profile?.handle as string | undefined;
-  const profileWallet = profile?.wallet ?? address;
-  const wallet = address ?? "";
+  const profileWallet = profile?.wallet ?? wallet;
   const followerCount = profile?.follower_count ?? profile?.followers_count ?? 0;
   const followingCount = profile?.following_count ?? 0;
   const profileScore =
@@ -709,36 +765,73 @@ const Profile = () => {
       ? "bg-orange-500/20 text-orange-400"
       : "bg-red-500/20 text-red-400";
 
-  const isOwnProfile =
-    profileWallet && address
-      ? profileWallet.toString() === address.toString()
-      : true;
-
-  const [likeLoading, setLikeLoading] = useState<Record<string | number, boolean>>(
-    {}
-  );
+  const isOwnProfile = !walletParam || (!!address && walletParam === address);
+  const canShowBalance =
+    isOwnProfile || viewedPrivacy?.balance_visibility === "PUBLIC";
 
   const handleLikePost = async (post: any) => {
     if (!address || !post?.id) return;
+    const isLiked = likedPostIds.has(post.id);
     setLikeLoading((prev) => ({ ...prev, [post.id]: true }));
     try {
-      setPosts((prev) =>
-        prev.map((p) =>
-          p.id === post.id
-            ? { ...p, likes_count: (p.likes_count ?? 0) + 1 }
-            : p
-        )
-      );
-      await likePost(address, post.id);
+      if (isLiked) {
+        setLikedPostIds((prev) => {
+          const next = new Set(prev);
+          next.delete(post.id);
+          return next;
+        });
+        setPosts((prev) =>
+          prev.map((p) =>
+            p.id === post.id
+              ? {
+                  ...p,
+                  likes_count: Math.max(
+                    (p.likes_count ?? p.like_count ?? 1) - 1,
+                    0
+                  ),
+                  like_count: Math.max(
+                    (p.likes_count ?? p.like_count ?? 1) - 1,
+                    0
+                  ),
+                }
+              : p
+          )
+        );
+        await unlikePost(address, post.id);
+      } else {
+        setLikedPostIds((prev) => {
+          const next = new Set(prev);
+          next.add(post.id);
+          return next;
+        });
+        setPosts((prev) =>
+          prev.map((p) =>
+            p.id === post.id
+              ? {
+                  ...p,
+                  likes_count: (p.likes_count ?? p.like_count ?? 0) + 1,
+                  like_count: (p.likes_count ?? p.like_count ?? 0) + 1,
+                }
+              : p
+          )
+        );
+        await likePost(address, post.id);
+      }
     } catch (e) {
-      console.error("Failed to like post", e);
-      setPosts((prev) =>
-        prev.map((p) =>
-          p.id === post.id
-            ? { ...p, likes_count: Math.max((p.likes_count ?? 1) - 1, 0) }
-            : p
-        )
-      );
+      console.error("Failed to toggle like", e);
+      if (isLiked) {
+        setLikedPostIds((prev) => {
+          const next = new Set(prev);
+          next.add(post.id);
+          return next;
+        });
+      } else {
+        setLikedPostIds((prev) => {
+          const next = new Set(prev);
+          next.delete(post.id);
+          return next;
+        });
+      }
     } finally {
       setLikeLoading((prev) => ({ ...prev, [post.id]: false }));
     }
@@ -764,7 +857,7 @@ const Profile = () => {
             )}
           </div>
 
-          {publicKey?.toString() === wallet && (
+          {isOwnProfile && (
             <div className="absolute bottom-3 right-3 z-50">
               <button
                 onClick={() => setShowBannerMenu(!showBannerMenu)}
@@ -893,7 +986,7 @@ const Profile = () => {
                 </div>
               )}
 
-              {publicKey?.toString() === wallet && (
+              {isOwnProfile && (
                 <button
                   onClick={() => setShowAvatarMenu(!showAvatarMenu)}
                   className="absolute inset-0 rounded-full bg-black/50 opacity-0 hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer"
@@ -906,7 +999,7 @@ const Profile = () => {
                 </button>
               )}
 
-              {showAvatarMenu && publicKey?.toString() === wallet && (
+              {showAvatarMenu && isOwnProfile && (
                 <div className="absolute top-full left-0 mt-1 z-50 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl py-1 w-44">
                   <label className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/30 cursor-pointer transition-colors">
                     <Camera className="w-4 h-4 text-primary" />
@@ -1054,6 +1147,14 @@ const Profile = () => {
                     size="sm"
                     className="h-7 px-3 rounded-full text-xs"
                     variant="default"
+                    onClick={async () => {
+                      if (!address) return;
+                      try {
+                        await followWallet(address, wallet);
+                      } catch (e) {
+                        console.error(e);
+                      }
+                    }}
                   >
                     Follow
                   </Button>
@@ -1061,6 +1162,14 @@ const Profile = () => {
                     size="sm"
                     className="h-7 px-3 rounded-full text-xs"
                     variant="outline"
+                    onClick={async () => {
+                      if (!address) return;
+                      try {
+                        await endorseWallet(address, wallet);
+                      } catch (e) {
+                        console.error(e);
+                      }
+                    }}
                   >
                     Endorse
                   </Button>
@@ -1097,8 +1206,9 @@ const Profile = () => {
         {activeTab === "wallet" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 animate-slide-up">
             {/* 0. Portfolio Balance - above Wallet Health */}
-            <div className="col-span-1 md:col-span-2 lg:col-span-12">
-              <div className="glass-card p-5 mb-4">
+            {canShowBalance && (
+              <div className="col-span-1 md:col-span-2 lg:col-span-12">
+                <div className="glass-card p-5 mb-4">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-sm font-semibold text-foreground">
                     Portfolio
@@ -1236,8 +1346,9 @@ const Profile = () => {
                       )}
                   </>
                 )}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* 1. Wallet Health - col-span-12 */}
             <div
@@ -1448,67 +1559,71 @@ const Profile = () => {
             </div>
 
             {/* 4. Trust Improvement Tips - col-span-6 */}
-            <div
-              className={`${cardClass} col-span-1 md:col-span-2 lg:col-span-6`}
-            >
-              <h2 className="text-lg font-semibold text-foreground mb-4">
-                Trust Improvement Tips
-              </h2>
-              {walletLoading ? (
-                <p className="text-sm text-muted-foreground">Loading...</p>
-              ) : recommendedActions.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No recommendations at this time.
-                </p>
-              ) : (
-                <ul className="space-y-2">
-                  {recommendedActions.map((action, i) => (
-                    <li
-                      key={i}
-                      className="flex items-start gap-2 text-sm"
-                    >
-                      <span className="text-primary mt-1">•</span>
-                      <span className="text-foreground">{action}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+            {isOwnProfile && (
+              <div
+                className={`${cardClass} col-span-1 md:col-span-2 lg:col-span-6`}
+              >
+                <h2 className="text-lg font-semibold text-foreground mb-4">
+                  Trust Improvement Tips
+                </h2>
+                {walletLoading ? (
+                  <p className="text-sm text-muted-foreground">Loading...</p>
+                ) : recommendedActions.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    No recommendations at this time.
+                  </p>
+                ) : (
+                  <ul className="space-y-2">
+                    {recommendedActions.map((action, i) => (
+                      <li
+                        key={i}
+                        className="flex items-start gap-2 text-sm"
+                      >
+                        <span className="text-primary mt-1">•</span>
+                        <span className="text-foreground">{action}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
 
             {/* 5. Activity Overview - col-span-6 */}
-            <div
-              className={`${cardClass} col-span-1 md:col-span-2 lg:col-span-6`}
-            >
-              <h2 className="text-sm font-semibold text-foreground mb-4">
-                Activity Overview
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <p className="stat-label">Total Transactions</p>
-                  <p className="stat-value mt-1">
-                    {walletLoading ? "—" : totalTx}
-                  </p>
-                </div>
-                <div>
-                  <p className="stat-label">Unique Counterparties</p>
-                  <p className="stat-value mt-1">
-                    {walletLoading ? "—" : uniqueCounterparties}
-                  </p>
-                </div>
-                <div>
-                  <p className="stat-label">30D Volume</p>
-                  <p className="stat-value mt-1">
-                    {walletLoading ? "—" : "—"}
-                  </p>
+            {isOwnProfile && (
+              <div
+                className={`${cardClass} col-span-1 md:col-span-2 lg:col-span-6`}
+              >
+                <h2 className="text-sm font-semibold text-foreground mb-4">
+                  Activity Overview
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <p className="stat-label">Total Transactions</p>
+                    <p className="stat-value mt-1">
+                      {walletLoading ? "—" : totalTx}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="stat-label">Unique Counterparties</p>
+                    <p className="stat-value mt-1">
+                      {walletLoading ? "—" : uniqueCounterparties}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="stat-label">30D Volume</p>
+                    <p className="stat-value mt-1">
+                      {walletLoading ? "—" : "—"}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* 6. Wallet Activity Chart - full width */}
-            <WalletActivityChart />
+            {isOwnProfile && <WalletActivityChart />}
 
             {/* 7. Risk Exposure Radar */}
-            <RiskExposureRadar riskTier={riskColor} />
+            {isOwnProfile && <RiskExposureRadar riskTier={riskColor} />}
           </div>
         ) : (
           <div className="space-y-3 animate-slide-up">
@@ -1537,42 +1652,322 @@ const Profile = () => {
                 No posts yet.
               </div>
             ) : (
-              posts.map((post) => (
-                <div
-                  key={post.id}
-                  className="glass-card p-4 flex flex-col gap-3"
-                >
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{formatRelativeTime(post.created_at)}</span>
-                    {post.is_hidden && (
-                      <span className="px-2 py-0.5 rounded-full bg-red-500/10 text-red-400 flex items-center gap-1">
-                        ⚠️ Hidden by moderation
-                      </span>
+              posts.map((post: any) => {
+                const isRepost = post.is_repost === true;
+                const originalPost = isRepost
+                  ? (post as any).original_post ?? null
+                  : null;
+
+                return (
+                  <div
+                    key={post.id}
+                    className="glass-card overflow-hidden
+                      cursor-pointer hover:bg-muted/5
+                      transition-colors"
+                    onClick={() =>
+                      navigate(
+                        `/post/${
+                          isRepost && post.repost_of ? post.repost_of : post.id
+                        }`
+                      )
+                    }
+                  >
+                    {/* Repost header */}
+                    {isRepost && (
+                      <div
+                        className="flex items-center gap-2 px-4 pt-3 pb-1 text-xs
+                          text-muted-foreground"
+                      >
+                        <Repeat2 className="w-3.5 h-3.5 text-green-400" />
+                        <span>
+                          {profile?.handle
+                            ? `@${profile.handle}`
+                            : `${wallet.slice(0, 4)}...${wallet.slice(-4)}`}
+                          {" "}reposted
+                        </span>
+                      </div>
                     )}
-                  </div>
-                  <p className="text-sm text-foreground whitespace-pre-wrap">
-                    {post.content}
-                  </p>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
-                    <button
-                      className="flex items-center gap-1 hover:text-primary transition-colors disabled:opacity-60"
-                      disabled={likeLoading[post.id]}
-                      onClick={() => handleLikePost(post)}
-                    >
-                      <Heart
-                        className={`w-3.5 h-3.5 ${
-                          likeLoading[post.id] ? "animate-pulse" : ""
-                        }`}
-                      />
-                      <span>{post.likes_count ?? 0}</span>
-                    </button>
-                    <div className="flex items-center gap-1">
-                      <MessageSquare className="w-3.5 h-3.5" />
-                      <span>{post.replies_count ?? 0}</span>
+
+                    <div className="p-4 flex flex-col gap-3">
+                      {/* Author row */}
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3">
+                          {/* Avatar */}
+                          <div
+                            className="w-9 h-9 rounded-full bg-primary/10 flex items-center
+                              justify-center text-xs font-bold text-primary shrink-0"
+                          >
+                            {isRepost && originalPost
+                              ? (
+                                  originalPost.handle ??
+                                  originalPost.wallet ??
+                                  "?"
+                                )[0].toUpperCase()
+                              : (profile?.handle ?? wallet ?? "?")[0]
+                                  ?.toUpperCase() ?? "?"}
+                          </div>
+
+                          <div>
+                            <div className="flex items-center gap-2">
+                              {/* Name */}
+                              <span className="text-sm font-semibold text-foreground">
+                                {isRepost && originalPost
+                                  ? originalPost.handle
+                                    ? `@${originalPost.handle}`
+                                    : `${originalPost.wallet?.slice(0, 4)}...${originalPost.wallet?.slice(-4)}`
+                                  : profile?.handle
+                                    ? `@${profile.handle}`
+                                    : wallet.length > 16
+                                      ? `${wallet.slice(0, 8)}...${wallet.slice(-8)}`
+                                      : wallet}
+                              </span>
+
+                              {/* Trust score */}
+                              {(() => {
+                                const score =
+                                  isRepost && originalPost
+                                    ? originalPost.trust_score
+                                    : post.trust_score;
+                                return score != null ? (
+                                  <span
+                                    className={`px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1 ${
+                                      score >= 70
+                                        ? "bg-emerald-500/10 text-emerald-400"
+                                        : score >= 40
+                                          ? "bg-amber-500/10 text-amber-400"
+                                          : "bg-rose-500/10 text-rose-400"
+                                    }`}
+                                  >
+                                    <Shield className="w-3 h-3" />
+                                    {Math.round(score)}
+                                  </span>
+                                ) : null;
+                              })()}
+                            </div>
+
+                            {/* Timestamp */}
+                            <div
+                              className="flex items-center gap-1 text-[11px] text-muted-foreground"
+                            >
+                              <Clock className="w-3 h-3" />
+                              <span>
+                                {formatRelativeTime(
+                                  isRepost && originalPost
+                                    ? originalPost.created_at
+                                    : post.created_at
+                                )}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Hidden badge */}
+                        {post.is_hidden && (
+                          <span
+                            className="px-2 py-0.5 rounded-full
+                              bg-red-500/10 text-red-400 text-xs"
+                          >
+                            Hidden
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Content */}
+                      <p className="text-sm text-foreground whitespace-pre-wrap">
+                        {isRepost && originalPost ? originalPost.content : post.content}
+                      </p>
+
+                      {/* Loading state for original post */}
+                      {isRepost && !originalPost && (
+                        <div className="h-4 bg-muted/30 rounded animate-pulse w-2/3" />
+                      )}
+
+                      {/* Action bar */}
+                      <div
+                        className="flex items-center gap-4 pt-1 text-xs text-muted-foreground
+                          border-t border-border/30"
+                      >
+                        {/* Like button */}
+                        <button
+                          className={`flex items-center gap-1 transition-colors disabled:opacity-60 ${
+                            likedPostIds.has(post.id)
+                              ? "text-red-400 hover:text-red-300"
+                              : "hover:text-red-400"
+                          }`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleLikePost(post);
+                          }}
+                          disabled={likeLoading[post.id]}
+                        >
+                          <Heart
+                            className={`w-3.5 h-3.5 ${
+                              likedPostIds.has(post.id) ? "fill-red-400" : ""
+                            }`}
+                          />
+                          <span>{post.likes_count ?? post.like_count ?? 0}</span>
+                        </button>
+
+                        {/* Comment button */}
+                        <button
+                          className="flex items-center gap-1 hover:text-primary transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(
+                              `/post/${
+                                isRepost && post.repost_of ? post.repost_of : post.id
+                              }`
+                            );
+                          }}
+                        >
+                          <MessageSquare className="w-3.5 h-3.5" />
+                          <span>{post.replies_count ?? post.reply_count ?? 0}</span>
+                        </button>
+
+                        {/* Repost button with dropdown */}
+                        <div className="relative">
+                          <button
+                            className={`flex items-center gap-1 transition-colors text-sm ${
+                              repostedPostIds.has(post.repost_of ?? post.id ?? 0)
+                                ? "text-green-400 hover:text-green-300"
+                                : "text-muted-foreground hover:text-green-400"
+                            }`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (!publicKey) return;
+                              const targetId =
+                                post.is_repost && post.repost_of ? post.repost_of : post.id ?? null;
+                              setRepostDropdownId(
+                                repostDropdownId === post.id ? null : post.id ?? null
+                              );
+                              setRepostTargetId(targetId);
+                              setQuoteText("");
+                            }}
+                          >
+                            <Repeat2 className="w-3.5 h-3.5" />
+                            <span>{post.repost_count ?? 0}</span>
+                          </button>
+
+                          {repostDropdownId === post.id && (
+                            <div
+                              className="absolute bottom-full left-0 mb-2 bg-zinc-900 border border-zinc-700
+                                rounded-xl shadow-2xl py-1 w-44 z-50"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {repostedPostIds.has(repostTargetId ?? repostDropdownId ?? 0) && (
+                                <button
+                                  onClick={() => {
+                                    setRepostedPostIds((prev) => {
+                                      const next = new Set(prev);
+                                      next.delete(repostTargetId ?? repostDropdownId ?? 0);
+                                      return next;
+                                    });
+                                    setRepostDropdownId(null);
+                                    setRepostTargetId(null);
+                                    setQuoteText("");
+                                  }}
+                                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm
+                                    text-green-400 hover:bg-zinc-800 transition-colors"
+                                >
+                                  <Repeat2 className="w-4 h-4" />
+                                  Undo Repost
+                                </button>
+                              )}
+
+                              <button
+                                onClick={async () => {
+                                  if (!publicKey) return;
+                                  try {
+                                    await repostPost(
+                                      publicKey.toString(),
+                                      repostTargetId ?? repostDropdownId!
+                                    );
+
+                                    setRepostedPostIds((prev) => {
+                                      const next = new Set(prev);
+                                      next.add(repostTargetId ?? repostDropdownId ?? 0);
+                                      return next;
+                                    });
+
+                                    setRepostDropdownId(null);
+                                    setRepostTargetId(null);
+                                    setQuoteText("");
+                                  } catch (e) {
+                                    console.error(e);
+                                  }
+                                }}
+                                className="w-full flex items-center gap-2.5 px-3 py-2 text-sm
+                                  text-zinc-100 hover:bg-zinc-800 transition-colors"
+                              >
+                                <Repeat2 className="w-4 h-4 text-green-400" />
+                                Repost
+                              </button>
+
+                              <button
+                                onClick={() => setQuoteText(" ")}
+                                className="w-full flex items-center gap-2.5 px-3 py-2 text-sm
+                                  text-zinc-100 hover:bg-zinc-800 transition-colors"
+                              >
+                                <MessageSquare className="w-4 h-4 text-blue-400" />
+                                Quote
+                              </button>
+
+                              {quoteText !== "" && (
+                                <div
+                                  className="px-3 pb-2 pt-1 border-t border-zinc-800"
+                                >
+                                  <textarea
+                                    value={quoteText.trim() === "" ? "" : quoteText}
+                                    onChange={(e) => setQuoteText(e.target.value)}
+                                    placeholder="Add your thoughts..."
+                                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg
+                                      p-2 text-xs text-zinc-100 placeholder:text-zinc-500
+                                      focus:outline-none resize-none"
+                                    rows={2}
+                                    autoFocus
+                                    onClick={(e) => e.stopPropagation()}
+                                  />
+
+                                  <button
+                                    onClick={async () => {
+                                      if (!publicKey) return;
+                                      if (!quoteText.trim()) return;
+                                      try {
+                                        await repostPost(
+                                          publicKey.toString(),
+                                          repostTargetId ?? repostDropdownId!,
+                                          quoteText.trim()
+                                        );
+
+                                        setRepostedPostIds((prev) => {
+                                          const next = new Set(prev);
+                                          next.add(repostTargetId ?? repostDropdownId ?? 0);
+                                          return next;
+                                        });
+
+                                        setRepostDropdownId(null);
+                                        setRepostTargetId(null);
+                                        setQuoteText("");
+                                      } catch (e) {
+                                        console.error(e);
+                                      }
+                                    }}
+                                    className="mt-1.5 w-full py-1.5 rounded-lg bg-primary
+                                      text-primary-foreground text-xs font-medium
+                                      hover:bg-primary/90 transition-colors"
+                                  >
+                                    Post Quote
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         )}
