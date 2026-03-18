@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { getSocialFeed, getSocialProfile } from "@/services/blockidApi";
 import { useWallet } from "@solana/wallet-adapter-react";
+import WalletHoverCard from "@/components/WalletHoverCard";
 
 const Explore = () => {
   const { publicKey } = useWallet();
@@ -184,11 +185,16 @@ const Explore = () => {
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-sm font-semibold text-foreground">
-                            {post.handle
-                              ? `@${post.handle}`
-                              : `${post.wallet?.slice(0, 4)}...${post.wallet?.slice(-4)}`}
-                          </span>
+                          <WalletHoverCard
+                            wallet={post.wallet ?? ""}
+                            handle={post.handle ?? undefined}
+                          >
+                            <span className="text-sm font-semibold text-foreground">
+                              {post.handle
+                                ? `@${post.handle}`
+                                : `${post.wallet?.slice(0, 4)}...${post.wallet?.slice(-4)}`}
+                            </span>
+                          </WalletHoverCard>
                           <span
                             className={`px-1.5 py-0.5 rounded-full text-xs font-bold ${scoreColor}`}
                           >

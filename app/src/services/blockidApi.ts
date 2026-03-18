@@ -136,8 +136,8 @@ export async function followWallet(fromWallet: string, toWallet: string) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      from_wallet: fromWallet,
-      to_wallet: toWallet,
+      follower_wallet: fromWallet,
+      following_wallet: toWallet,
       signed_message: "BlockID Follow",
       signature: "devtest_signature_bypass",
     }),
@@ -170,7 +170,8 @@ export async function endorseWallet(
 export async function createPost(
   wallet: string,
   content: string,
-  postType: "PUBLIC" | "FOLLOWERS_ONLY" = "PUBLIC"
+  postType: "PUBLIC" | "FOLLOWERS_ONLY" = "PUBLIC",
+  parentId?: number
 ) {
   const res = await fetch(buildSocialUrl("/social/post"), {
     method: "POST",
@@ -179,11 +180,18 @@ export async function createPost(
       wallet,
       content,
       post_type: postType,
+      parent_id: parentId ?? null,
       signed_message: "BlockID Post",
       signature: "devtest_signature_bypass",
     }),
   });
   if (!res.ok) throw new Error("Failed to create post");
+  return res.json();
+}
+
+export async function getPost(postId: number) {
+  const res = await fetch(buildSocialUrl(`/social/post/${postId}`));
+  if (!res.ok) throw new Error("Failed to fetch post");
   return res.json();
 }
 
@@ -247,12 +255,121 @@ export async function likePost(wallet: string, postId: number) {
   return res.json();
 }
 
+export async function unlikePost(wallet: string, postId: number) {
+  const res = await fetch(buildSocialUrl("/social/like"), {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      wallet,
+      post_id: postId,
+      signature: "devtest_signature_bypass",
+    }),
+  });
+  if (!res.ok) throw new Error("Failed to unlike post");
+  return res.json();
+}
+
 // Get notifications for a wallet
 export async function getNotifications(wallet: string) {
   const res = await fetch(
     buildSocialUrl(`/social/notifications/${encodeURIComponent(wallet)}`)
   );
   if (!res.ok) throw new Error("Failed to fetch notifications");
+  return res.json();
+}
+
+export async function markNotificationRead(notifId: number, wallet: string) {
+  const res = await fetch(
+    buildSocialUrl(`/social/notifications/${encodeURIComponent(notifId)}/read`),
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        wallet,
+        signature: "devtest_signature_bypass",
+      }),
+    }
+  );
+  if (!res.ok) return null;
+  return res.json();
+}
+
+export async function getDMConversations(wallet: string) {
+  const res = await fetch(
+    buildSocialUrl(`/social/dm/conversations/${encodeURIComponent(wallet)}`)
+  );
+  if (!res.ok) throw new Error("Failed to fetch conversations");
+  return res.json();
+}
+
+export async function getDMMessages(wallet: string, otherWallet: string) {
+  const res = await fetch(
+    buildSocialUrl(
+      `/social/dm/messages/${encodeURIComponent(wallet)}/${encodeURIComponent(
+        otherWallet
+      )}`
+    )
+  );
+  if (!res.ok) throw new Error("Failed to fetch messages");
+  return res.json();
+}
+
+export async function sendDM(
+  wallet: string,
+  toWallet: string,
+  content: string
+) {
+  const res = await fetch(buildSocialUrl("/social/dm/send"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      wallet,
+      to_wallet: toWallet,
+      content,
+      signature: "devtest_signature_bypass",
+    }),
+  });
+  if (!res.ok) throw new Error("Failed to send DM");
+  return res.json();
+}
+
+export async function getDMUnreadCount(wallet: string) {
+  const res = await fetch(
+    buildSocialUrl(`/social/dm/unread-count/${encodeURIComponent(wallet)}`)
+  );
+  if (!res.ok) return { unread_count: 0 };
+  return res.json();
+}
+
+export async function bookmarkPost(wallet: string, postId: number) {
+  const res = await fetch(buildSocialUrl("/social/bookmark"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      wallet,
+      post_id: postId,
+      signature: "devtest_signature_bypass",
+    }),
+  });
+  if (!res.ok) throw new Error("Failed to bookmark");
+  return res.json();
+}
+
+export async function getBookmarks(wallet: string) {
+  const res = await fetch(
+    buildSocialUrl(`/social/bookmarks/${encodeURIComponent(wallet)}`)
+  );
+  if (!res.ok) throw new Error("Failed to fetch bookmarks");
+  return res.json();
+}
+
+export async function getBookmarkIds(wallet: string) {
+  const res = await fetch(
+    buildSocialUrl(
+      `/social/bookmarks/${encodeURIComponent(wallet)}/ids`
+    )
+  );
+  if (!res.ok) return { post_ids: [] };
   return res.json();
 }
 
@@ -364,5 +481,36 @@ export async function removeBanner(wallet: string): Promise<any> {
     }),
   });
   if (!res.ok) throw new Error("Failed to remove banner");
+  return res.json();
+}
+
+export async function getPrivacySettings(wallet: string) {
+  const res = await fetch(
+    buildSocialUrl(
+      `/social/settings/${encodeURIComponent(wallet)}`
+    )
+  );
+  if (!res.ok) throw new Error("Failed to fetch privacy settings");
+  return res.json();
+}
+
+export async function updatePrivacySettings(
+  wallet: string,
+  settings: Record<string, any>
+) {
+  const res = await fetch(
+    buildSocialUrl(
+      `/social/settings/${encodeURIComponent(wallet)}`
+    ),
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ...settings,
+        signature: "devtest_signature_bypass",
+      }),
+    }
+  );
+  if (!res.ok) throw new Error("Failed to update privacy settings");
   return res.json();
 }

@@ -11,6 +11,11 @@ import Identity from "./pages/Identity";
 import Explore from "./pages/Explore";
 import SmartRouter from "./pages/SmartRouter";
 import Profile from "./pages/Profile";
+import PrivacySettings from "@/pages/settings/Privacy";
+import Notifications from "./pages/Notifications";
+import Messages from "./pages/Messages";
+import Bookmarks from "./pages/Bookmarks";
+import PostDetail from "./pages/PostDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +47,14 @@ const App = () => (
             <Route path="/identity" element={<Identity />} />
             <Route path="/router" element={<SmartRouter />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/profile/:walletParam" element={<Profile />} />
+            <Route path="/notifications" element={<Notifications />} />
+            <Route path="/messages" element={<Messages />} />
+            <Route path="/messages/:walletParam" element={<Messages />} />
+            <Route path="/bookmarks" element={<Bookmarks />} />
+            <Route path="/post/:postId" element={<PostDetail />} />
+            <Route path="/settings" element={<PrivacySettings />} />
+            <Route path="/settings/privacy" element={<PrivacySettings />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
