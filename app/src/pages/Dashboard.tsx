@@ -551,13 +551,13 @@ const Dashboard = () => {
                   style={{ overflow: "visible", position: "relative" }}
                 >
                   {isRepost && (
-                    <div className="flex items-center gap-2 px-4 pt-3 pb-1 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1.5 px-1 pt-2 pb-0 text-xs text-muted-foreground">
                       <Repeat2 className="w-3.5 h-3.5 text-green-400" />
                       <span>
                         {profile?.handle
                           ? `@${profile.handle}`
                           : truncateWallet(post?.wallet ?? "")}
-                        reposted
+                        {" "}reposted
                       </span>
                     </div>
                   )}
