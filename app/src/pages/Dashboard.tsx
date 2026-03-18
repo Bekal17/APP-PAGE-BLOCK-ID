@@ -521,10 +521,11 @@ const Dashboard = () => {
               const trustScore =
                 profile?.trust_score ?? post?.trust_score ?? undefined;
               const isConnected = !!publicKey;
-              const isRepost = (post as any).is_repost === true;
-              const originalPost = isRepost
-                ? (post as any).original_post ?? null
-                : null;
+              const originalPost = (post as any).original_post ?? null;
+              const isRepost =
+                originalPost != null ||
+                (!!(post as any).is_repost &&
+                  (post as any).is_repost !== false);
 
               const displayWallet =
                 isRepost && originalPost ? originalPost.wallet : post.wallet ?? "";
@@ -544,6 +545,10 @@ const Dashboard = () => {
                 isRepost && originalPost ? originalPost.trust_score : trustScore;
 
               const trustColor = getTrustColor(displayTrustScore);
+              const targetWalletForActions =
+                isRepost && originalPost
+                  ? originalPost.wallet
+                  : post?.wallet ?? "";
 
               return (
                 <div
@@ -551,13 +556,13 @@ const Dashboard = () => {
                   style={{ overflow: "visible", position: "relative" }}
                 >
                   {isRepost && (
-                    <div className="flex items-center gap-1.5 px-1 pt-2 pb-0 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1.5 px-1 pb-1 text-xs text-muted-foreground">
                       <Repeat2 className="w-3.5 h-3.5 text-green-400" />
                       <span>
-                        {profile?.handle
-                          ? `@${profile.handle}`
-                          : truncateWallet(post?.wallet ?? "")}
-                        {" "}reposted
+                        {post?.handle
+                          ? `@${post.handle}`
+                          : truncateWallet(post?.wallet ?? "")}{" "}
+                        reposted
                       </span>
                     </div>
                   )}
@@ -970,25 +975,25 @@ const Dashboard = () => {
                     <div className="flex items-center gap-2">
                       <button
                         className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-colors disabled:opacity-60 ${
-                          followedWallets.has(post?.wallet ?? "")
+                          followedWallets.has(targetWalletForActions)
                             ? "bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300"
                             : "bg-primary/10 text-primary hover:bg-primary/20"
                         }`}
                         onClick={() => {
-                          const w = post?.wallet ?? "";
+                          const w = targetWalletForActions;
                           if (!w) return;
                           if (!followedWallets.has(w)) {
                             handleFollow(w);
                           }
                         }}
                         disabled={
-                          followLoading[post?.wallet] ||
-                          followedWallets.has(post?.wallet ?? "")
+                          followLoading[targetWalletForActions] ||
+                          followedWallets.has(targetWalletForActions)
                         }
                       >
-                        {followLoading[post?.wallet]
+                        {followLoading[targetWalletForActions]
                           ? "Following..."
-                          : followedWallets.has(post?.wallet ?? "")
+                          : followedWallets.has(targetWalletForActions)
                           ? "Following"
                           : "Follow"}
                       </button>
@@ -997,7 +1002,7 @@ const Dashboard = () => {
                           onClick={() =>
                             endorseWallet(
                               publicKey!.toBase58(),
-                              post?.wallet ?? "",
+                              targetWalletForActions,
                               "Great on-chain reputation"
                             )
                           }
