@@ -295,7 +295,7 @@ const Profile = () => {
         ]);
         if (!cancelled) {
           setProfile(profileRes);
-          const p = profileRes.posts ?? postsRes.posts ?? postsRes ?? [];
+          const p = postsRes.posts ?? postsRes ?? profileRes.posts ?? [];
           setPosts(Array.isArray(p) ? p : []);
         }
       } catch (e) {
