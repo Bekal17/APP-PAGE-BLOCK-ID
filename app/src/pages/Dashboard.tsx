@@ -79,19 +79,23 @@ const getTrustColor = (score?: number | null) => {
   return "bg-rose-500/10 text-rose-400";
 };
 
+const normalizeIso = (iso?: string): string => {
+  if (!iso) return "";
+  return iso.replace("+00:00", "Z").replace(/\.\d+Z$/, "Z");
+};
+
 const formatRelativeTime = (iso?: string) => {
   if (!iso) return "";
-  const date = new Date(iso);
+  const date = new Date(normalizeIso(iso));
+  if (isNaN(date.getTime())) return "";
   const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffSec = Math.floor(diffMs / 1000);
-  if (diffSec < 60) return "just now";
-  const diffMin = Math.floor(diffSec / 60);
-  if (diffMin < 60) return `${diffMin} min ago`;
-  const diffHr = Math.floor(diffMin / 60);
-  if (diffHr < 24) return `${diffHr} hr${diffHr > 1 ? "s" : ""} ago`;
-  const diffDay = Math.floor(diffHr / 24);
-  return `${diffDay} day${diffDay > 1 ? "s" : ""} ago`;
+  const diff = now.getTime() - date.getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
 };
 
 const Dashboard = () => {

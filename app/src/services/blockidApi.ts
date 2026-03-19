@@ -87,6 +87,61 @@ function buildSocialUrl(path: string): string {
   return `${base}${p}`;
 }
 
+const SESSION_KEY = "blockid_session_token";
+
+export function getSessionToken(): string | null {
+  return localStorage.getItem(SESSION_KEY);
+}
+
+export function setSessionToken(token: string): void {
+  localStorage.setItem(SESSION_KEY, token);
+}
+
+export function clearSessionToken(): void {
+  localStorage.removeItem(SESSION_KEY);
+}
+
+export async function loginWithSignature(
+  wallet: string,
+  signMessage: (msg: Uint8Array) => Promise<Uint8Array>
+): Promise<string> {
+  const timestamp = Math.floor(Date.now() / 1000);
+  const message = `BlockID Login:${wallet}:${timestamp}`;
+  const msgBytes = new TextEncoder().encode(message);
+
+  let signature: string;
+  try {
+    const sigBytes = await signMessage(msgBytes);
+    const bs58 = await import("bs58");
+    signature = bs58.default.encode(sigBytes);
+  } catch {
+    throw new Error("User rejected signature");
+  }
+
+  const res = await fetch(buildSocialUrl("/auth/login"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      wallet,
+      signed_message: message,
+      signature,
+    }),
+  });
+
+  if (!res.ok) throw new Error("Login failed");
+  const data = await res.json();
+  setSessionToken(data.session_token);
+  return data.session_token;
+}
+
+function getAuthHeaders(): Record<string, string> {
+  const token = getSessionToken();
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
 // Fetch explore feed (public posts, trust-weighted)
 export async function getSocialFeed() {
   const res = await fetch(buildSocialUrl("/social/feed/explore"));
@@ -134,12 +189,13 @@ export async function getSocialProfile(wallet: string): Promise<any> {
 export async function followWallet(fromWallet: string, toWallet: string) {
   const res = await fetch(buildSocialUrl("/social/follow"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: getAuthHeaders(),
     body: JSON.stringify({
       follower_wallet: fromWallet,
       following_wallet: toWallet,
       signed_message: "BlockID Follow",
       signature: "devtest_signature_bypass",
+      session_token: getSessionToken(),
     }),
   });
   if (!res.ok) throw new Error("Failed to follow wallet");
@@ -175,7 +231,7 @@ export async function createPost(
 ) {
   const res = await fetch(buildSocialUrl("/social/post"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: getAuthHeaders(),
     body: JSON.stringify({
       wallet,
       content,
@@ -183,6 +239,7 @@ export async function createPost(
       parent_id: parentId ?? null,
       signed_message: "BlockID Post",
       signature: "devtest_signature_bypass",
+      session_token: getSessionToken(),
     }),
   });
   if (!res.ok) throw new Error("Failed to create post");
@@ -203,13 +260,14 @@ export async function repostPost(
 ) {
   const res = await fetch(buildSocialUrl("/social/repost"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: getAuthHeaders(),
     body: JSON.stringify({
       wallet,
       post_id: postId,
       quote_content: quoteContent ?? "",
       signed_message: "BlockID Repost",
       signature: "devtest_signature_bypass",
+      session_token: getSessionToken(),
     }),
   });
   if (!res.ok) throw new Error("Failed to repost");
@@ -258,11 +316,12 @@ export async function likePost(wallet: string, postId: number) {
 export async function unlikePost(wallet: string, postId: number) {
   const res = await fetch(buildSocialUrl("/social/like"), {
     method: "DELETE",
-    headers: { "Content-Type": "application/json" },
+    headers: getAuthHeaders(),
     body: JSON.stringify({
       wallet,
       post_id: postId,
       signature: "devtest_signature_bypass",
+      session_token: getSessionToken(),
     }),
   });
   if (!res.ok) throw new Error("Failed to unlike post");
@@ -344,11 +403,12 @@ export async function getDMUnreadCount(wallet: string) {
 export async function bookmarkPost(wallet: string, postId: number) {
   const res = await fetch(buildSocialUrl("/social/bookmark"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: getAuthHeaders(),
     body: JSON.stringify({
       wallet,
       post_id: postId,
       signature: "devtest_signature_bypass",
+      session_token: getSessionToken(),
     }),
   });
   if (!res.ok) throw new Error("Failed to bookmark");
