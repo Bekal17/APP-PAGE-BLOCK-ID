@@ -16,6 +16,7 @@ import {
   Flag,
   AlertTriangle,
   Bookmark,
+  X,
 } from "lucide-react";
 import WalletHoverCard from "@/components/WalletHoverCard";
 import {
@@ -34,6 +35,7 @@ import {
   getFollowing,
   getPost,
 } from "@/services/blockidApi";
+import { useToast } from "@/hooks/use-toast";
 
 type SocialPost = {
   id: number;
@@ -95,6 +97,8 @@ const formatRelativeTime = (iso?: string) => {
 const Dashboard = () => {
   const { publicKey } = useWallet();
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const address = publicKey?.toBase58() ?? publicKey?.toString();
   const [feed, setFeed] = useState<SocialPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"explore" | "following">("explore");
@@ -103,7 +107,9 @@ const Dashboard = () => {
   const [followLoading, setFollowLoading] = useState<Record<string, boolean>>({});
   const [menuOpenId, setMenuOpenId] = useState<number | null>(null);
   const [repostDropdownId, setRepostDropdownId] = useState<number | null>(null);
-  const [quoteText, setQuoteText] = useState("");
+  const [quoteModalPost, setQuoteModalPost] = useState<any | null>(null);
+  const [quoteModalText, setQuoteModalText] = useState("");
+  const [quoteModalLoading, setQuoteModalLoading] = useState(false);
   const [reportModalId, setReportModalId] = useState<number | null>(null);
   const [reportReason, setReportReason] = useState("SPAM");
   const [postContent, setPostContent] = useState("");
@@ -158,6 +164,30 @@ const Dashboard = () => {
   }, [publicKey]);
 
   useEffect(() => {
+    const cachedFeed = sessionStorage.getItem("dashboard_feed_cache");
+    const cachedTime = sessionStorage.getItem("dashboard_feed_time");
+    const cacheAge = cachedTime ? Date.now() - parseInt(cachedTime) : Infinity;
+    const isReturningFromPost = !!sessionStorage.getItem("dashboard_scroll");
+
+    if (cachedFeed && cacheAge < 5 * 60 * 1000 && isReturningFromPost) {
+      try {
+        const parsed = JSON.parse(cachedFeed);
+        setFeed(parsed);
+        setLoading(false);
+        const savedScroll = sessionStorage.getItem("dashboard_scroll");
+        if (savedScroll) {
+          sessionStorage.removeItem("dashboard_scroll");
+          const y = parseInt(savedScroll, 10);
+          setTimeout(() => {
+            window.scrollTo({ top: y, behavior: "instant" });
+          }, 50);
+        }
+        return;
+      } catch {
+        // cache parse failed, continue with normal fetch
+      }
+    }
+
     setFeed([]);
     setLoading(true);
 
@@ -174,6 +204,16 @@ const Dashboard = () => {
           }
           if (!cancelled) {
             setFeed(posts);
+            sessionStorage.setItem("dashboard_feed_cache", JSON.stringify(posts));
+            sessionStorage.setItem("dashboard_feed_time", Date.now().toString());
+            const savedScroll = sessionStorage.getItem("dashboard_scroll");
+            if (savedScroll) {
+              sessionStorage.removeItem("dashboard_scroll");
+              const y = parseInt(savedScroll, 10);
+              setTimeout(() => {
+                window.scrollTo({ top: y, behavior: "instant" });
+              }, 100);
+            }
           }
         } else if (activeTab === "following") {
           if (!publicKey) {
@@ -188,6 +228,16 @@ const Dashboard = () => {
           }
           if (!cancelled) {
             setFeed(posts);
+            sessionStorage.setItem("dashboard_feed_cache", JSON.stringify(posts));
+            sessionStorage.setItem("dashboard_feed_time", Date.now().toString());
+            const savedScroll = sessionStorage.getItem("dashboard_scroll");
+            if (savedScroll) {
+              sessionStorage.removeItem("dashboard_scroll");
+              const y = parseInt(savedScroll, 10);
+              setTimeout(() => {
+                window.scrollTo({ top: y, behavior: "instant" });
+              }, 100);
+            }
           }
         }
       } catch (err) {
@@ -393,6 +443,39 @@ const Dashboard = () => {
     setBookmarkLoading((prev) => ({ ...prev, [post.id]: false }));
   };
 
+  const handleQuoteSubmit = async () => {
+    if (!publicKey || !quoteModalPost || !quoteModalText.trim()) return;
+    setQuoteModalLoading(true);
+    try {
+      const targetId =
+        quoteModalPost.is_repost && quoteModalPost.repost_of
+          ? quoteModalPost.repost_of
+          : quoteModalPost.id;
+      await repostPost(publicKey.toString(), targetId, quoteModalText.trim());
+      setFeed((prev: any[]) =>
+        prev.map((p) => {
+          const match = (p as any).repost_of === targetId || p.id === targetId;
+          return match
+            ? { ...p, repost_count: (p.repost_count ?? 0) + 1 }
+            : p;
+        })
+      );
+      setRepostedPostIds((prev) => {
+        const next = new Set(prev);
+        next.add(targetId);
+        return next;
+      });
+      toast({ title: "Quote posted!" });
+      setQuoteModalPost(null);
+      setQuoteModalText("");
+    } catch (e) {
+      console.error(e);
+      toast({ title: "Failed to post quote", variant: "destructive" });
+    } finally {
+      setQuoteModalLoading(false);
+    }
+  };
+
   const handlePost = async () => {
     if (!publicKey || !postContent.trim()) return;
     setPosting(true);
@@ -568,15 +651,16 @@ const Dashboard = () => {
                   )}
                   <div
                     className="glass-card p-4 flex flex-col gap-3 animate-slide-up cursor-pointer"
-                    onClick={() =>
+                    onClick={() => {
+                      sessionStorage.setItem("dashboard_scroll", window.scrollY.toString());
                       navigate(
                         `/post/${
                           isRepost && (post as any)?.repost_of
                             ? (post as any).repost_of
                             : post?.id
                         }`
-                      )
-                    }
+                      );
+                    }}
                   >
                     <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3">
@@ -777,7 +861,6 @@ const Dashboard = () => {
                                 : post?.id ?? null
                             );
                             setRepostTargetId(targetId);
-                            setQuoteText("");
                           }}
                         >
                           <Repeat2
@@ -828,7 +911,6 @@ const Dashboard = () => {
                                   );
                                   setRepostDropdownId(null);
                                   setRepostTargetId(null);
-                                  setQuoteText("");
                                 }}
                                 className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-green-400 hover:bg-zinc-800 transition-colors"
                               >
@@ -889,83 +971,17 @@ const Dashboard = () => {
                             </button>
 
                             <button
-                              onClick={() => setQuoteText(" ")}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setQuoteModalPost(post);
+                                setRepostDropdownId(null);
+                                setQuoteModalText("");
+                              }}
                               className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-zinc-100 hover:bg-zinc-800 transition-colors"
                             >
                               <MessageSquareQuote className="w-4 h-4 text-blue-400" />
                               Quote
                             </button>
-
-                            {quoteText !== "" && (
-                              <div className="px-3 pb-2 pt-1 border-t border-zinc-800">
-                                <textarea
-                                  value={
-                                    quoteText.trim() === "" ? "" : quoteText
-                                  }
-                                  onChange={(e) =>
-                                    setQuoteText(e.target.value)
-                                  }
-                                  placeholder="Add your thoughts..."
-                                  className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2 text-xs text-zinc-100 placeholder:text-zinc-500 focus:outline-none resize-none"
-                                  rows={2}
-                                  autoFocus
-                                  onClick={(e) => e.stopPropagation()}
-                                />
-                                <button
-                                  onClick={async () => {
-                                    if (!publicKey || !quoteText.trim())
-                                      return;
-                                    try {
-                                  const idToRepost =
-                                    repostTargetId ??
-                                    repostDropdownId ??
-                                    null;
-                                  if (idToRepost == null) return;
-                                      await repostPost(
-                                        publicKey.toString(),
-                                    idToRepost,
-                                        quoteText.trim()
-                                      );
-                                  setRepostedPostIds((prev) => {
-                                    const next = new Set(prev);
-                                    next.add(idToRepost);
-                                    return next;
-                                  });
-                                  setFeed((prev) =>
-                                    prev.map((p) => {
-                                      const match =
-                                        (p as any).repost_of === idToRepost ||
-                                        p.id === idToRepost;
-                                      return match
-                                        ? {
-                                            ...p,
-                                            repost_count:
-                                              (p.repost_count ?? 0) + 1,
-                                          }
-                                        : p;
-                                    })
-                                  );
-                                      setRepostDropdownId(null);
-                                  setRepostTargetId(null);
-                                      setQuoteText("");
-                                      const data =
-                                        activeTab === "following" &&
-                                        publicKey
-                                          ? await getFollowingFeed(
-                                              publicKey.toString()
-                                            )
-                                          : await getSocialFeed();
-                                      setFeed(data.posts ?? data ?? []);
-                                    } catch (e) {
-                                      console.error(e);
-                                    }
-                                  }}
-                                  className="mt-1.5 w-full py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-medium hover:bg-primary/90 transition-colors"
-                                >
-                                  Post Quote
-                                </button>
-                              </div>
-                            )}
                           </div>
                         )}
                       </div>
@@ -1125,6 +1141,134 @@ const Dashboard = () => {
                     </button>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {quoteModalPost && (
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center
+            bg-black/70 pt-16 px-4"
+          onClick={() => {
+            setQuoteModalPost(null);
+            setQuoteModalText("");
+          }}
+        >
+          <div
+            className="bg-zinc-900 border border-zinc-700 rounded-2xl
+              w-full max-w-xl shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal header */}
+            <div
+              className="flex items-center justify-between px-4 py-3
+                border-b border-zinc-800"
+            >
+              <button
+                onClick={() => {
+                  setQuoteModalPost(null);
+                  setQuoteModalText("");
+                }}
+                className="p-1 rounded-full hover:bg-zinc-800 transition-colors"
+              >
+                <X className="w-5 h-5 text-foreground" />
+              </button>
+              <span className="text-sm font-semibold text-foreground">
+                Quote
+              </span>
+              <button
+                onClick={handleQuoteSubmit}
+                disabled={!quoteModalText.trim() || quoteModalLoading}
+                className="px-4 py-1.5 rounded-full bg-white text-black
+                  text-sm font-bold disabled:opacity-40
+                  hover:bg-zinc-200 transition-colors"
+              >
+                {quoteModalLoading ? "Posting..." : "Post"}
+              </button>
+            </div>
+
+            {/* Quote input area */}
+            <div className="flex gap-3 px-4 pt-4 pb-2">
+              <div
+                className="w-9 h-9 rounded-full bg-primary/10 flex
+                  items-center justify-center text-xs font-bold text-primary
+                  shrink-0"
+              >
+                {(address ?? "?")[0]?.toUpperCase()}
+              </div>
+              <textarea
+                autoFocus
+                value={quoteModalText}
+                onChange={(e) => setQuoteModalText(e.target.value)}
+                placeholder="Add your thoughts..."
+                maxLength={280}
+                rows={3}
+                className="flex-1 bg-transparent text-foreground text-sm
+                  placeholder:text-muted-foreground resize-none
+                  focus:outline-none leading-relaxed"
+              />
+            </div>
+
+            {/* Character count */}
+            <div className="flex justify-end px-4 pb-2">
+              <span
+                className={`text-xs ${
+                  quoteModalText.length > 260
+                    ? "text-red-400"
+                    : "text-muted-foreground"
+                }`}
+              >
+                {quoteModalText.length}/280
+              </span>
+            </div>
+
+            {/* Original post preview */}
+            <div
+              className="mx-4 mb-4 border border-zinc-700 rounded-xl
+                overflow-hidden"
+            >
+              <div className="p-3">
+                {/* Original author */}
+                <div className="flex items-center gap-2 mb-2">
+                  <div
+                    className="w-6 h-6 rounded-full bg-zinc-700 flex
+                      items-center justify-center text-xs font-bold text-foreground"
+                  >
+                    {(
+                      (quoteModalPost.is_repost && quoteModalPost.original_post
+                        ? quoteModalPost.original_post.handle ??
+                          quoteModalPost.original_post.wallet
+                        : quoteModalPost.handle ?? quoteModalPost.wallet) ??
+                      "?"
+                    )[0]?.toUpperCase()}
+                  </div>
+                  <span className="text-sm font-semibold text-foreground">
+                    {quoteModalPost.is_repost && quoteModalPost.original_post
+                      ? quoteModalPost.original_post.handle
+                        ? `@${quoteModalPost.original_post.handle}`
+                        : `${quoteModalPost.original_post.wallet?.slice(0, 4)}...${quoteModalPost.original_post.wallet?.slice(-4)}`
+                      : quoteModalPost.handle
+                        ? `@${quoteModalPost.handle}`
+                        : `${quoteModalPost.wallet?.slice(0, 4)}...${quoteModalPost.wallet?.slice(-4)}`}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    ·{" "}
+                    {formatRelativeTime(
+                      quoteModalPost.is_repost && quoteModalPost.original_post
+                        ? quoteModalPost.original_post.created_at
+                        : quoteModalPost.created_at
+                    )}
+                  </span>
+                </div>
+
+                {/* Original content */}
+                <p className="text-sm text-foreground leading-relaxed">
+                  {quoteModalPost.is_repost && quoteModalPost.original_post
+                    ? quoteModalPost.original_post.content
+                    : quoteModalPost.content}
+                </p>
               </div>
             </div>
           </div>
