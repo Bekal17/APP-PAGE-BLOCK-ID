@@ -17,6 +17,7 @@ import {
   bookmarkPost,
   createPost,
   getSocialProfile,
+  endorseWallet,
 } from "@/services/blockidApi";
 
 const formatTime = (iso?: string) => {
@@ -189,6 +190,22 @@ const PostDetail = () => {
                 <Shield className="w-3 h-3" />
                 {Math.round(post.trust_score)}
               </span>
+            )}
+          {publicKey &&
+            post?.wallet !== publicKey.toString() && (
+              <button
+                onClick={() => {
+                  if (!publicKey) return;
+                  endorseWallet(
+                    publicKey.toString(),
+                    post?.wallet ?? "",
+                    "Great on-chain reputation"
+                  ).catch(() => {});
+                }}
+                className="px-3 py-1 rounded-full border border-border/60 text-xs text-muted-foreground hover:bg-muted/10 transition-colors"
+              >
+                Endorse
+              </button>
             )}
           </div>
 
