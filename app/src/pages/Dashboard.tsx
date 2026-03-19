@@ -971,34 +971,6 @@ const Dashboard = () => {
                       </div>
                     </div>
 
-                    {isConnected && (
-                    <div className="flex items-center gap-2">
-                      <button
-                        className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-colors disabled:opacity-60 ${
-                          followedWallets.has(targetWalletForActions)
-                            ? "bg-zinc-200 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300"
-                            : "bg-primary/10 text-primary hover:bg-primary/20"
-                        }`}
-                        onClick={() => {
-                          const w = targetWalletForActions;
-                          if (!w) return;
-                          if (!followedWallets.has(w)) {
-                            handleFollow(w);
-                          }
-                        }}
-                        disabled={
-                          followLoading[targetWalletForActions] ||
-                          followedWallets.has(targetWalletForActions)
-                        }
-                      >
-                        {followLoading[targetWalletForActions]
-                          ? "Following..."
-                          : followedWallets.has(targetWalletForActions)
-                          ? "Following"
-                          : "Follow"}
-                      </button>
-                      </div>
-                    )}
                   </div>
 
                 </div>
