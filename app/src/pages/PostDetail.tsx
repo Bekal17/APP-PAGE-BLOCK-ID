@@ -20,10 +20,16 @@ import {
   endorseWallet,
 } from "@/services/blockidApi";
 
+const normalizeIso = (iso?: string): string => {
+  if (!iso) return "";
+  // Replace +00:00 with Z for universal browser compatibility
+  return iso.replace("+00:00", "Z").replace(/\.\d+Z$/, "Z");
+};
+
 const formatTime = (iso?: string) => {
   if (!iso) return "";
-  const utcIso = iso.endsWith("Z") ? iso : iso + "Z";
-  const date = new Date(utcIso);
+  const date = new Date(normalizeIso(iso));
+  if (isNaN(date.getTime())) return "";
   return date.toLocaleString("id-ID", {
     hour: "2-digit",
     minute: "2-digit",
@@ -35,8 +41,8 @@ const formatTime = (iso?: string) => {
 
 const formatRelativeTime = (iso?: string) => {
   if (!iso) return "";
-  const utcIso = iso.endsWith("Z") ? iso : iso + "Z";
-  const date = new Date(utcIso);
+  const date = new Date(normalizeIso(iso));
+  if (isNaN(date.getTime())) return "";
   const now = new Date();
   const diff = now.getTime() - date.getTime();
   const mins = Math.floor(diff / 60000);

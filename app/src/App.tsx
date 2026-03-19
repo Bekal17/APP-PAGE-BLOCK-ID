@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, useSearchParams } from "react-router-dom";
 import SolanaWalletProvider from "@/components/SolanaWalletProvider";
+import AutoLogin from "@/components/AutoLogin";
 import Dashboard from "./pages/Dashboard";
 import TrustAnalytics from "./pages/TrustAnalytics";
 import Identity from "./pages/Identity";
@@ -34,6 +35,7 @@ function DashboardBackground() {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <SolanaWalletProvider>
+    <AutoLogin />
     <TooltipProvider>
       <Toaster />
       <Sonner />
