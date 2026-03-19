@@ -46,6 +46,7 @@ import {
   FileText,
   Heart,
   MessageSquare,
+  MessageSquareQuote,
   Shield,
   Camera,
   Image,
@@ -53,6 +54,9 @@ import {
   X,
   ExternalLink,
   Repeat2,
+  MoreHorizontal,
+  Flag,
+  UserPlus,
 } from "lucide-react";
 import WalletHoverCard from "@/components/WalletHoverCard";
 import {
@@ -241,7 +245,10 @@ const Profile = () => {
   const [repostTargetId, setRepostTargetId] = useState<number | null>(
     null
   );
-  const [quoteText, setQuoteText] = useState("");
+  const [quoteModalPost, setQuoteModalPost] = useState<any | null>(null);
+  const [quoteModalText, setQuoteModalText] = useState("");
+  const [quoteModalLoading, setQuoteModalLoading] = useState(false);
+  const [postMenuId, setPostMenuId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!showAvatarMenu && !showBannerMenu) return;
@@ -266,6 +273,13 @@ const Profile = () => {
     }, 0);
     return () => document.removeEventListener("click", handleClick);
   }, [repostDropdownId]);
+
+  useEffect(() => {
+    if (postMenuId === null) return;
+    const handleClick = () => setPostMenuId(null);
+    setTimeout(() => document.addEventListener("click", handleClick), 0);
+    return () => document.removeEventListener("click", handleClick);
+  }, [postMenuId]);
 
   const address = publicKey?.toBase58();
   const wallet = walletParam ?? address ?? "";
@@ -297,6 +311,14 @@ const Profile = () => {
           setProfile(profileRes);
           const p = postsRes.posts ?? postsRes ?? profileRes.posts ?? [];
           setPosts(Array.isArray(p) ? p : []);
+          const savedScroll = sessionStorage.getItem("profile_scroll");
+          if (savedScroll) {
+            sessionStorage.removeItem("profile_scroll");
+            const y = parseInt(savedScroll, 10);
+            setTimeout(() => {
+              window.scrollTo({ top: y, behavior: "instant" });
+            }, 100);
+          }
         }
       } catch (e) {
         console.error("Failed to load profile/posts", e);
@@ -834,6 +856,39 @@ const Profile = () => {
       }
     } finally {
       setLikeLoading((prev) => ({ ...prev, [post.id]: false }));
+    }
+  };
+
+  const handleQuoteSubmit = async () => {
+    if (!publicKey || !quoteModalPost || !quoteModalText.trim()) return;
+    setQuoteModalLoading(true);
+    try {
+      const targetId =
+        quoteModalPost.is_repost && quoteModalPost.repost_of
+          ? quoteModalPost.repost_of
+          : quoteModalPost.id;
+      await repostPost(publicKey.toString(), targetId, quoteModalText.trim());
+      setPosts((prev: any[]) =>
+        prev.map((p) => {
+          const match = (p as any).repost_of === targetId || p.id === targetId;
+          return match
+            ? { ...p, repost_count: (p.repost_count ?? 0) + 1 }
+            : p;
+        })
+      );
+      setRepostedPostIds((prev) => {
+        const next = new Set(prev);
+        next.add(targetId);
+        return next;
+      });
+      toast({ title: "Quote posted!" });
+      setQuoteModalPost(null);
+      setQuoteModalText("");
+    } catch (e) {
+      console.error(e);
+      toast({ title: "Failed to post quote", variant: "destructive" });
+    } finally {
+      setQuoteModalLoading(false);
     }
   };
 
@@ -1664,13 +1719,14 @@ const Profile = () => {
                     className="glass-card overflow-hidden
                       cursor-pointer hover:bg-muted/5
                       transition-colors"
-                    onClick={() =>
+                    onClick={() => {
+                      sessionStorage.setItem("profile_scroll", window.scrollY.toString());
                       navigate(
                         `/post/${
                           isRepost && post.repost_of ? post.repost_of : post.id
                         }`
-                      )
-                    }
+                      );
+                    }}
                   >
                     {/* Repost header */}
                     {isRepost && (
@@ -1770,6 +1826,84 @@ const Profile = () => {
                             Hidden
                           </span>
                         )}
+
+                        {/* Three-dot menu */}
+                        <div className="relative" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            className="p-1 rounded-full hover:bg-muted/30 text-muted-foreground
+                              hover:text-foreground transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPostMenuId(postMenuId === post.id ? null : post.id);
+                            }}
+                          >
+                            <MoreHorizontal className="w-4 h-4" />
+                          </button>
+
+                          {postMenuId === post.id && (
+                            <div className="absolute right-0 top-full mt-1 bg-zinc-900 border
+                              border-zinc-700 rounded-xl shadow-2xl py-1 w-44 z-50">
+                              {/* Own post → Delete */}
+                              {isOwnProfile && (
+                                <button
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    setPostMenuId(null);
+                                    toast({ title: "Delete coming soon" });
+                                  }}
+                                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm
+                                    text-red-400 hover:bg-zinc-800 transition-colors"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                  Delete Post
+                                </button>
+                              )}
+
+                              {/* Other's post → Follow + Report */}
+                              {!isOwnProfile && (
+                                <>
+                                  <button
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      if (!address) return;
+                                      const targetWallet = isRepost && originalPost
+                                        ? originalPost.wallet
+                                        : post.wallet;
+                                      if (!targetWallet) return;
+                                      try {
+                                        await followWallet(address, targetWallet);
+                                        toast({ title: "Followed!" });
+                                      } catch {
+                                        toast({ title: "Already following", variant: "destructive" });
+                                      }
+                                      setPostMenuId(null);
+                                    }}
+                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm
+                                      text-zinc-100 hover:bg-zinc-800 transition-colors"
+                                  >
+                                    <UserPlus className="w-4 h-4 text-primary" />
+                                    Follow {isRepost && originalPost
+                                      ? (originalPost.handle ? `@${originalPost.handle}` : "User")
+                                      : (post.handle ? `@${post.handle}` : "User")}
+                                  </button>
+
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setPostMenuId(null);
+                                      toast({ title: "Report submitted" });
+                                    }}
+                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm
+                                      text-red-400 hover:bg-zinc-800 transition-colors"
+                                  >
+                                    <Flag className="w-4 h-4" />
+                                    Report Post
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       {/* Content */}
@@ -1841,7 +1975,6 @@ const Profile = () => {
                                 repostDropdownId === post.id ? null : post.id ?? null
                               );
                               setRepostTargetId(targetId);
-                              setQuoteText("");
                             }}
                           >
                             <Repeat2 className="w-3.5 h-3.5" />
@@ -1864,7 +1997,6 @@ const Profile = () => {
                                     });
                                     setRepostDropdownId(null);
                                     setRepostTargetId(null);
-                                    setQuoteText("");
                                   }}
                                   className="w-full flex items-center gap-2.5 px-3 py-2 text-sm
                                     text-green-400 hover:bg-zinc-800 transition-colors"
@@ -1891,7 +2023,6 @@ const Profile = () => {
 
                                     setRepostDropdownId(null);
                                     setRepostTargetId(null);
-                                    setQuoteText("");
                                   } catch (e) {
                                     console.error(e);
                                   }
@@ -1904,62 +2035,18 @@ const Profile = () => {
                               </button>
 
                               <button
-                                onClick={() => setQuoteText(" ")}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setQuoteModalPost(post);
+                                  setRepostDropdownId(null);
+                                  setQuoteModalText("");
+                                }}
                                 className="w-full flex items-center gap-2.5 px-3 py-2 text-sm
                                   text-zinc-100 hover:bg-zinc-800 transition-colors"
                               >
-                                <MessageSquare className="w-4 h-4 text-blue-400" />
+                                <MessageSquareQuote className="w-4 h-4 text-blue-400" />
                                 Quote
                               </button>
-
-                              {quoteText !== "" && (
-                                <div
-                                  className="px-3 pb-2 pt-1 border-t border-zinc-800"
-                                >
-                                  <textarea
-                                    value={quoteText.trim() === "" ? "" : quoteText}
-                                    onChange={(e) => setQuoteText(e.target.value)}
-                                    placeholder="Add your thoughts..."
-                                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg
-                                      p-2 text-xs text-zinc-100 placeholder:text-zinc-500
-                                      focus:outline-none resize-none"
-                                    rows={2}
-                                    autoFocus
-                                    onClick={(e) => e.stopPropagation()}
-                                  />
-
-                                  <button
-                                    onClick={async () => {
-                                      if (!publicKey) return;
-                                      if (!quoteText.trim()) return;
-                                      try {
-                                        await repostPost(
-                                          publicKey.toString(),
-                                          repostTargetId ?? repostDropdownId!,
-                                          quoteText.trim()
-                                        );
-
-                                        setRepostedPostIds((prev) => {
-                                          const next = new Set(prev);
-                                          next.add(repostTargetId ?? repostDropdownId ?? 0);
-                                          return next;
-                                        });
-
-                                        setRepostDropdownId(null);
-                                        setRepostTargetId(null);
-                                        setQuoteText("");
-                                      } catch (e) {
-                                        console.error(e);
-                                      }
-                                    }}
-                                    className="mt-1.5 w-full py-1.5 rounded-lg bg-primary
-                                      text-primary-foreground text-xs font-medium
-                                      hover:bg-primary/90 transition-colors"
-                                  >
-                                    Post Quote
-                                  </button>
-                                </div>
-                              )}
                             </div>
                           )}
                         </div>
@@ -2159,6 +2246,134 @@ const Profile = () => {
           </div>
         )}
       </div>
+
+      {quoteModalPost && (
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center
+            bg-black/70 pt-16 px-4"
+          onClick={() => {
+            setQuoteModalPost(null);
+            setQuoteModalText("");
+          }}
+        >
+          <div
+            className="bg-zinc-900 border border-zinc-700 rounded-2xl
+              w-full max-w-xl shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal header */}
+            <div
+              className="flex items-center justify-between px-4 py-3
+                border-b border-zinc-800"
+            >
+              <button
+                onClick={() => {
+                  setQuoteModalPost(null);
+                  setQuoteModalText("");
+                }}
+                className="p-1 rounded-full hover:bg-zinc-800 transition-colors"
+              >
+                <X className="w-5 h-5 text-foreground" />
+              </button>
+              <span className="text-sm font-semibold text-foreground">
+                Quote
+              </span>
+              <button
+                onClick={handleQuoteSubmit}
+                disabled={!quoteModalText.trim() || quoteModalLoading}
+                className="px-4 py-1.5 rounded-full bg-white text-black
+                  text-sm font-bold disabled:opacity-40
+                  hover:bg-zinc-200 transition-colors"
+              >
+                {quoteModalLoading ? "Posting..." : "Post"}
+              </button>
+            </div>
+
+            {/* Quote input area */}
+            <div className="flex gap-3 px-4 pt-4 pb-2">
+              <div
+                className="w-9 h-9 rounded-full bg-primary/10 flex
+                  items-center justify-center text-xs font-bold text-primary
+                  shrink-0"
+              >
+                {(address ?? "?")[0]?.toUpperCase()}
+              </div>
+              <textarea
+                autoFocus
+                value={quoteModalText}
+                onChange={(e) => setQuoteModalText(e.target.value)}
+                placeholder="Add your thoughts..."
+                maxLength={280}
+                rows={3}
+                className="flex-1 bg-transparent text-foreground text-sm
+                  placeholder:text-muted-foreground resize-none
+                  focus:outline-none leading-relaxed"
+              />
+            </div>
+
+            {/* Character count */}
+            <div className="flex justify-end px-4 pb-2">
+              <span
+                className={`text-xs ${
+                  quoteModalText.length > 260
+                    ? "text-red-400"
+                    : "text-muted-foreground"
+                }`}
+              >
+                {quoteModalText.length}/280
+              </span>
+            </div>
+
+            {/* Original post preview */}
+            <div
+              className="mx-4 mb-4 border border-zinc-700 rounded-xl
+                overflow-hidden"
+            >
+              <div className="p-3">
+                {/* Original author */}
+                <div className="flex items-center gap-2 mb-2">
+                  <div
+                    className="w-6 h-6 rounded-full bg-zinc-700 flex
+                      items-center justify-center text-xs font-bold text-foreground"
+                  >
+                    {(
+                      (quoteModalPost.is_repost && quoteModalPost.original_post
+                        ? quoteModalPost.original_post.handle ??
+                          quoteModalPost.original_post.wallet
+                        : quoteModalPost.handle ?? quoteModalPost.wallet) ??
+                      "?"
+                    )[0]?.toUpperCase()}
+                  </div>
+                  <span className="text-sm font-semibold text-foreground">
+                    {quoteModalPost.is_repost && quoteModalPost.original_post
+                      ? quoteModalPost.original_post.handle
+                        ? `@${quoteModalPost.original_post.handle}`
+                        : `${quoteModalPost.original_post.wallet?.slice(0, 4)}...${quoteModalPost.original_post.wallet?.slice(-4)}`
+                      : quoteModalPost.handle
+                        ? `@${quoteModalPost.handle}`
+                        : `${quoteModalPost.wallet?.slice(0, 4)}...${quoteModalPost.wallet?.slice(-4)}`}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    ·{" "}
+                    {formatRelativeTime(
+                      quoteModalPost.is_repost && quoteModalPost.original_post
+                        ? quoteModalPost.original_post.created_at
+                        : quoteModalPost.created_at
+                    )}
+                  </span>
+                </div>
+
+                {/* Original content */}
+                <p className="text-sm text-foreground leading-relaxed">
+                  {quoteModalPost.is_repost && quoteModalPost.original_post
+                    ? quoteModalPost.original_post.content
+                    : quoteModalPost.content}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 };
