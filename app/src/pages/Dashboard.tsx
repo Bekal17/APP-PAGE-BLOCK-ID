@@ -997,18 +997,6 @@ const Dashboard = () => {
                           ? "Following"
                           : "Follow"}
                       </button>
-                        <button
-                          className="px-2.5 py-1 rounded-md border border-border/60 text-[11px] text-muted-foreground hover:bg-muted/10 transition-colors"
-                          onClick={() =>
-                            endorseWallet(
-                              publicKey!.toBase58(),
-                              targetWalletForActions,
-                              "Great on-chain reputation"
-                            )
-                          }
-                        >
-                          Endorse
-                        </button>
                       </div>
                     )}
                   </div>
