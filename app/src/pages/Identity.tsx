@@ -1,162 +1,413 @@
-import DashboardLayout from "@/components/DashboardLayout";
-import { useState } from "react";
+import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import {
-  Fingerprint,
+  SystemProgram,
+  Transaction,
+  PublicKey,
+  LAMPORTS_PER_SOL,
+} from "@solana/web3.js";
+import { useEffect, useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import DashboardLayout from "@/components/DashboardLayout";
+import {
+  AtSign,
   Search,
   CheckCircle2,
   XCircle,
-  Shield,
-  UserCircle,
-  AtSign,
-  Link2,
   Loader2,
+  Fingerprint,
+  Shield,
+  Wallet,
+  Tag,
+  AlertTriangle,
 } from "lucide-react";
 
-const Identity = () => {
-  const [username, setUsername] = useState("");
-  const [checking, setChecking] = useState(false);
-  const [available, setAvailable] = useState<boolean | null>(null);
+const API_BASE =
+  import.meta.env.VITE_EXPLORER_API_URL ||
+  "https://blockid-backend-production.up.railway.app";
 
-  const handleCheck = () => {
-    if (!username) return;
+const BLOCKID_TREASURY = "4hhGNkSs8e5ux3Dx8tNR9jxkMsNQA6uDSCSw1pH4Giqo";
+
+const Identity = () => {
+  const [handle, setHandle] = useState("");
+  const [checking, setChecking] = useState(false);
+  const [checkResult, setCheckResult] = useState<{
+    available: boolean;
+    price_usd: number;
+    price_sol: number;
+    current_owner?: string | null;
+    message?: string;
+  } | null>(null);
+  const [currentHandle, setCurrentHandle] = useState<string | null>(null);
+  const [claiming, setClaiming] = useState(false);
+  const [step, setStep] = useState<
+    "search" | "confirm" | "paying" | "done"
+  >("search");
+
+  const { publicKey, signTransaction, connected } = useWallet();
+  const { connection } = useConnection();
+  const { toast } = useToast();
+  const address = publicKey?.toBase58();
+
+  useEffect(() => {
+    if (!address) return;
+    fetch(`${API_BASE}/social/profile/${address}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.handle) setCurrentHandle(data.handle);
+      })
+      .catch(() => {});
+  }, [address]);
+
+  const handleCheck = async () => {
+    if (!handle.trim()) return;
     setChecking(true);
-    setTimeout(() => {
-      setAvailable(username.length > 3 && !["vitalik", "satoshi", "admin"].includes(username.toLowerCase()));
+    setCheckResult(null);
+    try {
+      const h = handle.replace(/^@/, "").toLowerCase().trim();
+      const res = await fetch(`${API_BASE}/handle/check?handle=${h}`);
+      const data = await res.json();
+      setCheckResult({
+        available: data.available ?? false,
+        price_usd: data.price_usd ?? 5,
+        price_sol: data.price_sol ?? 0.05,
+        current_owner: data.current_owner ?? null,
+        message: data.message,
+      });
+      if (data.available) setStep("confirm");
+    } catch {
+      toast({ title: "Failed to check handle", variant: "destructive" });
+    } finally {
       setChecking(false);
-    }, 800);
+    }
+  };
+
+  const handleClaim = async () => {
+    if (!publicKey || !signTransaction || !checkResult || !handle) return;
+    setClaiming(true);
+    setStep("paying");
+    try {
+      const h = handle.replace(/^@/, "").toLowerCase().trim();
+
+      // Step 1: SOL payment to treasury
+      const lamports = Math.ceil(checkResult.price_sol * LAMPORTS_PER_SOL);
+      const transaction = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: publicKey,
+          toPubkey: new PublicKey(BLOCKID_TREASURY),
+          lamports,
+        })
+      );
+      const { blockhash } = await connection.getLatestBlockhash();
+      transaction.recentBlockhash = blockhash;
+      transaction.feePayer = publicKey;
+
+      const signed = await signTransaction(transaction);
+      const txSig = await connection.sendRawTransaction(signed.serialize());
+      await connection.confirmTransaction(txSig, "confirmed");
+
+      // Step 2: Claim handle via API
+      const claimRes = await fetch(`${API_BASE}/handle/claim`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          wallet: address,
+          handle: h,
+          signed_message: `Claim @${h} on BlockID`,
+          tx_signature: txSig,
+        }),
+      });
+      const claimData = await claimRes.json();
+      if (!claimRes.ok) throw new Error(claimData.detail ?? "Claim failed");
+
+      setCurrentHandle(h);
+      setStep("done");
+      toast({ title: `@${h} claimed successfully!` });
+    } catch (e: unknown) {
+      console.error(e);
+      const err = e as Error;
+      toast({
+        title: err?.message ?? "Failed to claim handle",
+        variant: "destructive",
+      });
+      setStep("confirm");
+    } finally {
+      setClaiming(false);
+    }
   };
 
   return (
     <DashboardLayout>
-      <div className="max-w-3xl mx-auto space-y-6">
-        <div className="animate-slide-up">
-          <h1 className="text-2xl font-bold text-foreground tracking-tight">Identity Registration</h1>
-          <p className="text-sm text-muted-foreground mt-1">Register your human-readable wallet identity</p>
+      <div className="max-w-xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="text-center mb-2">
+          <h1 className="text-2xl font-bold text-foreground">
+            @Handle Identity
+          </h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Your identity on BlockID. One name, one reputation, across every
+            wallet you own.
+          </p>
+          <p className="text-xs text-muted-foreground/60 mt-2 max-w-md mx-auto leading-relaxed">
+            Your trust score and reputation are yours, they follow your
+            wallet, not your handle.
+          </p>
         </div>
 
-        {/* Username Search */}
-        <div className="glass-card p-6 animate-slide-up" style={{ animationDelay: "0.1s" }}>
-          <div className="flex items-center gap-2 mb-4">
-            <AtSign className="w-4 h-4 text-primary" />
-            <h3 className="text-sm font-semibold text-foreground">Choose Your Identity</h3>
-          </div>
-          <div className="flex gap-3">
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => { setUsername(e.target.value); setAvailable(null); }}
-                placeholder="Enter desired username"
-                className="w-full px-4 py-3 bg-muted/50 border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 text-sm font-mono"
-              />
-              {available !== null && (
-                <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                  {available ? (
-                    <CheckCircle2 className="w-5 h-5 text-success" />
-                  ) : (
-                    <XCircle className="w-5 h-5 text-destructive" />
-                  )}
-                </div>
-              )}
-            </div>
-            <button
-              onClick={handleCheck}
-              disabled={!username || checking}
-              className="px-6 py-3 bg-primary text-primary-foreground rounded-lg text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-all flex items-center gap-2"
-            >
-              {checking ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-              Check
-            </button>
-          </div>
-          {available !== null && (
-            <p className={`text-xs mt-2 ${available ? "text-success" : "text-destructive"}`}>
-              {available ? `"${username}.trust" is available!` : `"${username}.trust" is already taken.`}
-            </p>
-          )}
-        </div>
-
-        {/* Profile Setup */}
-        <div className="glass-card p-6 animate-slide-up" style={{ animationDelay: "0.15s" }}>
-          <div className="flex items-center gap-2 mb-6">
-            <UserCircle className="w-4 h-4 text-primary" />
-            <h3 className="text-sm font-semibold text-foreground">Profile Setup</h3>
-          </div>
-          <div className="space-y-4">
-            <div>
-              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider block mb-1.5">Display Name</label>
-              <input
-                type="text"
-                placeholder="Your display name"
-                className="w-full px-4 py-2.5 bg-muted/50 border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm"
-              />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider block mb-1.5">Bio</label>
-              <textarea
-                rows={3}
-                placeholder="Tell the network about yourself..."
-                className="w-full px-4 py-2.5 bg-muted/50 border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm resize-none"
-              />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider block mb-1.5">Website</label>
-              <div className="relative">
-                <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <input
-                  type="url"
-                  placeholder="https://your-website.com"
-                  className="w-full pl-10 pr-4 py-2.5 bg-muted/50 border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm"
-                />
+        {/* Already have handle */}
+        {currentHandle && (
+          <div className="glass-card p-5 border border-green-500/20 bg-green-500/5">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="w-5 h-5 text-green-400" />
+              <div>
+                <p className="text-sm font-semibold text-foreground">
+                  You own @{currentHandle}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Soul-bound to your wallet · Active
+                </p>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Verification Status */}
-        <div className="glass-card p-6 animate-slide-up" style={{ animationDelay: "0.2s" }}>
-          <div className="flex items-center gap-2 mb-4">
-            <Shield className="w-4 h-4 text-primary" />
-            <h3 className="text-sm font-semibold text-foreground">Verification Status</h3>
-          </div>
-          <div className="space-y-3">
-            {[
-              { label: "Wallet Ownership", status: "verified", desc: "Signature verified" },
-              { label: "On-chain Activity", status: "verified", desc: "500+ transactions" },
-              { label: "Social Verification", status: "pending", desc: "Connect Twitter/X" },
-              { label: "KYC (Optional)", status: "not_started", desc: "Institutional grade" },
-            ].map((item) => (
-              <div key={item.label} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                <div className="flex items-center gap-3">
-                  {item.status === "verified" ? (
-                    <CheckCircle2 className="w-4 h-4 text-success" />
-                  ) : item.status === "pending" ? (
-                    <Loader2 className="w-4 h-4 text-warning animate-spin" />
+        {/* Search card */}
+        {!currentHandle && (
+          <div className="glass-card p-6">
+            <div className="flex items-center gap-2 mb-4">
+              <AtSign className="w-4 h-4 text-primary" />
+              <h3 className="text-sm font-semibold text-foreground">
+                Search Handle
+              </h3>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="flex-1 relative">
+                <span
+                  className="absolute left-3 top-1/2 -translate-y-1/2
+                    text-muted-foreground text-sm font-mono"
+                >
+                  @
+                </span>
+                <input
+                  type="text"
+                  value={handle}
+                  onChange={(e) => {
+                    setHandle(e.target.value.replace(/^@/, "").toLowerCase());
+                    setCheckResult(null);
+                    setStep("search");
+                  }}
+                  onKeyDown={(e) => e.key === "Enter" && handleCheck()}
+                  placeholder="yourhandle"
+                  className="w-full pl-8 pr-4 py-3 bg-muted/50 border border-border
+                    rounded-lg text-foreground placeholder:text-muted-foreground
+                    focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm font-mono"
+                />
+              </div>
+              <button
+                onClick={handleCheck}
+                disabled={!handle.trim() || checking}
+                className="px-5 py-3 bg-primary text-primary-foreground rounded-lg
+                  text-sm font-semibold hover:bg-primary/90 disabled:opacity-50
+                  transition-all flex items-center gap-2"
+              >
+                {checking ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Search className="w-4 h-4" />
+                )}
+                Check
+              </button>
+            </div>
+
+            {/* Check result */}
+            {checkResult && (
+              <div
+                className={`mt-4 p-4 rounded-lg border ${
+                  checkResult.available
+                    ? "border-green-500/20 bg-green-500/5"
+                    : "border-red-500/20 bg-red-500/5"
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  {checkResult.available ? (
+                    <CheckCircle2 className="w-4 h-4 text-green-400" />
                   ) : (
-                    <div className="w-4 h-4 rounded-full border-2 border-muted-foreground" />
+                    <XCircle className="w-4 h-4 text-red-400" />
                   )}
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{item.label}</p>
-                    <p className="text-xs text-muted-foreground">{item.desc}</p>
-                  </div>
+                  <span
+                    className={`text-sm font-semibold ${
+                      checkResult.available ? "text-green-400" : "text-red-400"
+                    }`}
+                  >
+                    @{handle} is {checkResult.available ? "available!" : "taken"}
+                  </span>
                 </div>
-                <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                  item.status === "verified" ? "bg-success/10 text-success" :
-                  item.status === "pending" ? "bg-warning/10 text-warning" :
-                  "bg-muted text-muted-foreground"
-                }`}>
-                  {item.status === "verified" ? "Verified" : item.status === "pending" ? "Pending" : "Not Started"}
+
+                {!checkResult.available && checkResult.current_owner && (
+                  <div className="flex items-center justify-between text-xs mt-2 pt-2 border-t border-red-500/20">
+                    <span className="text-muted-foreground">
+                      Current owner
+                    </span>
+                    <span className="font-mono text-foreground">
+                      {checkResult.current_owner.slice(0, 4)}...
+                      {checkResult.current_owner.slice(-4)}
+                    </span>
+                  </div>
+                )}
+
+                {checkResult.available && (
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-muted-foreground">Price</span>
+                      <span className="font-semibold text-foreground">
+                        ${checkResult.price_usd} USD · {checkResult.price_sol}{" "}
+                        SOL
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Tag className="w-3 h-3" />
+                      <span>
+                        {handle.length <= 4
+                          ? "Premium handle (short)"
+                          : handle.length <= 7
+                            ? "Standard handle"
+                            : "Basic handle"}
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Confirm & Pay card — only show when available */}
+        {step === "confirm" &&
+          checkResult?.available &&
+          !currentHandle && (
+            <div className="glass-card p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <Wallet className="w-4 h-4 text-primary" />
+                <h3 className="text-sm font-semibold text-foreground">
+                  Confirm & Pay
+                </h3>
+              </div>
+
+              <div className="space-y-3 mb-5">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Handle</span>
+                  <span className="font-mono font-semibold text-foreground">
+                    @{handle}
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Price</span>
+                  <span className="font-semibold text-foreground">
+                    {checkResult.price_sol} SOL (≈${checkResult.price_usd})
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Type</span>
+                  <span className="text-foreground">Transferable NFT</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">
+                    Challenge period
+                  </span>
+                  <span className="text-foreground">30 days</span>
+                </div>
+              </div>
+
+              <div
+                className="flex items-start gap-2 p-3 rounded-lg bg-amber-500/10
+                  border border-amber-500/20 mb-5"
+              >
+                <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                <p className="text-xs text-amber-300">
+                  Handle name can be sold on Magic Eden or Tensor. Your trust
+                  score, reputation, and followers stay with your wallet — not
+                  the handle. New owner starts with fresh reputation. 30-day
+                  challenge period applies.
+                </p>
+              </div>
+
+              <button
+                onClick={handleClaim}
+                disabled={claiming || !connected}
+                className="w-full py-3 bg-primary text-primary-foreground rounded-lg
+                  text-sm font-bold hover:bg-primary/90 disabled:opacity-50
+                  transition-all flex items-center justify-center gap-2"
+              >
+                {claiming ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" /> Processing...
+                  </>
+                ) : (
+                  <>
+                    <Fingerprint className="w-4 h-4" /> Pay & Claim @{handle}
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+
+        {/* Paying step */}
+        {step === "paying" && (
+          <div className="glass-card p-8 text-center">
+            <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-3" />
+            <p className="text-sm font-semibold text-foreground">
+              Processing payment...
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Please approve the transaction in your wallet
+            </p>
+          </div>
+        )}
+
+        {/* Done step */}
+        {step === "done" && (
+          <div className="glass-card p-8 text-center border border-green-500/20">
+            <CheckCircle2 className="w-10 h-10 text-green-400 mx-auto mb-3" />
+            <p className="text-lg font-bold text-foreground">
+              @{handle} is yours!
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Transferable · Sell anytime on Magic Eden or Tensor · 30-day
+              challenge period active
+            </p>
+          </div>
+        )}
+
+        {/* Info card */}
+        <div className="glass-card p-5">
+          <div className="flex items-center gap-2 mb-3">
+            <Shield className="w-4 h-4 text-primary" />
+            <h3 className="text-sm font-semibold text-foreground">
+              Handle Pricing
+            </h3>
+          </div>
+          <div className="space-y-2">
+            {[
+              { len: "1-2 chars", price: "$200-500", note: "Ultra premium" },
+              { len: "3 chars", price: "$100", note: "Premium" },
+              { len: "4 chars", price: "$50", note: "Short" },
+              { len: "5-7 chars", price: "$10-30", note: "Standard" },
+              { len: "8+ chars", price: "$5", note: "Basic" },
+              { len: "Transfer", price: "Anytime", note: "Via Magic Eden / Tensor" },
+            ].map((row) => (
+              <div
+                key={row.len}
+                className="flex items-center justify-between text-xs py-1.5
+                  border-b border-border/30 last:border-0"
+              >
+                <span className="font-mono text-foreground">{row.len}</span>
+                <span className="text-muted-foreground">{row.note}</span>
+                <span className="font-semibold text-foreground">
+                  {row.price}
                 </span>
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Register Button */}
-        <div className="animate-slide-up" style={{ animationDelay: "0.25s" }}>
-          <button className="w-full py-3.5 bg-primary text-primary-foreground rounded-lg text-sm font-bold hover:bg-primary/90 transition-all glow-border">
-            <Fingerprint className="w-4 h-4 inline mr-2" />
-            Register Identity
-          </button>
         </div>
       </div>
     </DashboardLayout>
