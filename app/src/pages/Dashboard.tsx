@@ -115,7 +115,7 @@ const Dashboard = () => {
   const [quoteModalText, setQuoteModalText] = useState("");
   const [quoteModalLoading, setQuoteModalLoading] = useState(false);
   const [reportModalId, setReportModalId] = useState<number | null>(null);
-  const [reportReason, setReportReason] = useState("SPAM");
+  const [reportReason, setReportReason] = useState("SPAM_SCAM");
   const [postContent, setPostContent] = useState("");
   const [posting, setPosting] = useState(false);
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<number>>(new Set());
@@ -1007,51 +1007,72 @@ const Dashboard = () => {
           onClick={() => setReportModalId(null)}
         >
           <div
-            className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 w-full max-w-sm mx-4"
+            className="bg-zinc-900 border border-zinc-700 rounded-xl p-6
+              w-full max-w-sm mx-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-bold text-foreground mb-4">
-              Report Post
-            </h3>
-
-            <select
-              value={reportReason}
-              onChange={(e) => setReportReason(e.target.value)}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-2 text-sm text-foreground mb-4 focus:outline-none focus:ring-2 focus:ring-primary/50"
-            >
-              <option value="SPAM">Spam</option>
-              <option value="HARASSMENT">Harassment</option>
-              <option value="MISINFORMATION">Misinformation</option>
-              <option value="SCAM">Scam</option>
-              <option value="OTHER">Other</option>
-            </select>
-
-            <div className="flex gap-3">
-              <button
-                onClick={async () => {
-                  if (!publicKey) return;
-                  try {
-                    await reportPost(
-                      publicKey.toString(),
-                      reportModalId,
-                      reportReason
-                    );
-                    setReportModalId(null);
-                  } catch (e) {
-                    console.error(e);
-                  }
-                }}
-                className="flex-1 py-2 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/30 font-medium transition-colors"
-              >
-                Submit Report
-              </button>
-              <button
-                onClick={() => setReportModalId(null)}
-                className="flex-1 py-2 rounded-lg bg-zinc-800 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Cancel
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-bold text-foreground">
+                Report Post
+              </h3>
+              <button onClick={() => setReportModalId(null)}>
+                <X className="w-5 h-5 text-muted-foreground hover:text-foreground" />
               </button>
             </div>
+
+            <p className="text-xs text-muted-foreground mb-4">
+              Pilih alasan laporan. Laporan yang valid akan ditinjau oleh
+              komunitas. Post dengan cukup laporan akan otomatis disembunyikan.
+            </p>
+
+            <div className="space-y-2 mb-5">
+              {[
+                { value: "SPAM_SCAM", label: "Spam / Scam" },
+                { value: "HATE_SPEECH", label: "Hate Speech / Kata Kasar" },
+                { value: "HARMFUL_CONTENT", label: "Konten Berbahaya" },
+                { value: "MISINFORMATION", label: "Informasi Palsu / Hoax" },
+              ].map((r) => (
+                <button
+                  key={r.value}
+                  onClick={() => setReportReason(r.value)}
+                  className={`w-full text-left px-4 py-2.5 rounded-lg text-sm
+                    border transition-colors ${
+                      reportReason === r.value
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-zinc-700 text-foreground hover:bg-zinc-800"
+                    }`}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={async () => {
+                if (!publicKey) return;
+                try {
+                  await reportPost(
+                    publicKey.toString(),
+                    reportModalId,
+                    reportReason
+                  );
+                  toast({ title: "Report submitted" });
+                  setReportModalId(null);
+                  setReportReason("SPAM_SCAM");
+                } catch (e) {
+                  console.error(e);
+                  toast({
+                    title: "Failed to submit report",
+                    variant: "destructive",
+                  });
+                }
+              }}
+              disabled={!reportReason}
+              className="w-full py-2.5 rounded-lg bg-red-500 hover:bg-red-600
+                disabled:opacity-40 text-white text-sm font-medium transition-colors"
+            >
+              Submit Report
+            </button>
           </div>
         </div>
       )}

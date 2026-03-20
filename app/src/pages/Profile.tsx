@@ -22,6 +22,9 @@ import {
   endorseWallet,
   getPrivacySettings,
   repostPost,
+  getWalletNames,
+  updateProfile,
+  getSessionToken,
 } from "@/services/blockidApi";
 import { normalizeGraphResponse } from "@/components/investigation/WalletGraph";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -57,6 +60,8 @@ import {
   MoreHorizontal,
   Flag,
   UserPlus,
+  MapPin,
+  Link2,
 } from "lucide-react";
 import WalletHoverCard from "@/components/WalletHoverCard";
 import {
@@ -221,8 +226,6 @@ const Profile = () => {
     useState<InvestigatorStep | null>(null);
   const [investigatorDone, setInvestigatorDone] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
-  const [showAvatarMenu, setShowAvatarMenu] = useState(false);
-  const [showBannerMenu, setShowBannerMenu] = useState(false);
   const [showNFTModal, setShowNFTModal] = useState<"avatar" | "banner" | null>(
     null
   );
@@ -253,21 +256,18 @@ const Profile = () => {
   const [quoteModalText, setQuoteModalText] = useState("");
   const [quoteModalLoading, setQuoteModalLoading] = useState(false);
   const [postMenuId, setPostMenuId] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (!showAvatarMenu && !showBannerMenu) return;
-    const handleClick = () => {
-      setShowAvatarMenu(false);
-      setShowBannerMenu(false);
-    };
-    const id = setTimeout(() => {
-      document.addEventListener("click", handleClick);
-    }, 0);
-    return () => {
-      clearTimeout(id);
-      document.removeEventListener("click", handleClick);
-    };
-  }, [showAvatarMenu, showBannerMenu]);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [walletNames, setWalletNames] = useState<any[]>([]);
+  const [editForm, setEditForm] = useState({
+    display_name: "",
+    display_name_source: "WALLET",
+    bio: "",
+    website: "",
+    location: "",
+  });
+  const [editSaving, setEditSaving] = useState(false);
+  const [modalAvatarMenu, setModalAvatarMenu] = useState(false);
+  const [modalBannerMenu, setModalBannerMenu] = useState(false);
 
   useEffect(() => {
     if (repostDropdownId === null) return;
@@ -313,6 +313,13 @@ const Profile = () => {
         ]);
         if (!cancelled) {
           setProfile(profileRes);
+          setEditForm({
+            display_name: profileRes?.display_name ?? "",
+            display_name_source: profileRes?.display_name_source ?? "WALLET",
+            bio: profileRes?.bio ?? "",
+            website: profileRes?.website ?? "",
+            location: profileRes?.location ?? "",
+          });
           const p = postsRes.posts ?? postsRes ?? profileRes.posts ?? [];
           setPosts(Array.isArray(p) ? p : []);
           const savedScroll = sessionStorage.getItem("profile_scroll");
@@ -340,6 +347,13 @@ const Profile = () => {
     return () => {
       cancelled = true;
     };
+  }, [wallet]);
+
+  useEffect(() => {
+    if (!wallet) return;
+    getWalletNames(wallet)
+      .then((data) => setWalletNames(data.names ?? []))
+      .catch(() => setWalletNames([]));
   }, [wallet]);
 
   useEffect(() => {
@@ -898,9 +912,9 @@ const Profile = () => {
 
   return (
     <DashboardLayout>
-      <div className="w-full max-w-screen-2xl mx-auto p-4 md:p-8 space-y-6">
+      <div className="w-full max-w-screen-2xl mx-auto p-4 md:p-8">
         {/* Banner */}
-        <div className="relative w-full h-44 rounded-xl">
+        <div className="relative w-full h-36 rounded-xl mb-0">
           <div className="absolute inset-0 rounded-xl overflow-hidden">
             {profile?.banner_url ? (
               <div
@@ -916,96 +930,11 @@ const Profile = () => {
             )}
           </div>
 
-          {isOwnProfile && (
-            <div className="absolute bottom-3 right-3 z-50">
-              <button
-                onClick={() => setShowBannerMenu(!showBannerMenu)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-black/60 hover:bg-black/80 text-white text-xs font-medium rounded-lg backdrop-blur-sm transition-colors"
-              >
-                <Image className="w-3.5 h-3.5" />
-                Edit Banner
-              </button>
-
-              {showBannerMenu && (
-                <div className="absolute bottom-full right-0 mt-1 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl py-1 w-44">
-                  <label className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/30 cursor-pointer transition-colors">
-                    <Camera className="w-4 h-4 text-primary" />
-                    Upload Photo
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/gif,image/webp"
-                      className="hidden"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file || !publicKey) return;
-                        try {
-                          const res = await uploadBannerPhoto(
-                            publicKey.toString(),
-                            file
-                          );
-                          if (res.success) {
-                            setProfile((p: any) => ({
-                              ...p,
-                              banner_url: res.banner_url,
-                              banner_type: "PHOTO",
-                            }));
-                          }
-                        } catch (err) {
-                          console.error(err);
-                        }
-                        setShowBannerMenu(false);
-                      }}
-                    />
-                  </label>
-
-                  <button
-                    onClick={async () => {
-                      setShowBannerMenu(false);
-                      setShowNFTModal("banner");
-                      setNftsLoading(true);
-                      try {
-                        const data = await getWalletNFTs(wallet);
-                        setNfts(data.nfts ?? data ?? []);
-                      } catch {
-                        setNfts([]);
-                      }
-                      setNftsLoading(false);
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/30 transition-colors"
-                  >
-                    <Image className="w-4 h-4 text-yellow-400" />
-                    Choose NFT
-                  </button>
-
-                  {profile?.banner_url && (
-                    <button
-                      onClick={async () => {
-                        if (!publicKey) return;
-                        try {
-                          await removeBanner(publicKey.toString());
-                          setProfile((p: any) => ({
-                            ...p,
-                            banner_url: null,
-                            banner_type: "NONE",
-                          }));
-                        } catch {}
-                        setShowBannerMenu(false);
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-muted/30 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Remove Banner
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Profile row */}
-          <div className="flex items-end gap-4 -mt-10 ml-6 relative z-10">
-            <div className="relative w-20 h-20">
+        <div className="flex items-start gap-4 -mt-14 ml-4 relative z-10">
+          <div className="relative w-24 h-24 shrink-0">
               {avatarType === "NFT" && avatarUrl ? (
                 avatarIsAnimated ? (
                   <video
@@ -1014,7 +943,7 @@ const Profile = () => {
                     loop
                     muted
                     playsInline
-                    className="w-20 h-20 object-cover"
+                    className="w-24 h-24 object-cover"
                     style={{
                       borderRadius: "8px",
                       border: "2px solid gold",
@@ -1025,7 +954,7 @@ const Profile = () => {
                   <img
                     src={avatarUrl}
                     alt={handle ?? profileWallet}
-                    className="w-20 h-20 object-cover"
+                    className="w-24 h-24 object-cover"
                     style={{
                       borderRadius: "8px",
                       border: "2px solid gold",
@@ -1037,103 +966,16 @@ const Profile = () => {
                 <img
                   src={avatarUrl}
                   alt={handle ?? profileWallet}
-                  className="w-20 h-20 object-cover rounded-full border-2 border-white"
+                  className="w-24 h-24 object-cover rounded-full border-2 border-white"
                 />
               ) : (
-                <div className="w-20 h-20 rounded-full bg-zinc-700 border-2 border-zinc-600 flex items-center justify-center text-2xl font-bold text-foreground">
+                <div className="w-24 h-24 rounded-full bg-zinc-700 border-2 border-zinc-600 flex items-center justify-center text-2xl font-bold text-foreground">
                   {(profile?.handle ?? wallet ?? "?")[0]?.toUpperCase() ?? "?"}
-                </div>
-              )}
-
-              {isOwnProfile && (
-                <button
-                  onClick={() => setShowAvatarMenu(!showAvatarMenu)}
-                  className="absolute inset-0 rounded-full bg-black/50 opacity-0 hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer"
-                  style={{
-                    borderRadius:
-                      profile?.avatar_type === "NFT" ? "8px" : "50%",
-                  }}
-                >
-                  <Camera className="w-5 h-5 text-white" />
-                </button>
-              )}
-
-              {showAvatarMenu && isOwnProfile && (
-                <div className="absolute top-full left-0 mt-1 z-50 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl py-1 w-44">
-                  <label className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/30 cursor-pointer transition-colors">
-                    <Camera className="w-4 h-4 text-primary" />
-                    Upload Photo
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/gif,image/webp"
-                      className="hidden"
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file || !publicKey) return;
-                        try {
-                          const res = await uploadAvatarPhoto(
-                            publicKey.toString(),
-                            file
-                          );
-                          if (res.success) {
-                            setProfile((p: any) => ({
-                              ...p,
-                              avatar_url: res.avatar_url,
-                              avatar_type: "PHOTO",
-                            }));
-                          }
-                        } catch (err) {
-                          console.error(err);
-                        }
-                        setShowAvatarMenu(false);
-                      }}
-                    />
-                  </label>
-
-                  <button
-                    onClick={async () => {
-                      setShowAvatarMenu(false);
-                      setShowNFTModal("avatar");
-                      setNftsLoading(true);
-                      try {
-                        const data = await getWalletNFTs(wallet);
-                        setNfts(data.nfts ?? data ?? []);
-                      } catch {
-                        setNfts([]);
-                      }
-                      setNftsLoading(false);
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/30 transition-colors"
-                  >
-                    <Image className="w-4 h-4 text-yellow-400" />
-                    Choose NFT
-                  </button>
-
-                  {profile?.avatar_url && (
-                    <button
-                      onClick={async () => {
-                        if (!publicKey) return;
-                        try {
-                          await removeAvatar(publicKey.toString());
-                          setProfile((p: any) => ({
-                            ...p,
-                            avatar_url: null,
-                            avatar_type: "NONE",
-                          }));
-                        } catch {}
-                        setShowAvatarMenu(false);
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-muted/30 transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                      Remove
-                    </button>
-                  )}
                 </div>
               )}
             </div>
 
-            <div className="flex-1 pb-2">
+          <div className="flex-1 pb-2 mt-14">
               <p className="text-lg font-bold text-foreground">
                 {profile?.handle ? `@${profile.handle}` : wallet.length > 16 ? `${wallet.slice(0, 8)}...${wallet.slice(-8)}` : wallet}
               </p>
@@ -1200,6 +1042,16 @@ const Profile = () => {
                     return null;
                   }
                 })()}
+              {isOwnProfile && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 px-3 rounded-full text-xs mt-2"
+                  onClick={() => setEditModalOpen(true)}
+                >
+                  Edit Profile
+                </Button>
+              )}
               {!isOwnProfile && (
                 <div className="flex items-center gap-2 mt-2">
                   <Button
@@ -1237,8 +1089,59 @@ const Profile = () => {
             </div>
           </div>
 
+        {/* Bio section — below profile row, full width */}
+        <div className="ml-4 mt-3 space-y-1">
+          {profile?.bio && (
+            <p className="text-sm text-foreground max-w-lg">
+              {profile.bio}
+            </p>
+          )}
+          {(profile?.website || profile?.location) && (
+            <div className="flex items-center gap-3 flex-wrap">
+              {profile?.location && (
+                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                  <MapPin className="w-3 h-3" />
+                  {profile.location}
+                </span>
+              )}
+              {profile?.website && (
+                <a
+                  href={profile.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-primary hover:underline flex items-center gap-1"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Link2 className="w-3 h-3" />
+                  {profile.website.replace(/^https?:\/\//, "")}
+                </a>
+              )}
+            </div>
+          )}
+          {walletNames.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-1">
+              {walletNames.map((n: any) => (
+                <span
+                  key={n.name}
+                  className={`px-2 py-0.5 rounded-full text-xs font-medium border ${
+                    n.source === "BLOCKID"
+                      ? "bg-primary/10 text-primary border-primary/20"
+                      : n.source === "SNS"
+                        ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
+                        : n.source === "ANS"
+                          ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                          : "bg-zinc-500/10 text-zinc-400 border-zinc-500/20"
+                  }`}
+                >
+                  {n.display}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Tab switcher */}
-        <div className="border-b border-border flex gap-6 text-sm">
+        <div className="border-b border-border flex gap-6 text-sm mt-4">
           <button
             className={`pb-2 px-1 -mb-px border-b-2 transition-colors ${
               activeTab === "posts"
@@ -2159,7 +2062,7 @@ const Profile = () => {
 
         {showNFTModal !== null && (
           <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/70"
             onClick={() => setShowNFTModal(null)}
           >
             <div
@@ -2373,6 +2276,416 @@ const Profile = () => {
                     ? quoteModalPost.original_post.content
                     : quoteModalPost.content}
                 </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {editModalOpen && isOwnProfile && (
+        <div
+          className="fixed inset-0 z-[55] flex items-start justify-center
+            bg-black/70 pt-16 px-4"
+          onClick={() => setEditModalOpen(false)}
+        >
+          <div
+            className="bg-zinc-900 border border-zinc-700 rounded-2xl
+              w-full max-w-lg shadow-2xl overflow-hidden
+              max-h-[85vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4
+              border-b border-zinc-800">
+              <button
+                onClick={() => setEditModalOpen(false)}
+                className="p-1 rounded-full hover:bg-zinc-800 transition-colors"
+              >
+                <X className="w-5 h-5 text-foreground" />
+              </button>
+              <span className="text-sm font-bold text-foreground">
+                Edit Profile
+              </span>
+              <button
+                onClick={async () => {
+                  if (!address) return;
+                  setEditSaving(true);
+                  try {
+                    const normalizedWebsite = editForm.website
+                      ? editForm.website.startsWith("http")
+                        ? editForm.website
+                        : `https://${editForm.website}`
+                      : "";
+                    await updateProfile({
+                      wallet: address,
+                      session_token: getSessionToken(),
+                      display_name: editForm.display_name,
+                      display_name_source: editForm.display_name_source,
+                      bio: editForm.bio,
+                      website: normalizedWebsite,
+                      location: editForm.location,
+                    });
+                    setProfile((prev: any) => ({
+                      ...prev,
+                      ...editForm,
+                      website: normalizedWebsite,
+                    }));
+                    setEditModalOpen(false);
+                    toast({ title: "Profile updated!" });
+                  } catch (err: any) {
+                    console.error("Update profile error:", err);
+                    toast({
+                      title: err?.message ?? "Failed to update",
+                      variant: "destructive",
+                    });
+                  } finally {
+                    setEditSaving(false);
+                  }
+                }}
+                disabled={editSaving}
+                className="px-4 py-1.5 rounded-full bg-white text-black
+                  text-sm font-bold disabled:opacity-40
+                  hover:bg-zinc-200 transition-colors"
+              >
+                {editSaving ? "Saving..." : "Save"}
+              </button>
+            </div>
+
+            {/* Form */}
+            <div className="p-5 space-y-4 overflow-y-auto flex-1">
+              {/* Avatar + Banner section */}
+              <div className="relative mb-6">
+                {/* Banner preview + edit */}
+                <div className="relative h-24 rounded-xl overflow-hidden bg-zinc-800">
+                  {profile?.banner_url ? (
+                    <div
+                      className="absolute inset-0"
+                      style={{
+                        backgroundImage: `url(${profile.banner_url})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                      }}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 bg-gradient-to-r from-zinc-800 via-zinc-700 to-zinc-800" />
+                  )}
+                  <button
+                    type="button"
+                    className="absolute bottom-2 right-2 flex items-center gap-1.5 px-2.5 py-1.5 bg-black/60 hover:bg-black/80 text-white text-xs font-medium rounded-lg cursor-pointer backdrop-blur-sm transition-colors"
+                    onClick={() => setModalBannerMenu(!modalBannerMenu)}
+                  >
+                    <Camera className="w-3.5 h-3.5" />
+                    Edit Banner
+                  </button>
+
+                  {modalBannerMenu && (
+                    <div className="absolute bottom-10 right-2 z-50 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl py-1 w-44">
+                      <label className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/30 cursor-pointer transition-colors">
+                        <Camera className="w-4 h-4 text-primary" />
+                        Upload Photo
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/gif,image/webp"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file || !publicKey) return;
+                            try {
+                              const res = await uploadBannerPhoto(
+                                publicKey.toString(),
+                                file
+                              );
+                              if (res.success) {
+                                setProfile((p: any) => ({
+                                  ...p,
+                                  banner_url: res.banner_url,
+                                  banner_type: "PHOTO",
+                                }));
+                              }
+                            } catch (err) {
+                              console.error(err);
+                            }
+                            setModalBannerMenu(false);
+                          }}
+                        />
+                      </label>
+                        <button
+                          onClick={async () => {
+                            setModalBannerMenu(false);
+                            setNftsLoading(true);
+                            try {
+                              const data = await getWalletNFTs(wallet);
+                              const nftsList = data.nfts ?? data ?? [];
+                              setNfts(nftsList);
+                              setNftsLoading(false);
+                              if (nftsList.length === 0) {
+                                toast({
+                                  title: "No NFTs found in this wallet",
+                                  description: "Buy or mint an NFT to use as banner",
+                                });
+                                return;
+                              }
+                              setShowNFTModal("banner");
+                            } catch {
+                              setNfts([]);
+                              setNftsLoading(false);
+                              toast({
+                                title: "No NFTs found in this wallet",
+                                description: "Buy or mint an NFT to use as banner",
+                              });
+                            }
+                          }}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/30 transition-colors"
+                      >
+                        <Image className="w-4 h-4 text-yellow-400" />
+                        Choose NFT
+                      </button>
+                      {profile?.banner_url && (
+                        <button
+                          onClick={async () => {
+                            if (!publicKey) return;
+                            try {
+                              await removeBanner(publicKey.toString());
+                              setProfile((p: any) => ({
+                                ...p,
+                                banner_url: null,
+                                banner_type: "NONE",
+                              }));
+                            } catch {}
+                            setModalBannerMenu(false);
+                          }}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-muted/30 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          Remove Banner
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Avatar preview + edit */}
+                <div className="absolute -bottom-8 left-4">
+                  <div className="relative w-16 h-16">
+                    {profile?.avatar_url ? (
+                      <img
+                        src={profile.avatar_url}
+                        alt="avatar"
+                        className="w-16 h-16 rounded-full object-cover border-2 border-zinc-900"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 rounded-full bg-zinc-700 border-2 border-zinc-900 flex items-center justify-center text-xl font-bold text-foreground">
+                        {(profile?.handle ?? wallet ?? "?")[0]?.toUpperCase()}
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setModalAvatarMenu(!modalAvatarMenu)}
+                      className="absolute inset-0 rounded-full bg-black/50 opacity-0 hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer"
+                    >
+                      <Camera className="w-4 h-4 text-white" />
+                    </button>
+
+                    {modalAvatarMenu && (
+                      <div className="absolute top-full left-0 mt-1 z-50 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl py-1 w-44">
+                        <label className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/30 cursor-pointer transition-colors">
+                          <Camera className="w-4 h-4 text-primary" />
+                          Upload Photo
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/gif,image/webp"
+                            className="hidden"
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file || !publicKey) return;
+                              try {
+                                const res = await uploadAvatarPhoto(
+                                  publicKey.toString(),
+                                  file
+                                );
+                                if (res.success) {
+                                  setProfile((p: any) => ({
+                                    ...p,
+                                    avatar_url: res.avatar_url,
+                                    avatar_type: "PHOTO",
+                                  }));
+                                }
+                              } catch (err) {
+                                console.error(err);
+                              }
+                              setModalAvatarMenu(false);
+                            }}
+                          />
+                        </label>
+                        <button
+                          onClick={async () => {
+                            setModalAvatarMenu(false);
+                            setNftsLoading(true);
+                            try {
+                              const data = await getWalletNFTs(wallet);
+                              const nftsList = data.nfts ?? data ?? [];
+                              setNfts(nftsList);
+                              setNftsLoading(false);
+                              if (nftsList.length === 0) {
+                                toast({
+                                  title: "No NFTs found in this wallet",
+                                  description: "Buy or mint an NFT to use as avatar",
+                                });
+                                return;
+                              }
+                              setShowNFTModal("avatar");
+                            } catch {
+                              setNfts([]);
+                              setNftsLoading(false);
+                              toast({
+                                title: "No NFTs found in this wallet",
+                                description: "Buy or mint an NFT to use as avatar",
+                              });
+                            }
+                          }}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/30 transition-colors"
+                        >
+                          <Image className="w-4 h-4 text-yellow-400" />
+                          Choose NFT
+                        </button>
+                        {profile?.avatar_url && (
+                          <button
+                            onClick={async () => {
+                              if (!publicKey) return;
+                              try {
+                                await removeAvatar(publicKey.toString());
+                                setProfile((p: any) => ({
+                                  ...p,
+                                  avatar_url: null,
+                                  avatar_type: "NONE",
+                                }));
+                              } catch {}
+                              setModalAvatarMenu(false);
+                            }}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-muted/30 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Remove
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Spacer for avatar overflow */}
+              <div className="h-10" />
+
+              {/* Display Name — dropdown from on-chain names */}
+              <div>
+                <label className="text-xs font-medium text-muted-foreground
+                  uppercase tracking-wider block mb-1.5">
+                  Display Name
+                </label>
+                <select
+                  value={editForm.display_name}
+                  onChange={(e) => {
+                    const selected = walletNames.find(
+                      (n: any) => n.name === e.target.value
+                    );
+                    setEditForm((prev) => ({
+                      ...prev,
+                      display_name: e.target.value,
+                      display_name_source: selected?.source ?? "WALLET",
+                    }));
+                  }}
+                  className="w-full px-4 py-2.5 bg-zinc-800 border
+                    border-zinc-700 rounded-lg text-foreground text-sm
+                    focus:outline-none focus:ring-2 focus:ring-primary/50"
+                >
+                  <option value="">
+                    {wallet
+                      ? `${wallet.slice(0, 4)}...${wallet.slice(-4)}`
+                      : "Wallet address"}
+                  </option>
+                  {walletNames.map((n: any) => (
+                    <option key={n.name} value={n.name}>
+                      {n.display} ({n.source})
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Choose from your on-chain names — BlockID handle, .sol, .abc
+                </p>
+              </div>
+
+              {/* Bio */}
+              <div>
+                <label className="text-xs font-medium text-muted-foreground
+                  uppercase tracking-wider block mb-1.5">
+                  Bio
+                </label>
+                <textarea
+                  rows={3}
+                  maxLength={160}
+                  value={editForm.bio}
+                  onChange={(e) =>
+                    setEditForm((prev) => ({ ...prev, bio: e.target.value }))
+                  }
+                  placeholder="Tell the network about yourself..."
+                  className="w-full px-4 py-2.5 bg-zinc-800 border
+                    border-zinc-700 rounded-lg text-foreground
+                    placeholder:text-muted-foreground text-sm
+                    focus:outline-none focus:ring-2 focus:ring-primary/50
+                    resize-none"
+                />
+                <p className="text-xs text-muted-foreground text-right mt-0.5">
+                  {editForm.bio.length}/160
+                </p>
+              </div>
+
+              {/* Location */}
+              <div>
+                <label className="text-xs font-medium text-muted-foreground
+                  uppercase tracking-wider block mb-1.5">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  maxLength={100}
+                  value={editForm.location}
+                  onChange={(e) =>
+                    setEditForm((prev) => ({
+                      ...prev,
+                      location: e.target.value,
+                    }))
+                  }
+                  placeholder="Jakarta, Indonesia"
+                  className="w-full px-4 py-2.5 bg-zinc-800 border
+                    border-zinc-700 rounded-lg text-foreground
+                    placeholder:text-muted-foreground text-sm
+                    focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+              </div>
+
+              {/* Website */}
+              <div>
+                <label className="text-xs font-medium text-muted-foreground
+                  uppercase tracking-wider block mb-1.5">
+                  Website
+                </label>
+                <input
+                  type="url"
+                  maxLength={255}
+                  value={editForm.website}
+                  onChange={(e) =>
+                    setEditForm((prev) => ({
+                      ...prev,
+                      website: e.target.value,
+                    }))
+                  }
+                  placeholder="https://your-website.com"
+                  className="w-full px-4 py-2.5 bg-zinc-800 border
+                    border-zinc-700 rounded-lg text-foreground
+                    placeholder:text-muted-foreground text-sm
+                    focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
               </div>
             </div>
           </div>
