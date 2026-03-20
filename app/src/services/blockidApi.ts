@@ -185,6 +185,40 @@ export async function getSocialProfile(wallet: string): Promise<any> {
   return res.json();
 }
 
+export async function getWalletNames(wallet: string) {
+  const res = await fetch(
+    buildSocialUrl(`/social/profile/names/${encodeURIComponent(wallet)}`)
+  );
+  if (!res.ok) throw new Error("Failed to fetch names");
+  return res.json();
+}
+
+export async function updateProfile(data: {
+  wallet: string;
+  session_token: string | null;
+  display_name?: string;
+  display_name_source?: string;
+  bio?: string;
+  website?: string;
+  location?: string;
+}) {
+  const res = await fetch(buildSocialUrl("/social/profile/update"), {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({
+      ...data,
+      session_token: data.session_token ?? getSessionToken(),
+    }),
+  });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(
+      errData?.detail ?? `HTTP ${res.status}: Failed to update profile`
+    );
+  }
+  return res.json();
+}
+
 // Follow a wallet
 export async function followWallet(fromWallet: string, toWallet: string) {
   const res = await fetch(buildSocialUrl("/social/follow"), {
