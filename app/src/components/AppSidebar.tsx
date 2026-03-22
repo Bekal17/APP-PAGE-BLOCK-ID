@@ -68,7 +68,7 @@ const AppSidebar = () => {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-2 space-y-0.5">
+      <nav className="flex-1 px-2 space-y-0.5 overflow-auto min-h-0">
         {navItems.map((item) => {
           const isActive = location.pathname === item.url;
           return (
@@ -97,6 +97,37 @@ const AppSidebar = () => {
           );
         })}
       </nav>
+
+      {/* Legal links - pinned to bottom */}
+      <div className="mt-auto px-4 py-4 border-t border-white/5 shrink-0">
+        <div className="flex flex-wrap gap-x-3 gap-y-1">
+          <a
+            href="https://blockidscore.fun/terms.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+          >
+            Terms
+          </a>
+          <a
+            href="https://blockidscore.fun/privacy.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+          >
+            Privacy
+          </a>
+          <a
+            href="https://blockidscore.fun/refund.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+          >
+            Refund
+          </a>
+        </div>
+        <p className="text-xs text-zinc-600 mt-2">© 2026 BlockID</p>
+      </div>
     </div>
   );
 };
