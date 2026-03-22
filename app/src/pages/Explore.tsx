@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
 import {
   Search,
@@ -12,6 +13,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import WalletHoverCard from "@/components/WalletHoverCard";
 
 const Explore = () => {
+  const navigate = useNavigate();
   const { publicKey } = useWallet();
   const [feed, setFeed] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,7 +42,25 @@ const Explore = () => {
     try {
       const query = search.trim();
       const data = await getSocialProfile(query);
-      setSearchResult(data);
+      if (data?.notFound) {
+        setSearchResult({ notFound: true });
+      } else if (Array.isArray(data)) {
+        const unique = Array.from(
+          new Map(data.map((r: any, i: number) => [r.wallet ?? r.handle ?? `key-${i}`, r])).values()
+        );
+        setSearchResult(unique.length === 1 ? unique[0] : { results: unique });
+      } else if (data?.profiles && Array.isArray(data.profiles)) {
+        const unique = Array.from(
+          new Map(
+            data.profiles.map((r: any, i: number) => [r.wallet ?? r.handle ?? `key-${i}`, r])
+          ).values()
+        );
+        setSearchResult(unique.length === 1 ? unique[0] : { results: unique });
+      } else if (data && (data.wallet || data.handle)) {
+        setSearchResult(data);
+      } else {
+        setSearchResult({ notFound: true });
+      }
     } catch {
       setSearchResult({ notFound: true });
     }
@@ -59,7 +79,7 @@ const Explore = () => {
 
   return (
     <DashboardLayout>
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="max-w-6xl mx-auto w-full space-y-6">
         {/* Header */}
         <div className="animate-slide-up">
           <h1 className="text-2xl font-bold text-foreground tracking-tight">
@@ -93,45 +113,56 @@ const Explore = () => {
         </div>
 
         {/* Search Result */}
-        {searchResult && !searchResult.notFound && (
-          <div className="glass-card p-4 animate-slide-up">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-zinc-700 flex items-center justify-center text-lg font-bold text-foreground">
-                {(searchResult.handle ?? searchResult.wallet ?? "?")[0]?.toUpperCase()}
-              </div>
-              <div className="flex-1">
-                <p className="font-bold text-foreground">
-                  {searchResult.handle
-                    ? `@${searchResult.handle}`
-                    : `${searchResult.wallet?.slice(0, 8)}...${searchResult.wallet?.slice(-8)}`}
-                </p>
-                <p className="text-xs text-muted-foreground font-mono">
-                  {searchResult.wallet?.slice(0, 8)}...
-                  {searchResult.wallet?.slice(-8)}
-                </p>
-                <div className="flex items-center gap-2 mt-1">
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-xs font-bold ${
-                      (searchResult.trust_score ?? 0) >= 70
-                        ? "bg-green-500/20 text-green-400"
-                        : (searchResult.trust_score ?? 0) >= 40
-                          ? "bg-orange-500/20 text-orange-400"
-                          : "bg-red-500/20 text-red-400"
-                    }`}
-                  >
-                    ⬡ {Math.round(searchResult.trust_score ?? 0)}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {searchResult.follower_count ?? 0} Followers
-                  </span>
+        {searchResult && !searchResult.notFound && (() => {
+          const results = searchResult.results ?? [searchResult];
+          return (
+            <div className="space-y-2 w-full animate-slide-up">
+              {results.map((result: any) => (
+                <div
+                  key={result.wallet ?? result.handle ?? result}
+                  className="glass-card w-full p-4 cursor-pointer hover:bg-white/5 transition-colors"
+                  onClick={() => result.wallet && navigate(`/profile/${result.wallet}`)}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-full bg-zinc-700 flex items-center justify-center text-lg font-bold text-foreground">
+                      {(result.handle ?? result.wallet ?? "?")[0]?.toUpperCase()}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-bold text-foreground">
+                        {result.handle
+                          ? `@${result.handle}`
+                          : `${result.wallet?.slice(0, 8)}...${result.wallet?.slice(-8)}`}
+                      </p>
+                      <p className="text-xs text-muted-foreground font-mono">
+                        {result.wallet?.slice(0, 8)}...
+                        {result.wallet?.slice(-8)}
+                      </p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                            (result.trust_score ?? 0) >= 70
+                              ? "bg-green-500/20 text-green-400"
+                              : (result.trust_score ?? 0) >= 40
+                                ? "bg-orange-500/20 text-orange-400"
+                                : "bg-red-500/20 text-red-400"
+                          }`}
+                        >
+                          ⬡ {Math.round(result.trust_score ?? 0)}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {result.follower_count ?? 0} Followers
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {searchResult?.notFound && (
-          <div className="glass-card p-4 text-center text-muted-foreground text-sm animate-slide-up">
+          <div className="glass-card w-full p-4 text-center text-muted-foreground text-sm animate-slide-up">
             No wallet or handle found for &quot;{search}&quot;
           </div>
         )}
@@ -145,9 +176,9 @@ const Explore = () => {
 
         {/* Feed */}
         {loading ? (
-          <div className="space-y-3">
+          <div className="space-y-3 w-full">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="glass-card p-4 animate-pulse">
+              <div key={i} className="glass-card w-full p-4 animate-pulse overflow-hidden">
                 <div className="flex gap-3">
                   <div className="w-9 h-9 rounded-full bg-zinc-700" />
                   <div className="flex-1 space-y-2">
@@ -160,11 +191,11 @@ const Explore = () => {
             ))}
           </div>
         ) : feed.length === 0 ? (
-          <div className="glass-card p-8 text-center text-muted-foreground text-sm">
+          <div className="glass-card w-full p-8 text-center text-muted-foreground text-sm">
             No posts yet. Be the first to post!
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3 w-full">
             {feed.map((post: any) => {
               const score = Math.round(post.trust_score ?? 0);
               const scoreColor =
@@ -176,7 +207,7 @@ const Explore = () => {
               return (
                 <div
                   key={post.id}
-                  className="glass-card p-4 animate-slide-up"
+                  className="glass-card w-full overflow-hidden p-4 animate-slide-up"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3">
@@ -204,6 +235,18 @@ const Explore = () => {
                         <p className="text-sm text-foreground mt-1 break-words">
                           {post.content}
                         </p>
+                        {(post.image_url || post.original_post?.image_url) && (
+                          <div className="mt-2 rounded-xl overflow-hidden">
+                            <img
+                              src={post.image_url ?? post.original_post?.image_url}
+                              alt="Post image"
+                              className="w-full max-h-72 object-cover rounded-xl"
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                              }}
+                            />
+                          </div>
+                        )}
                         <div className="flex items-center gap-4 mt-2">
                           <span className="flex items-center gap-1 text-xs text-muted-foreground">
                             <Heart className="w-3.5 h-3.5" />
