@@ -45,9 +45,9 @@ const Bookmarks = () => {
     getBookmarks(wallet)
       .then((data) => {
         const postsList = data.posts ?? [];
-        console.log("Bookmark posts raw:", data);
         if (postsList.length > 0) {
-          console.log("First bookmark post fields:", Object.keys(postsList[0]), postsList[0]);
+          console.log("First bookmark:", postsList[0]);
+          console.log("image_url:", postsList[0]?.image_url);
         }
         setPosts(postsList);
       })
@@ -288,24 +288,32 @@ const Bookmarks = () => {
                   </p>
 
                   {/* Post image */}
-                  {(() => {
-                    const imgUrl =
-                      isRepost && originalPost
-                        ? (originalPost as any).image_url
-                        : (post as any).image_url;
-                    return imgUrl ? (
-                      <div className="mt-3 rounded-xl overflow-hidden">
-                        <img
-                          src={imgUrl}
-                          alt="Post image"
-                          className="w-full max-h-96 object-cover rounded-xl"
-                          onError={(e) => {
-                            e.currentTarget.style.display = "none";
-                          }}
-                        />
-                      </div>
-                    ) : null;
-                  })()}
+                  {post.image_url && (
+                    <div className="mt-3 rounded-xl overflow-hidden">
+                      <img
+                        src={post.image_url}
+                        alt="Post image"
+                        className="w-full max-h-96 object-cover rounded-xl"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {/* Repost original image */}
+                  {!post.image_url && post.original_post?.image_url && (
+                    <div className="mt-3 rounded-xl overflow-hidden">
+                      <img
+                        src={post.original_post.image_url}
+                        alt="Post image"
+                        className="w-full max-h-96 object-cover rounded-xl"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    </div>
+                  )}
 
                   {/* Stats */}
                   <div className="flex items-center gap-4 text-xs text-muted-foreground pt-1 border-t border-border/50">
