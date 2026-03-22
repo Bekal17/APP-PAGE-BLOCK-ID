@@ -17,6 +17,7 @@ import {
   AlertTriangle,
   Bookmark,
   X,
+  Image as ImageIcon,
 } from "lucide-react";
 import WalletHoverCard from "@/components/WalletHoverCard";
 import {
@@ -30,6 +31,7 @@ import {
   repostPost,
   reportPost,
   createPost,
+  getSessionToken,
   bookmarkPost,
   getBookmarkIds,
   getFollowing,
@@ -60,7 +62,9 @@ type SocialPost = {
     content: string;
     trust_score?: number | null;
     created_at?: string;
+    image_url?: string | null;
   } | null;
+  image_url?: string | null;
 };
 
 type WalletProfile = {
@@ -117,6 +121,8 @@ const Dashboard = () => {
   const [reportModalId, setReportModalId] = useState<number | null>(null);
   const [reportReason, setReportReason] = useState("SPAM_SCAM");
   const [postContent, setPostContent] = useState("");
+  const [postImage, setPostImage] = useState<File | null>(null);
+  const [postImagePreview, setPostImagePreview] = useState<string | null>(null);
   const [posting, setPosting] = useState(false);
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<number>>(new Set());
   const [bookmarkLoading, setBookmarkLoading] = useState<Record<number, boolean>>({});
@@ -484,13 +490,43 @@ const Dashboard = () => {
     if (!publicKey || !postContent.trim()) return;
     setPosting(true);
     try {
-      await createPost(publicKey.toString(), postContent.trim());
+      if (postImage) {
+        const formData = new FormData();
+        formData.append("wallet", publicKey.toString());
+        formData.append("content", postContent.trim());
+        formData.append("post_type", "PUBLIC");
+        formData.append("session_token", getSessionToken() ?? "");
+        formData.append("image", postImage);
+
+        const API_SOCIAL =
+          import.meta.env.VITE_SOCIAL_API_URL ??
+          "https://blockid-backend-production.up.railway.app";
+
+        const res = await fetch(`${API_SOCIAL}/social/post/with-image`, {
+          method: "POST",
+          body: formData,
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail ?? "Failed to post");
+        }
+      } else {
+        await createPost(publicKey.toString(), postContent.trim());
+      }
+
       setPostContent("");
+      setPostImage(null);
+      setPostImagePreview(null);
       const data = await getSocialFeed();
       const posts: SocialPost[] = data.posts ?? data ?? [];
       setFeed(Array.isArray(posts) ? posts : []);
-    } catch (e) {
+    } catch (e: unknown) {
+      const err = e as Error;
       console.error("Failed to post", e);
+      toast({
+        title: err?.message ?? "Failed to post",
+        variant: "destructive",
+      });
     }
     setPosting(false);
   };
@@ -540,6 +576,24 @@ const Dashboard = () => {
                 rows={2}
                 maxLength={280}
               />
+              {postImagePreview && (
+                <div className="relative mt-2 rounded-xl overflow-hidden max-h-64 w-full">
+                  <img
+                    src={postImagePreview}
+                    alt="Post image"
+                    className="w-full object-cover rounded-xl max-h-64"
+                  />
+                  <button
+                    onClick={() => {
+                      setPostImage(null);
+                      setPostImagePreview(null);
+                    }}
+                    className="absolute top-2 right-2 p-1 rounded-full bg-black/60 hover:bg-black/80 text-white transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
               <div className="flex items-start gap-1.5 py-2 text-xs text-amber-500/70">
                 <AlertTriangle className="w-3 h-3 mt-0.5 shrink-0" />
                 <span>
@@ -548,9 +602,34 @@ const Dashboard = () => {
                 </span>
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-border/50">
-                <span className="text-xs text-muted-foreground">
-                  {postContent.length}/280
-                </span>
+                <div className="flex items-center gap-2">
+                  <label className="cursor-pointer p-1.5 rounded-full hover:bg-muted/30 text-muted-foreground hover:text-foreground transition-colors">
+                    <ImageIcon className="w-4 h-4" />
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/gif,image/webp"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        if (file.size > 5 * 1024 * 1024) {
+                          toast({
+                            title: "Image too large",
+                            description: "Max 5MB",
+                            variant: "destructive",
+                          });
+                          return;
+                        }
+                        setPostImage(file);
+                        const url = URL.createObjectURL(file);
+                        setPostImagePreview(url);
+                      }}
+                    />
+                  </label>
+                  <span className="text-xs text-muted-foreground">
+                    {postContent.length}/280
+                  </span>
+                </div>
                 <button
                   onClick={handlePost}
                   disabled={!postContent.trim() || posting}
@@ -800,6 +879,22 @@ const Dashboard = () => {
                       {displayContent}
                     </p>
                   )}
+                  {(() => {
+                    const imgUrl =
+                      isRepost && originalPost
+                        ? (originalPost as any).image_url
+                        : (post as any).image_url;
+                    return imgUrl ? (
+                      <div className="mt-2 rounded-xl overflow-hidden">
+                        <img
+                          src={imgUrl}
+                          alt="Post image"
+                          className="w-full object-cover rounded-xl max-h-96"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
+                    ) : null;
+                  })()}
 
                   <div className="flex items-center justify-between pt-1 text-xs text-muted-foreground">
                     <div className="flex items-center gap-4">
