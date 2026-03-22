@@ -1,5 +1,5 @@
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   getGraph,
@@ -64,6 +64,7 @@ import {
   Link2,
 } from "lucide-react";
 import WalletHoverCard from "@/components/WalletHoverCard";
+import ImageCropModal from "@/components/ImageCropModal";
 import {
   InvestigatorProgress,
   type InvestigatorStep,
@@ -268,6 +269,19 @@ const Profile = () => {
   const [editSaving, setEditSaving] = useState(false);
   const [modalAvatarMenu, setModalAvatarMenu] = useState(false);
   const [modalBannerMenu, setModalBannerMenu] = useState(false);
+  const bannerMenuRef = useRef<HTMLDivElement>(null);
+  const avatarMenuRef = useRef<HTMLDivElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const [cropImage, setCropImage] = useState<string | null>(null);
+  const [cropType, setCropType] = useState<"avatar" | "banner" | null>(null);
+  const [isCropActive, setIsCropActive] = useState(false);
+  const [pendingAvatarBlob, setPendingAvatarBlob] = useState<Blob | null>(null);
+  const [pendingBannerBlob, setPendingBannerBlob] = useState<Blob | null>(null);
+  const [pendingAvatarPreview, setPendingAvatarPreview] =
+    useState<string | null>(null);
+  const [pendingBannerPreview, setPendingBannerPreview] =
+    useState<string | null>(null);
 
   useEffect(() => {
     if (repostDropdownId === null) return;
@@ -284,6 +298,46 @@ const Profile = () => {
     setTimeout(() => document.addEventListener("click", handleClick), 0);
     return () => document.removeEventListener("click", handleClick);
   }, [postMenuId]);
+
+  useEffect(() => {
+    if (!modalBannerMenu) return;
+    const handler = (e: MouseEvent) => {
+      if (!bannerMenuRef.current?.contains(e.target as Node)) {
+        setModalBannerMenu(false);
+      }
+    };
+    setTimeout(() => document.addEventListener("mousedown", handler), 100);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [modalBannerMenu]);
+
+  useEffect(() => {
+    if (!modalAvatarMenu) return;
+    const handler = (e: MouseEvent) => {
+      if (!avatarMenuRef.current?.contains(e.target as Node)) {
+        setModalAvatarMenu(false);
+      }
+    };
+    setTimeout(() => document.addEventListener("mousedown", handler), 100);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [modalAvatarMenu]);
+
+  const handleFileSelect = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>, type: "avatar" | "banner") => {
+      const file = e.target.files?.[0];
+      if (!file || !publicKey) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        setCropImage(reader.result as string);
+        setCropType(type);
+        setIsCropActive(true);
+      };
+      reader.readAsDataURL(file);
+      e.target.value = "";
+      if (type === "avatar") setModalAvatarMenu(false);
+      else setModalBannerMenu(false);
+    },
+    [publicKey]
+  );
 
   const address = publicKey?.toBase58();
   const wallet = walletParam ?? address ?? "";
@@ -1818,6 +1872,29 @@ const Profile = () => {
                         {isRepost && originalPost ? originalPost.content : post.content}
                       </p>
 
+                      {/* Post image */}
+                      {(() => {
+                        const imgUrl =
+                          isRepost && originalPost
+                            ? (originalPost as any).image_url
+                            : (post as any).image_url;
+                        return imgUrl ? (
+                          <div
+                            className="mt-2 rounded-xl overflow-hidden"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <img
+                              src={imgUrl}
+                              alt="Post image"
+                              className="w-full object-cover rounded-xl max-h-96"
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                              }}
+                            />
+                          </div>
+                        ) : null;
+                      })()}
+
                       {/* Loading state for original post */}
                       {isRepost && !originalPost && (
                         <div className="h-4 bg-muted/30 rounded animate-pulse w-2/3" />
@@ -2152,6 +2229,33 @@ const Profile = () => {
             </div>
           </div>
         )}
+
+        {cropImage && cropType && (
+          <ImageCropModal
+            image={cropImage}
+            aspectRatio={cropType === "avatar" ? 1 : 3.2}
+            cropShape={cropType === "avatar" ? "round" : "rect"}
+            title={cropType === "avatar" ? "Edit avatar" : "Edit banner"}
+            onComplete={(blob) => {
+              const previewUrl = URL.createObjectURL(blob);
+              if (cropType === "avatar") {
+                setPendingAvatarBlob(blob);
+                setPendingAvatarPreview(previewUrl);
+              } else {
+                setPendingBannerBlob(blob);
+                setPendingBannerPreview(previewUrl);
+              }
+              setIsCropActive(false);
+              setCropImage(null);
+              setCropType(null);
+            }}
+            onCancel={() => {
+              setIsCropActive(false);
+              setCropImage(null);
+              setCropType(null);
+            }}
+          />
+        )}
       </div>
 
       {quoteModalPost && (
@@ -2284,9 +2388,17 @@ const Profile = () => {
 
       {editModalOpen && isOwnProfile && (
         <div
-          className="fixed inset-0 z-[55] flex items-start justify-center
-            bg-black/70 pt-16 px-4"
-          onClick={() => setEditModalOpen(false)}
+          className={`fixed inset-0 z-[55] flex items-start justify-center
+            bg-black/70 pt-16 px-4 ${isCropActive ? "invisible" : "visible"}`}
+          onClick={() => {
+            setEditModalOpen(false);
+            setPendingAvatarBlob(null);
+            setPendingBannerBlob(null);
+            if (pendingAvatarPreview) URL.revokeObjectURL(pendingAvatarPreview);
+            if (pendingBannerPreview) URL.revokeObjectURL(pendingBannerPreview);
+            setPendingAvatarPreview(null);
+            setPendingBannerPreview(null);
+          }}
         >
           <div
             className="bg-zinc-900 border border-zinc-700 rounded-2xl
@@ -2308,9 +2420,53 @@ const Profile = () => {
               </span>
               <button
                 onClick={async () => {
-                  if (!address) return;
+                  if (!address || !publicKey) return;
                   setEditSaving(true);
                   try {
+                    if (pendingAvatarBlob) {
+                      const file = new File(
+                        [pendingAvatarBlob],
+                        "avatar.jpg",
+                        { type: "image/jpeg" }
+                      );
+                      const res = await uploadAvatarPhoto(
+                        publicKey.toString(),
+                        file
+                      );
+                      if (res.success) {
+                        setProfile((p: any) => ({
+                          ...p,
+                          avatar_url: res.avatar_url,
+                          avatar_type: "PHOTO",
+                        }));
+                      }
+                      setPendingAvatarBlob(null);
+                      if (pendingAvatarPreview)
+                        URL.revokeObjectURL(pendingAvatarPreview);
+                      setPendingAvatarPreview(null);
+                    }
+                    if (pendingBannerBlob) {
+                      const file = new File(
+                        [pendingBannerBlob],
+                        "banner.jpg",
+                        { type: "image/jpeg" }
+                      );
+                      const res = await uploadBannerPhoto(
+                        publicKey.toString(),
+                        file
+                      );
+                      if (res.success) {
+                        setProfile((p: any) => ({
+                          ...p,
+                          banner_url: res.banner_url,
+                          banner_type: "PHOTO",
+                        }));
+                      }
+                      setPendingBannerBlob(null);
+                      if (pendingBannerPreview)
+                        URL.revokeObjectURL(pendingBannerPreview);
+                      setPendingBannerPreview(null);
+                    }
                     const normalizedWebsite = editForm.website
                       ? editForm.website.startsWith("http")
                         ? editForm.website
@@ -2355,62 +2511,57 @@ const Profile = () => {
             <div className="p-5 space-y-4 overflow-y-auto flex-1">
               {/* Avatar + Banner section */}
               <div className="relative mb-6">
-                {/* Banner preview + edit */}
-                <div className="relative h-24 rounded-xl overflow-hidden bg-zinc-800">
-                  {profile?.banner_url ? (
-                    <div
-                      className="absolute inset-0"
-                      style={{
-                        backgroundImage: `url(${profile.banner_url})`,
-                        backgroundSize: "cover",
-                        backgroundPosition: "center",
-                      }}
-                    />
-                  ) : (
-                    <div className="absolute inset-0 bg-gradient-to-r from-zinc-800 via-zinc-700 to-zinc-800" />
-                  )}
-                  <button
-                    type="button"
-                    className="absolute bottom-2 right-2 flex items-center gap-1.5 px-2.5 py-1.5 bg-black/60 hover:bg-black/80 text-white text-xs font-medium rounded-lg cursor-pointer backdrop-blur-sm transition-colors"
-                    onClick={() => setModalBannerMenu(!modalBannerMenu)}
+                {/* Banner preview + edit - overflow only on image so dropdown is not clipped */}
+                <div className="relative h-24 rounded-xl bg-zinc-800">
+                  <div className="absolute inset-0 rounded-xl overflow-hidden">
+                    {pendingBannerPreview || profile?.banner_url ? (
+                      <div
+                        className="absolute inset-0"
+                        style={{
+                          backgroundImage: `url(${pendingBannerPreview ?? profile?.banner_url})`,
+                          backgroundSize: "cover",
+                          backgroundPosition: "center",
+                        }}
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-gradient-to-r from-zinc-800 via-zinc-700 to-zinc-800" />
+                    )}
+                  </div>
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    ref={bannerMenuRef}
                   >
-                    <Camera className="w-3.5 h-3.5" />
-                    Edit Banner
-                  </button>
+                    <div className="absolute bottom-2 right-2 pointer-events-auto">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setModalBannerMenu((prev) => !prev);
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-black/60 hover:bg-black/80 text-white text-xs font-medium backdrop-blur-sm border border-white/10 transition-all"
+                      >
+                      <Camera className="w-3.5 h-3.5" />
+                      Edit Banner
+                    </button>
 
-                  {modalBannerMenu && (
-                    <div className="absolute bottom-10 right-2 z-50 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl py-1 w-44">
-                      <label className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/30 cursor-pointer transition-colors">
-                        <Camera className="w-4 h-4 text-primary" />
-                        Upload Photo
-                        <input
-                          type="file"
-                          accept="image/jpeg,image/png,image/gif,image/webp"
-                          className="hidden"
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (!file || !publicKey) return;
-                            try {
-                              const res = await uploadBannerPhoto(
-                                publicKey.toString(),
-                                file
-                              );
-                              if (res.success) {
-                                setProfile((p: any) => ({
-                                  ...p,
-                                  banner_url: res.banner_url,
-                                  banner_type: "PHOTO",
-                                }));
-                              }
-                            } catch (err) {
-                              console.error(err);
-                            }
-                            setModalBannerMenu(false);
-                          }}
-                        />
-                      </label>
+                      {modalBannerMenu && (
+                        <div className="absolute top-full right-0 mt-1 z-[9999] bg-[#1a1830] border border-white/10 rounded-xl shadow-2xl py-1 w-48 overflow-hidden">
                         <button
-                          onClick={async () => {
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setModalBannerMenu(false);
+                            bannerInputRef.current?.click();
+                          }}
+                          className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-slate-200 hover:bg-white/5 transition-colors text-left"
+                        >
+                          <Camera className="w-4 h-4" />
+                          Choose Photo
+                        </button>
+                        <button
+                          type="button"
+                          onClick={async (e) => {
+                            e.stopPropagation();
                             setModalBannerMenu(false);
                             setNftsLoading(true);
                             try {
@@ -2435,41 +2586,58 @@ const Profile = () => {
                               });
                             }
                           }}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/30 transition-colors"
-                      >
-                        <Image className="w-4 h-4 text-yellow-400" />
-                        Choose NFT
-                      </button>
-                      {profile?.banner_url && (
-                        <button
-                          onClick={async () => {
-                            if (!publicKey) return;
-                            try {
-                              await removeBanner(publicKey.toString());
-                              setProfile((p: any) => ({
-                                ...p,
-                                banner_url: null,
-                                banner_type: "NONE",
-                              }));
-                            } catch {}
-                            setModalBannerMenu(false);
-                          }}
-                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-muted/30 transition-colors"
+                          className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-slate-200 hover:bg-white/5 transition-colors text-left"
                         >
-                          <Trash2 className="w-4 h-4" />
-                          Remove Banner
+                          <Image className="w-4 h-4 text-yellow-400" />
+                          Choose NFT
                         </button>
+                        {(pendingBannerPreview || profile?.banner_url) && (
+                          <button
+                            type="button"
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              setModalBannerMenu(false);
+                              if (pendingBannerPreview) {
+                                setPendingBannerBlob(null);
+                                URL.revokeObjectURL(pendingBannerPreview);
+                                setPendingBannerPreview(null);
+                              } else if (publicKey) {
+                                try {
+                                  await removeBanner(publicKey.toString());
+                                  setProfile((p: any) => ({
+                                    ...p,
+                                    banner_url: null,
+                                    banner_type: "NONE",
+                                  }));
+                                } catch {}
+                              }
+                            }}
+                            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-400 hover:bg-white/5 transition-colors text-left"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            Remove Banner
+                          </button>
+                        )}
+                        </div>
                       )}
                     </div>
-                  )}
+                  </div>
                 </div>
 
+                <input
+                  ref={bannerInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  className="hidden"
+                  onChange={(e) => handleFileSelect(e, "banner")}
+                />
+
                 {/* Avatar preview + edit */}
-                <div className="absolute -bottom-8 left-4">
+                <div className="absolute -bottom-8 left-4" ref={avatarMenuRef}>
                   <div className="relative w-16 h-16">
-                    {profile?.avatar_url ? (
+                    {pendingAvatarPreview || profile?.avatar_url ? (
                       <img
-                        src={profile.avatar_url}
+                        src={pendingAvatarPreview ?? profile?.avatar_url}
                         alt="avatar"
                         className="w-16 h-16 rounded-full object-cover border-2 border-zinc-900"
                       />
@@ -2480,45 +2648,33 @@ const Profile = () => {
                     )}
                     <button
                       type="button"
-                      onClick={() => setModalAvatarMenu(!modalAvatarMenu)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setModalAvatarMenu((prev) => !prev);
+                      }}
                       className="absolute inset-0 rounded-full bg-black/50 opacity-0 hover:opacity-100 flex items-center justify-center transition-opacity cursor-pointer"
                     >
                       <Camera className="w-4 h-4 text-white" />
                     </button>
 
                     {modalAvatarMenu && (
-                      <div className="absolute top-full left-0 mt-1 z-50 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl py-1 w-44">
-                        <label className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/30 cursor-pointer transition-colors">
-                          <Camera className="w-4 h-4 text-primary" />
-                          Upload Photo
-                          <input
-                            type="file"
-                            accept="image/jpeg,image/png,image/gif,image/webp"
-                            className="hidden"
-                            onChange={async (e) => {
-                              const file = e.target.files?.[0];
-                              if (!file || !publicKey) return;
-                              try {
-                                const res = await uploadAvatarPhoto(
-                                  publicKey.toString(),
-                                  file
-                                );
-                                if (res.success) {
-                                  setProfile((p: any) => ({
-                                    ...p,
-                                    avatar_url: res.avatar_url,
-                                    avatar_type: "PHOTO",
-                                  }));
-                                }
-                              } catch (err) {
-                                console.error(err);
-                              }
-                              setModalAvatarMenu(false);
-                            }}
-                          />
-                        </label>
+                      <div className="absolute top-full left-0 mt-1 z-[9999] bg-[#1a1830] border border-white/10 rounded-xl shadow-2xl py-1 w-48 overflow-hidden">
                         <button
-                          onClick={async () => {
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setModalAvatarMenu(false);
+                            avatarInputRef.current?.click();
+                          }}
+                          className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-slate-200 hover:bg-white/5 transition-colors text-left"
+                        >
+                          <Camera className="w-4 h-4" />
+                          Choose Photo
+                        </button>
+                        <button
+                          type="button"
+                          onClick={async (e) => {
+                            e.stopPropagation();
                             setModalAvatarMenu(false);
                             setNftsLoading(true);
                             try {
@@ -2543,26 +2699,33 @@ const Profile = () => {
                               });
                             }
                           }}
-                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/30 transition-colors"
+                          className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-slate-200 hover:bg-white/5 transition-colors text-left"
                         >
                           <Image className="w-4 h-4 text-yellow-400" />
                           Choose NFT
                         </button>
-                        {profile?.avatar_url && (
+                        {(pendingAvatarPreview || profile?.avatar_url) && (
                           <button
-                            onClick={async () => {
-                              if (!publicKey) return;
-                              try {
-                                await removeAvatar(publicKey.toString());
-                                setProfile((p: any) => ({
-                                  ...p,
-                                  avatar_url: null,
-                                  avatar_type: "NONE",
-                                }));
-                              } catch {}
+                            type="button"
+                            onClick={async (e) => {
+                              e.stopPropagation();
                               setModalAvatarMenu(false);
+                              if (pendingAvatarPreview) {
+                                setPendingAvatarBlob(null);
+                                URL.revokeObjectURL(pendingAvatarPreview);
+                                setPendingAvatarPreview(null);
+                              } else if (publicKey) {
+                                try {
+                                  await removeAvatar(publicKey.toString());
+                                  setProfile((p: any) => ({
+                                    ...p,
+                                    avatar_url: null,
+                                    avatar_type: "NONE",
+                                  }));
+                                } catch {}
+                              }
                             }}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-muted/30 transition-colors"
+                            className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-red-400 hover:bg-white/5 transition-colors text-left"
                           >
                             <Trash2 className="w-4 h-4" />
                             Remove
@@ -2572,6 +2735,14 @@ const Profile = () => {
                     )}
                   </div>
                 </div>
+
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  className="hidden"
+                  onChange={(e) => handleFileSelect(e, "avatar")}
+                />
               </div>
 
               {/* Spacer for avatar overflow */}

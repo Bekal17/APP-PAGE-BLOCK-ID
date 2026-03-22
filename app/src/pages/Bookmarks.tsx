@@ -6,7 +6,6 @@ import {
   Heart,
   MessageSquare,
   Repeat2,
-  ArrowLeft,
   Shield,
 } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -17,19 +16,16 @@ import {
   unlikePost,
 } from "@/services/blockidApi";
 
-const formatRelativeTime = (iso?: string) => {
-  if (!iso) return "";
-  const utcIso = iso.endsWith("Z") ? iso : iso + "Z";
-  const date = new Date(utcIso);
+const formatRelativeTime = (dateStr?: string) => {
+  if (!dateStr) return "";
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return "";
   const now = new Date();
-  const diff = now.getTime() - date.getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  return `${days}d ago`;
+  const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
+  if (diff < 60) return "just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  return `${Math.floor(diff / 86400)}d ago`;
 };
 
 const Bookmarks = () => {
@@ -47,7 +43,14 @@ const Bookmarks = () => {
       return;
     }
     getBookmarks(wallet)
-      .then((data) => setPosts(data.posts ?? []))
+      .then((data) => {
+        const postsList = data.posts ?? [];
+        console.log("Bookmark posts raw:", data);
+        if (postsList.length > 0) {
+          console.log("First bookmark post fields:", Object.keys(postsList[0]), postsList[0]);
+        }
+        setPosts(postsList);
+      })
       .catch(() => setPosts([]))
       .finally(() => setLoading(false));
   }, [wallet]);
@@ -135,23 +138,16 @@ const Bookmarks = () => {
     );
   }
 
+  const walletShort =
+    wallet.length > 8 ? `${wallet.slice(0, 4)}...${wallet.slice(-4)}` : wallet;
+
   return (
     <DashboardLayout>
-      <div className="max-w-2xl mx-auto px-4">
+      <div className="max-w-2xl mx-auto px-4 py-6">
         {/* Header */}
-        <div className="flex items-center gap-3 py-4 mb-2">
-          <button
-            onClick={() => navigate(-1)}
-            className="p-2 rounded-lg hover:bg-muted/30 text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="text-xl font-bold text-foreground">Bookmarks</h1>
-            <p className="text-xs text-muted-foreground">
-              @{wallet.slice(0, 4)}...{wallet.slice(-4)}
-            </p>
-          </div>
+        <div className="px-4 py-3 border-b border-white/10 mb-4">
+          <h2 className="text-xl font-bold text-white">Bookmarks</h2>
+          <p className="text-sm text-slate-500">@{walletShort}</p>
         </div>
 
         {/* Posts */}
@@ -166,10 +162,19 @@ const Bookmarks = () => {
             ))}
           </div>
         ) : posts.length === 0 ? (
-          <div className="glass-card p-12 text-center text-muted-foreground">
-            <Bookmark className="w-10 h-10 mx-auto mb-3 opacity-20" />
+          <div className="flex flex-col items-center justify-center py-20 text-slate-500">
+            <svg
+              width="40"
+              height="40"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              className="mb-4 opacity-40"
+            >
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+            </svg>
             <p className="text-sm">No bookmarks yet</p>
-            <p className="text-xs mt-1">Bookmark posts to save them here</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -245,7 +250,11 @@ const Bookmarks = () => {
                             </span>
                           )}
                           <p className="text-xs text-muted-foreground">
-                            {formatRelativeTime(post.created_at)}
+                            {formatRelativeTime(
+                              isRepost && originalPost
+                                ? originalPost.created_at
+                                : post.created_at
+                            )}
                           </p>
                         </div>
                       </div>
@@ -277,6 +286,26 @@ const Bookmarks = () => {
                   <p className="text-sm text-foreground whitespace-pre-wrap">
                     {displayContent}
                   </p>
+
+                  {/* Post image */}
+                  {(() => {
+                    const imgUrl =
+                      isRepost && originalPost
+                        ? (originalPost as any).image_url
+                        : (post as any).image_url;
+                    return imgUrl ? (
+                      <div className="mt-3 rounded-xl overflow-hidden">
+                        <img
+                          src={imgUrl}
+                          alt="Post image"
+                          className="w-full max-h-96 object-cover rounded-xl"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                      </div>
+                    ) : null;
+                  })()}
 
                   {/* Stats */}
                   <div className="flex items-center gap-4 text-xs text-muted-foreground pt-1 border-t border-border/50">
