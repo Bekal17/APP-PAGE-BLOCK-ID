@@ -1,5 +1,6 @@
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import {
+  Connection,
   SystemProgram,
   Transaction,
   PublicKey,
@@ -24,6 +25,13 @@ import {
 const API_BASE =
   import.meta.env.VITE_EXPLORER_API_URL ||
   "https://blockid-backend-production.up.railway.app";
+
+const HELIUS_RPC =
+  import.meta.env.VITE_HELIUS_RPC_URL ||
+  "https://mainnet.helius-rpc.com/?api-key=" +
+    (import.meta.env.VITE_HELIUS_API_KEY || "");
+
+const heliusConnection = new Connection(HELIUS_RPC, "confirmed");
 
 const BLOCKID_TREASURY = "4hhGNkSs8e5ux3Dx8tNR9jxkMsNQA6uDSCSw1pH4Giqo";
 
@@ -97,13 +105,13 @@ const Identity = () => {
           lamports,
         })
       );
-      const { blockhash } = await connection.getLatestBlockhash();
+      const { blockhash } = await heliusConnection.getLatestBlockhash();
       transaction.recentBlockhash = blockhash;
       transaction.feePayer = publicKey;
 
       const signed = await signTransaction(transaction);
-      const txSig = await connection.sendRawTransaction(signed.serialize());
-      await connection.confirmTransaction(txSig, "confirmed");
+      const txSig = await heliusConnection.sendRawTransaction(signed.serialize());
+      await heliusConnection.confirmTransaction(txSig, "confirmed");
 
       // Step 2: Claim handle via API
       const claimRes = await fetch(`${API_BASE}/handle/claim`, {
