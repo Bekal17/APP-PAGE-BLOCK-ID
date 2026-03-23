@@ -15,6 +15,7 @@ import {
   likePost,
   unlikePost,
 } from "@/services/blockidApi";
+import SubscriptionBadge from "@/components/blockid/SubscriptionBadge";
 
 const formatRelativeTime = (dateStr?: string) => {
   if (!dateStr) return "";
@@ -225,7 +226,7 @@ const Bookmarks = () => {
                         )[0]?.toUpperCase() ?? "?"}
                       </div>
                       <div>
-                        <p className="text-sm font-semibold text-foreground">
+                        <p className="text-sm font-semibold text-foreground flex items-center gap-1">
                           {isRepost && originalPost
                             ? originalPost.handle
                               ? `@${originalPost.handle}`
@@ -233,6 +234,14 @@ const Bookmarks = () => {
                             : post.handle
                             ? `@${post.handle}`
                             : `${(post.wallet ?? "").slice(0, 4)}...${(post.wallet ?? "").slice(-4)}`}
+                          <SubscriptionBadge
+                            plan={
+                              (isRepost && originalPost
+                                ? (originalPost as any)?.plan
+                                : (post as any)?.plan) ?? "free"
+                            }
+                            size="sm"
+                          />
                         </p>
                         <div className="flex items-center gap-2">
                           {displayTrustScore != null && (

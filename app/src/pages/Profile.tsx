@@ -32,6 +32,7 @@ import DashboardOnboarding from "@/components/DashboardOnboarding";
 import ScoreRing from "@/components/blockid/ScoreRing";
 import RiskBadge from "@/components/blockid/RiskBadge";
 import WalletActivityChart from "@/components/blockid/WalletActivityChart";
+import SubscriptionBadge from "@/components/blockid/SubscriptionBadge";
 import RiskExposureRadar from "@/components/blockid/dashboard/RiskExposureRadar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -1030,8 +1031,9 @@ const Profile = () => {
             </div>
 
           <div className="flex-1 pb-2 mt-14">
-              <p className="text-lg font-bold text-foreground">
+              <p className="text-lg font-bold text-foreground flex items-center gap-1.5">
                 {profile?.handle ? `@${profile.handle}` : wallet.length > 16 ? `${wallet.slice(0, 8)}...${wallet.slice(-8)}` : wallet}
+                <SubscriptionBadge plan={(profile as any)?.plan ?? "free"} size="md" />
               </p>
               <p className="text-xs text-muted-foreground font-mono">
                 {wallet.length > 16 ? `${wallet.slice(0, 8)}...${wallet.slice(-8)}` : wallet || "—"}
@@ -1727,7 +1729,7 @@ const Profile = () => {
                           <div>
                             <div className="flex items-center gap-2">
                               {/* Name */}
-                              <span className="text-sm font-semibold text-foreground">
+                              <span className="text-sm font-semibold text-foreground inline-flex items-center gap-1">
                                 {isRepost && originalPost
                                   ? originalPost.handle
                                     ? `@${originalPost.handle}`
@@ -1737,6 +1739,14 @@ const Profile = () => {
                                     : wallet.length > 16
                                       ? `${wallet.slice(0, 8)}...${wallet.slice(-8)}`
                                       : wallet}
+                                <SubscriptionBadge
+                                  plan={
+                                    (isRepost && originalPost
+                                      ? (originalPost as any)?.plan
+                                      : (post as any)?.plan) ?? (profile as any)?.plan ?? "free"
+                                  }
+                                  size="sm"
+                                />
                               </span>
 
                               {/* Trust score */}
@@ -2114,12 +2124,13 @@ const Profile = () => {
                             {(h ?? w)[0]?.toUpperCase() ?? "?"}
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-foreground">
+                            <p className="text-sm font-medium text-foreground flex items-center gap-1">
                               {h
                                 ? `@${h}`
                                 : w.length > 10
                                   ? `${w.slice(0, 6)}...${w.slice(-4)}`
                                   : w || "—"}
+                              <SubscriptionBadge plan={item.plan ?? "free"} size="sm" />
                             </p>
                             {score !== undefined && (
                               <p className="text-xs text-muted-foreground">
