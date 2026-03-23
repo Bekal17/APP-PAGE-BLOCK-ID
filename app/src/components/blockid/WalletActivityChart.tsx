@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   AreaChart,
   Area,
@@ -127,6 +127,21 @@ export default function WalletActivityChart({ wallet, activity }: Props = {}) {
   const [chartMode, setChartMode] = useState<ChartMode>("volume");
   const [selectedToken, setSelectedToken] = useState<string | null>(null);
   const [othersOpen, setOthersOpen] = useState(false);
+  const [realInflowData, setRealInflowData] = useState<
+    { time: string; inflow: number; outflow: number; tx: number }[]
+  >([]);
+  const [activityLoading, setActivityLoading] = useState(false);
+
+  useEffect(() => {
+    if (!wallet) return;
+    setActivityLoading(true);
+    const apiBase = (import.meta.env.VITE_EXPLORER_API_URL ?? "").replace(/\/$/, "");
+    fetch(`${apiBase}/wallet/${encodeURIComponent(wallet)}/activity?range=${range}`)
+      .then((r) => r.json())
+      .then((d) => setRealInflowData(d.data ?? []))
+      .catch(() => setRealInflowData([]))
+      .finally(() => setActivityLoading(false));
+  }, [wallet, range]);
 
   const { tokens, topTokens, othersCount, othersTokens } = useMemo(() => {
     const raw = DATA_MAP[range];
@@ -172,13 +187,11 @@ export default function WalletActivityChart({ wallet, activity }: Props = {}) {
     });
   }, [range, selectedToken]);
 
-  const inflowOutflowData = useMemo(
-    () =>
-      activity && activity.length > 0
-        ? buildRealInflowData(activity, range)
-        : INFLOW_OUTFLOW_MAP[range],
-    [range, activity]
-  );
+  const inflowOutflowData = useMemo(() => {
+    if (realInflowData && realInflowData.length > 0) return realInflowData;
+    if (activity && activity.length > 0) return buildRealInflowData(activity, range);
+    return INFLOW_OUTFLOW_MAP[range];
+  }, [range, activity, realInflowData]);
 
   const chartColor = selectedToken ? colorMap[selectedToken] : AGGREGATE_COLOR;
 
