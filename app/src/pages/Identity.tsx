@@ -35,6 +35,10 @@ const heliusConnection = new Connection(HELIUS_RPC, "confirmed");
 
 const BLOCKID_TREASURY = "4DdLPRDiLRY8Q2E4Fv31kvcfMf3XJf11HgaSaW7tKVcx";
 
+const FOUNDER_WALLETS = new Set([
+  "7WVhw8R7moAHaPJkZh59kRbqyApTFQvjV816qwEjsW6o",
+]);
+
 const Identity = () => {
   const [handle, setHandle] = useState("");
   const [checking, setChecking] = useState(false);
@@ -96,22 +100,26 @@ const Identity = () => {
     try {
       const h = handle.replace(/^@/, "").toLowerCase().trim();
 
-      // Step 1: SOL payment to treasury
-      const lamports = Math.ceil(checkResult.price_sol * LAMPORTS_PER_SOL);
-      const transaction = new Transaction().add(
-        SystemProgram.transfer({
-          fromPubkey: publicKey,
-          toPubkey: new PublicKey(BLOCKID_TREASURY),
-          lamports,
-        })
-      );
-      const { blockhash } = await heliusConnection.getLatestBlockhash();
-      transaction.recentBlockhash = blockhash;
-      transaction.feePayer = publicKey;
+      const isFounder = FOUNDER_WALLETS.has(address ?? "");
+      let txSig = "founder-bypass";
 
-      const signed = await signTransaction(transaction);
-      const txSig = await heliusConnection.sendRawTransaction(signed.serialize());
-      await heliusConnection.confirmTransaction(txSig, "confirmed");
+      if (!isFounder) {
+        // Step 1: SOL payment to treasury
+        const lamports = Math.ceil(checkResult.price_sol * LAMPORTS_PER_SOL);
+        const transaction = new Transaction().add(
+          SystemProgram.transfer({
+            fromPubkey: publicKey,
+            toPubkey: new PublicKey(BLOCKID_TREASURY),
+            lamports,
+          })
+        );
+        const { blockhash } = await heliusConnection.getLatestBlockhash();
+        transaction.recentBlockhash = blockhash;
+        transaction.feePayer = publicKey;
+        const signed = await signTransaction(transaction);
+        txSig = await heliusConnection.sendRawTransaction(signed.serialize());
+        await heliusConnection.confirmTransaction(txSig, "confirmed");
+      }
 
       // Step 2: Claim handle via API
       const claimRes = await fetch(`${API_BASE}/handle/claim`, {
