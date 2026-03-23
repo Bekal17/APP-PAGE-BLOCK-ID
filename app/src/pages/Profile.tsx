@@ -23,6 +23,7 @@ import {
   getPrivacySettings,
   repostPost,
   getWalletNames,
+  deletePost,
   updateProfile,
   getSessionToken,
 } from "@/services/blockidApi";
@@ -1825,7 +1826,14 @@ const Profile = () => {
                                   onClick={async (e) => {
                                     e.stopPropagation();
                                     setPostMenuId(null);
-                                    toast({ title: "Delete coming soon" });
+                                    if (!address) return;
+                                    try {
+                                      await deletePost(address, post.id);
+                                      setPosts((prev) => prev.filter((p) => p.id !== post.id));
+                                      toast({ title: "Post deleted" });
+                                    } catch {
+                                      toast({ title: "Failed to delete post", variant: "destructive" });
+                                    }
                                   }}
                                   className="w-full flex items-center gap-2.5 px-3 py-2 text-sm
                                     text-red-400 hover:bg-zinc-800 transition-colors"

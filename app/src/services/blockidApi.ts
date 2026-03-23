@@ -308,6 +308,16 @@ export async function repostPost(
   return res.json();
 }
 
+export async function deletePost(wallet: string, postId: number) {
+  const apiBase = (import.meta.env.VITE_SOCIAL_API_URL ?? "").replace(/\/$/, "");
+  const res = await fetch(
+    `${apiBase}/social/post/${postId}?wallet=${encodeURIComponent(wallet)}`,
+    { method: "DELETE" }
+  );
+  if (!res.ok) throw new Error("Failed to delete post");
+  return res.json();
+}
+
 // Report a post
 export async function reportPost(
   wallet: string,
