@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import WalletHoverCard from "@/components/WalletHoverCard";
+import SubscriptionBadge from "@/components/blockid/SubscriptionBadge";
 import {
   getPost,
   likePost,
@@ -183,8 +184,9 @@ const PostDetail = () => {
                 wallet={post?.wallet ?? ""}
                 handle={profile?.handle ?? post?.handle}
               >
-                <p className="text-sm font-bold text-foreground cursor-pointer hover:underline">
+                <p className="text-sm font-bold text-foreground cursor-pointer hover:underline inline-flex items-center gap-1">
                   {displayName}
+                  <SubscriptionBadge plan={(post as any)?.plan ?? (profile as any)?.plan ?? "free"} size="sm" />
                 </p>
               </WalletHoverCard>
               <p className="text-xs text-muted-foreground font-mono">
@@ -326,10 +328,11 @@ const PostDetail = () => {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-bold text-foreground">
+                      <span className="text-sm font-bold text-foreground flex items-center gap-1">
                         {reply.handle
                           ? `@${reply.handle}`
                           : `${reply.wallet?.slice(0, 4)}...${reply.wallet?.slice(-4)}`}
+                        <SubscriptionBadge plan={(reply as any).plan ?? "free"} size="sm" />
                       </span>
                       <span className="text-xs text-muted-foreground">
                         {formatRelativeTime(reply.created_at)}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { getWalletOverview, getTimeline, getGraph, getGraphCache, setGraphCache, getCounterparties } from "@/services/blockidApi";
+import { useSubscription } from "@/hooks/useSubscription";
 import { normalizeGraphResponse } from "@/components/investigation/WalletGraph";
 import DashboardLayout from "@/components/DashboardLayout";
 import InteractiveWalletGraph from "@/components/InteractiveWalletGraph";
@@ -23,6 +24,7 @@ interface ReasonCode {
 export default function TrustAnalytics() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const sub = useSubscription();
   const walletParam = searchParams.get("wallet");
   const [wallet, setWallet] = useState("");
   const [loading, setLoading] = useState(false);
@@ -55,6 +57,7 @@ export default function TrustAnalytics() {
   const fetchScore = async (walletOverride?: string) => {
     const address = (walletOverride ?? wallet).trim();
     if (!address) return;
+    if (sub.isAtLimit) return;
     if (walletOverride) setWallet(walletOverride);
     setError(null);
     setScore(null);
@@ -146,11 +149,16 @@ export default function TrustAnalytics() {
   };
 
   useEffect(() => {
-    if (walletParam && walletParam.trim() !== "") {
+    if (!walletParam || walletParam.trim() === "") return;
+    if (sub.loading) return;
+    if (sub.isAtLimit) {
       setWallet(walletParam.trim());
-      fetchScore(walletParam.trim());
+      setError("Wallet scan limit reached. Upgrade to scan more wallets this month.");
+      return;
     }
-  }, [walletParam]);
+    setWallet(walletParam.trim());
+    fetchScore(walletParam.trim());
+  }, [walletParam, sub.loading, sub.isAtLimit]);
 
   const graphTransactions = graphLinks.map((l) => {
     const getLinkId = (v: unknown) => {
@@ -228,12 +236,17 @@ export default function TrustAnalytics() {
               placeholder="Paste Solana wallet address..."
               value={wallet}
               onChange={(e) => setWallet(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && fetchScore()}
+              onKeyDown={(e) => e.key === "Enter" && !sub.isAtLimit && fetchScore()}
               className="flex-1 font-mono text-sm"
               disabled={loading}
             />
-            <Button onClick={() => fetchScore()} disabled={loading || !wallet.trim()}>
-              {loading ? "Loading..." : "Get Score"}
+            <Button
+              onClick={() => fetchScore()}
+              disabled={loading || !wallet.trim() || sub.isAtLimit}
+              title={sub.isAtLimit ? "Upgrade to scan more wallets this month" : undefined}
+              className={sub.isAtLimit ? "opacity-50 cursor-not-allowed" : ""}
+            >
+              {loading ? "Loading..." : sub.isAtLimit ? "Limit Reached" : "Get Score"}
             </Button>
             {score !== null && !error && (
               <Button

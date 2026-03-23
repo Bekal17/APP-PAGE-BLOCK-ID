@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { getDMUnreadCount } from "@/services/blockidApi";
+import QuotaIndicator from "@/components/blockid/QuotaIndicator";
 
 const navItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
@@ -98,9 +99,11 @@ const AppSidebar = () => {
         })}
       </nav>
 
-      {/* Legal links - pinned to bottom */}
-      <div className="mt-auto px-4 py-4 border-t border-white/5 shrink-0">
-        <div className="flex flex-wrap gap-x-3 gap-y-1">
+      {/* Quota indicator + Legal links - pinned to bottom */}
+      <div className="mt-auto shrink-0 flex flex-col">
+        <QuotaIndicator />
+        <div className="px-4 py-4 border-t border-white/5">
+          <div className="flex flex-wrap gap-x-3 gap-y-1">
           <a
             href="https://blockidscore.fun/terms.html"
             target="_blank"
@@ -125,8 +128,9 @@ const AppSidebar = () => {
           >
             Refund
           </a>
+          </div>
+          <p className="text-xs text-zinc-600 mt-2">© 2026 BlockID</p>
         </div>
-        <p className="text-xs text-zinc-600 mt-2">© 2026 BlockID</p>
       </div>
     </div>
   );

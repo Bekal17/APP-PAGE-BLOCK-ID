@@ -20,6 +20,8 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import WalletHoverCard from "@/components/WalletHoverCard";
+import QuotaBanner from "@/components/blockid/QuotaBanner";
+import SubscriptionBadge from "@/components/blockid/SubscriptionBadge";
 import {
   getSocialFeed,
   getFollowingFeed,
@@ -63,7 +65,9 @@ type SocialPost = {
     trust_score?: number | null;
     created_at?: string;
     image_url?: string | null;
+    plan?: string;
   } | null;
+  plan?: string;
   image_url?: string | null;
 };
 
@@ -534,6 +538,7 @@ const Dashboard = () => {
   return (
     <DashboardLayout>
       <div className="max-w-6xl mx-auto space-y-6">
+        <QuotaBanner />
         <div
           className="flex gap-2 border-b border-border pb-1 animate-slide-up"
           style={{ animationDelay: "0.05s" }}
@@ -775,7 +780,7 @@ const Dashboard = () => {
                                 : post.wallet ?? ""
                             )}
                           >
-                            <span className="text-sm font-semibold text-foreground">
+                            <span className="text-sm font-semibold text-foreground inline-flex items-center gap-1">
                               {isRepost && originalPost
                                 ? originalPost.handle
                                   ? `@${originalPost.handle}`
@@ -783,6 +788,14 @@ const Dashboard = () => {
                                 : displayHandle
                                 ? `@${displayHandle}`
                                 : truncateWallet(post?.wallet ?? "")}
+                              <SubscriptionBadge
+                                plan={
+                                  (isRepost && originalPost
+                                    ? (originalPost as any)?.plan
+                                    : (post as any)?.plan) ?? "free"
+                                }
+                                size="sm"
+                              />
                             </span>
                           </WalletHoverCard>
                           <span
@@ -1196,12 +1209,13 @@ const Dashboard = () => {
                     <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
                       {(originalProfile?.handle ?? originalPost.wallet ?? "?")[0].toUpperCase()}
                     </div>
-                    <div>
+                    <div className="flex items-center gap-1">
                       <p className="text-sm font-semibold text-zinc-100">
                         {originalProfile?.handle
                           ? `@${originalProfile.handle}`
                           : `${originalPost.wallet?.slice(0, 4)}...${originalPost.wallet?.slice(-4)}`}
                       </p>
+                      <SubscriptionBadge plan={(originalPost as any)?.plan ?? "free"} size="sm" />
                     </div>
                   </div>
                   <p className="text-sm text-zinc-300 line-clamp-3 pl-10">
@@ -1364,7 +1378,7 @@ const Dashboard = () => {
                       "?"
                     )[0]?.toUpperCase()}
                   </div>
-                  <span className="text-sm font-semibold text-foreground">
+                  <span className="text-sm font-semibold text-foreground flex items-center gap-1">
                     {quoteModalPost.is_repost && quoteModalPost.original_post
                       ? quoteModalPost.original_post.handle
                         ? `@${quoteModalPost.original_post.handle}`
@@ -1372,6 +1386,14 @@ const Dashboard = () => {
                       : quoteModalPost.handle
                         ? `@${quoteModalPost.handle}`
                         : `${quoteModalPost.wallet?.slice(0, 4)}...${quoteModalPost.wallet?.slice(-4)}`}
+                    <SubscriptionBadge
+                      plan={
+                        (quoteModalPost.is_repost && quoteModalPost.original_post
+                          ? (quoteModalPost.original_post as any)?.plan
+                          : (quoteModalPost as any)?.plan) ?? "free"
+                      }
+                      size="sm"
+                    />
                   </span>
                   <span className="text-xs text-muted-foreground">
                     ·{" "}

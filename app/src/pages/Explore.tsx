@@ -11,10 +11,13 @@ import {
 import { getSocialFeed, getSocialProfile } from "@/services/blockidApi";
 import { useWallet } from "@solana/wallet-adapter-react";
 import WalletHoverCard from "@/components/WalletHoverCard";
+import { useSubscription } from "@/hooks/useSubscription";
+import SubscriptionBadge from "@/components/blockid/SubscriptionBadge";
 
 const Explore = () => {
   const navigate = useNavigate();
   const { publicKey } = useWallet();
+  const sub = useSubscription();
   const [feed, setFeed] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -37,6 +40,7 @@ const Explore = () => {
 
   const handleSearch = async () => {
     if (!search.trim()) return;
+    if (sub.isAtLimit) return;
     setSearching(true);
     setSearchResult(null);
     try {
@@ -99,16 +103,21 @@ const Explore = () => {
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            onKeyDown={(e) => e.key === "Enter" && !sub.isAtLimit && handleSearch()}
             placeholder="Search wallet address or @handle..."
             className="w-full pl-12 pr-32 py-3.5 bg-zinc-900 border border-zinc-700 rounded-xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50"
           />
           <button
             onClick={handleSearch}
-            disabled={searching}
-            className="absolute right-3 top-1/2 -translate-y-1/2 px-4 py-1.5 bg-primary text-primary-foreground text-sm font-medium rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-60"
+            disabled={searching || sub.isAtLimit}
+            title={sub.isAtLimit ? "Upgrade to scan more wallets this month" : undefined}
+            className={`absolute right-3 top-1/2 -translate-y-1/2 px-4 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+              sub.isAtLimit
+                ? "opacity-50 cursor-not-allowed bg-zinc-600 text-zinc-300"
+                : "bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
+            }`}
           >
-            {searching ? "Searching..." : "Search"}
+            {searching ? "Searching..." : sub.isAtLimit ? "Limit Reached" : "Search"}
           </button>
         </div>
 
@@ -128,10 +137,11 @@ const Explore = () => {
                       {(result.handle ?? result.wallet ?? "?")[0]?.toUpperCase()}
                     </div>
                     <div className="flex-1">
-                      <p className="font-bold text-foreground">
+                      <p className="font-bold text-foreground flex items-center gap-1">
                         {result.handle
                           ? `@${result.handle}`
                           : `${result.wallet?.slice(0, 8)}...${result.wallet?.slice(-8)}`}
+                        <SubscriptionBadge plan={result.plan ?? "free"} size="sm" />
                       </p>
                       <p className="text-xs text-muted-foreground font-mono">
                         {result.wallet?.slice(0, 8)}...
@@ -220,10 +230,11 @@ const Explore = () => {
                             wallet={post.wallet ?? ""}
                             handle={post.handle ?? undefined}
                           >
-                            <span className="text-sm font-semibold text-foreground">
+                            <span className="text-sm font-semibold text-foreground inline-flex items-center gap-1">
                               {post.handle
                                 ? `@${post.handle}`
                                 : `${post.wallet?.slice(0, 4)}...${post.wallet?.slice(-4)}`}
+                              <SubscriptionBadge plan={(post as any).plan ?? "free"} size="sm" />
                             </span>
                           </WalletHoverCard>
                           <span

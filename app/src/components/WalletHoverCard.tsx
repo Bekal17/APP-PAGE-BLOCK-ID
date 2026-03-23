@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Shield, Users } from "lucide-react";
 import { getSocialProfile, followWallet } from "@/services/blockidApi";
+import SubscriptionBadge from "@/components/blockid/SubscriptionBadge";
 
 interface WalletHoverCardProps {
   wallet: string;
@@ -196,8 +197,9 @@ const WalletHoverCard = ({
                       </div>
                     )}
                     <div>
-                      <p className="text-sm font-bold text-zinc-100">
+                      <p className="text-sm font-bold text-zinc-100 flex items-center gap-1">
                         {displayName}
+                        <SubscriptionBadge plan={profile?.plan ?? "free"} size="sm" />
                       </p>
                       <p className="text-xs text-zinc-400 font-mono">
                         {wallet.slice(0, 6)}...{wallet.slice(-4)}
