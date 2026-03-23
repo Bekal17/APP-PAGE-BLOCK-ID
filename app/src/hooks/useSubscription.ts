@@ -46,14 +46,14 @@ export function useSubscription() {
 
     const fetchSubscription = async () => {
       try {
-        const url = `${API_BASE}/social/subscription/${wallet}`;
+        const url = `${API_BASE}/subscription/status/${wallet}`;
         console.log("[useSubscription] URL:", url);
         const res = await fetch(url);
         const data = await res.json();
         console.log("[useSubscription] Response:", data);
         if (!res.ok) throw new Error("Failed to fetch subscription");
 
-        const plan = (data.plan ?? "free").toLowerCase() as
+        const plan = (data.tier ?? data.plan ?? "free").toLowerCase() as
           | "free"
           | "explorer"
           | "pro";
