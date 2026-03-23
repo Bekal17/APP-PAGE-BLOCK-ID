@@ -33,7 +33,6 @@ import ScoreRing from "@/components/blockid/ScoreRing";
 import RiskBadge from "@/components/blockid/RiskBadge";
 import WalletActivityChart from "@/components/blockid/WalletActivityChart";
 import SubscriptionBadge from "@/components/blockid/SubscriptionBadge";
-import RiskExposureRadar from "@/components/blockid/dashboard/RiskExposureRadar";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -1648,8 +1647,6 @@ const Profile = () => {
             {/* 6. Wallet Activity Chart - full width */}
             {isOwnProfile && <WalletActivityChart wallet={wallet} activity={walletDashboard?.activity ?? []} />}
 
-            {/* 7. Risk Exposure Radar */}
-            {isOwnProfile && <RiskExposureRadar riskTier={riskColor} />}
           </div>
         ) : (
           <div className="space-y-3 animate-slide-up">
