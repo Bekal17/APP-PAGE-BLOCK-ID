@@ -130,6 +130,9 @@ export default function WalletActivityChart({ wallet, activity }: Props = {}) {
   const [realInflowData, setRealInflowData] = useState<
     { time: string; inflow: number; outflow: number; tx: number }[]
   >([]);
+  const [realVolumeData, setRealVolumeData] = useState<
+    { time: string; tx: number }[]
+  >([]);
   const [activityLoading, setActivityLoading] = useState(false);
 
   useEffect(() => {
@@ -138,14 +141,32 @@ export default function WalletActivityChart({ wallet, activity }: Props = {}) {
     const apiBase = (import.meta.env.VITE_EXPLORER_API_URL ?? "").replace(/\/$/, "");
     fetch(`${apiBase}/wallet/${encodeURIComponent(wallet)}/activity?range=${range}`)
       .then((r) => r.json())
-      .then((d) => setRealInflowData(d.data ?? []))
-      .catch(() => setRealInflowData([]))
+      .then((d) => {
+        setRealInflowData(d.data ?? []);
+        setRealVolumeData((d.data ?? []).map((p: { time?: string; tx?: number }) => ({ time: p.time ?? "", tx: p.tx ?? 0 })));
+      })
+      .catch(() => {
+        setRealInflowData([]);
+        setRealVolumeData([]);
+      })
       .finally(() => setActivityLoading(false));
   }, [wallet, range]);
 
+  const volumeChartData = useMemo(() => {
+    if (realVolumeData && realVolumeData.length > 0) {
+      return realVolumeData.map((p) => {
+        const point: Record<string, number | string> = { time: p.time };
+        point["SOL"] = p.tx;
+        return point;
+      });
+    }
+    return DATA_MAP[range];
+  }, [range, realVolumeData]);
+
   const { tokens, topTokens, othersCount, othersTokens } = useMemo(() => {
-    const raw = DATA_MAP[range];
-    const syms = MOCK_TOKEN_SYMBOLS;
+    const raw = volumeChartData;
+    const syms =
+      realVolumeData && realVolumeData.length > 0 ? ["SOL"] : MOCK_TOKEN_SYMBOLS;
     const totals = syms.map((sym) => ({
       symbol: sym,
       total: raw.reduce((s, p) => s + (p[sym] ?? 0), 0),
@@ -160,7 +181,7 @@ export default function WalletActivityChart({ wallet, activity }: Props = {}) {
       othersCount: others.length,
       othersTokens: others,
     };
-  }, [range]);
+  }, [range, volumeChartData, realVolumeData]);
 
   const colorMap = useMemo(() => {
     const m: Record<string, string> = {};
@@ -170,22 +191,24 @@ export default function WalletActivityChart({ wallet, activity }: Props = {}) {
     return m;
   }, [tokens]);
 
-  const volumeChartData = useMemo(() => {
-    const raw = DATA_MAP[range];
+  const volumeChartDataForRender = useMemo(() => {
+    const raw = volumeChartData;
+    const syms =
+      realVolumeData && realVolumeData.length > 0 ? ["SOL"] : MOCK_TOKEN_SYMBOLS;
     if (selectedToken) {
       return raw.map((p) => ({
-        time: p.time,
-        volume: p[selectedToken] ?? 0,
+        time: String(p.time),
+        volume: Number(p[selectedToken] ?? 0),
       }));
     }
     return raw.map((p) => {
       let sum = 0;
-      MOCK_TOKEN_SYMBOLS.forEach((sym) => {
-        sum += p[sym] ?? 0;
+      syms.forEach((sym) => {
+        sum += Number(p[sym] ?? 0);
       });
-      return { time: p.time, volume: sum };
+      return { time: String(p.time), volume: sum };
     });
-  }, [range, selectedToken]);
+  }, [volumeChartData, selectedToken, realVolumeData]);
 
   const inflowOutflowData = useMemo(() => {
     if (realInflowData && realInflowData.length > 0) return realInflowData;
@@ -409,7 +432,7 @@ export default function WalletActivityChart({ wallet, activity }: Props = {}) {
               />
             </AreaChart>
           ) : (
-            <AreaChart data={volumeChartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+            <AreaChart data={volumeChartDataForRender} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="activityGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor={chartColor} stopOpacity={0.3} />
