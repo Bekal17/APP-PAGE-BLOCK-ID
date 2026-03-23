@@ -1646,7 +1646,7 @@ const Profile = () => {
             )}
 
             {/* 6. Wallet Activity Chart - full width */}
-            {isOwnProfile && <WalletActivityChart />}
+            {isOwnProfile && <WalletActivityChart wallet={wallet} activity={walletDashboard?.activity ?? []} />}
 
             {/* 7. Risk Exposure Radar */}
             {isOwnProfile && <RiskExposureRadar riskTier={riskColor} />}
