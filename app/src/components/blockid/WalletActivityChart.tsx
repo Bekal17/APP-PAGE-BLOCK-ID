@@ -35,9 +35,9 @@ function buildMockMultiTokenData(
   timeLabels: string[],
   tokenSymbols: string[],
   baseScale: number
-): Record<string, number>[] {
+): Record<string, number | string>[] {
   return timeLabels.map((time, i) => {
-    const point: Record<string, number> = { time };
+    const point: Record<string, number | string> = { time };
     tokenSymbols.forEach((sym, j) => {
       const variance = 0.6 + 0.4 * Math.sin(i * 0.7 + j * 0.5);
       point[sym] = Math.round(baseScale * (0.3 + (j / tokenSymbols.length) * 0.7) * variance * 100);
@@ -56,7 +56,7 @@ const MOCK_DATA_1W = buildMockMultiTokenData(TIME_1W, MOCK_TOKEN_SYMBOLS, 12);
 const MOCK_DATA_30D = buildMockMultiTokenData(TIME_30D, MOCK_TOKEN_SYMBOLS, 35);
 const MOCK_DATA_1Y = buildMockMultiTokenData(TIME_1Y, MOCK_TOKEN_SYMBOLS, 120);
 
-const DATA_MAP: Record<RangeKey, Record<string, number>[]> = {
+const DATA_MAP: Record<RangeKey, Record<string, number | string>[]> = {
   "1D": MOCK_DATA_1D,
   "1W": MOCK_DATA_1W,
   "30D": MOCK_DATA_30D,
