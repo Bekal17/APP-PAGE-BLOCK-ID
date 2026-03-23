@@ -484,22 +484,30 @@ const Profile = () => {
         primary_risk_driver: json.primary_risk_driver,
         cluster: json.cluster,
         badges: json.badges ?? [],
+        wallet_age_days: json.wallet_age_days ?? json.profile?.wallet_age_days,
         wallet_age_months:
-          json.wallet_age_months ??
+          json.wallet_age_months ?? json.profile?.wallet_age_months ??
+          (json.profile?.wallet_age_days != null
+            ? Math.round(json.profile.wallet_age_days / 30)
+            : undefined) ??
           (json.wallet_age_days != null
             ? Math.round(json.wallet_age_days / 30)
             : undefined) ??
           json.wallet_age,
-        wallet_first_seen: json.wallet_first_seen ?? json.first_seen,
-        wallet_age_days: json.wallet_age_days,
-        transactions: json.transactions ?? json.activity?.transactions,
+        wallet_first_seen:
+          json.wallet_first_seen ?? json.first_seen ?? json.profile?.wallet_first_seen,
+        transactions:
+          json.transactions ?? json.activity?.transactions ?? json.profile?.total_transactions,
         unique_counterparties:
-          json.unique_counterparties ?? json.activity?.unique_counterparties,
+          json.unique_counterparties ??
+          json.activity?.unique_counterparties ??
+          json.profile?.unique_counterparties,
         exposure_ratio: json.exposure_ratio ?? json.risk_exposure ?? 0,
         volume_30d:
           json.volume_30d ??
           json.volume_30d_usd ??
-          json.activity?.volume_30d,
+          json.activity?.volume_30d ??
+          json.profile?.volume_30d,
         fingerprint: bp || profileStr,
         category: json.category ?? (bp || profileStr),
       });
