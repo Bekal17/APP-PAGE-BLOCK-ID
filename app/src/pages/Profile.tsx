@@ -24,6 +24,7 @@ import {
   repostPost,
   getWalletNames,
   deletePost,
+  incrementScan,
   updateProfile,
   getSessionToken,
 } from "@/services/blockidApi";
@@ -548,6 +549,10 @@ const Profile = () => {
 
     const run = async () => {
       try {
+        // Increment scan count when viewing another wallet (not own profile)
+        if (walletParam && address && walletParam !== address) {
+          incrementScan(address);
+        }
         const checkRes = await fetch(
           `${API_BASE}/wallet/${encodeURIComponent(walletAddress)}/needs-refresh`
         );

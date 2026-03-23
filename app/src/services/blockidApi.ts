@@ -618,3 +618,15 @@ export async function updatePrivacySettings(
   if (!res.ok) throw new Error("Failed to update privacy settings");
   return res.json();
 }
+
+export async function incrementScan(wallet: string): Promise<void> {
+  const apiBase = (import.meta.env.VITE_EXPLORER_API_URL ?? "").replace(/\/$/, "");
+  try {
+    await fetch(
+      `${apiBase}/subscription/scan/increment/${encodeURIComponent(wallet)}`,
+      { method: "POST" }
+    );
+  } catch {
+    // silent fail — don't block UX
+  }
+}
