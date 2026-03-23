@@ -33,7 +33,7 @@ const HELIUS_RPC =
 
 const heliusConnection = new Connection(HELIUS_RPC, "confirmed");
 
-const BLOCKID_TREASURY = "4hhGNkSs8e5ux3Dx8tNR9jxkMsNQA6uDSCSw1pH4Giqo";
+const BLOCKID_TREASURY = "4DdLPRDiLRY8Q2E4Fv31kvcfMf3XJf11HgaSaW7tKVcx";
 
 const Identity = () => {
   const [handle, setHandle] = useState("");
