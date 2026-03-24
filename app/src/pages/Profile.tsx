@@ -1007,21 +1007,41 @@ const Profile = () => {
       <div className="w-full max-w-screen-2xl mx-auto p-4 md:p-8">
         {/* Banner */}
         <div className="relative w-full h-36 rounded-xl mb-0">
-          <div className="absolute inset-0 rounded-xl overflow-hidden">
-            {profile?.banner_url ? (
+          {profile?.banner_url ? (
+            profile?.banner_type === "NFT" ? (
               <div
-                className="absolute inset-0"
+                className="relative w-full h-44 rounded-xl overflow-hidden"
                 style={{
-                  backgroundImage: `url(${profile.banner_url})`,
+                  border: "2px solid gold",
+                  boxShadow: "0 0 12px rgba(255, 215, 0, 0.4)",
+                }}
+              >
+                <div
+                  className="w-full h-full"
+                  style={{
+                    backgroundImage: `url(${profile.banner_url})`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                  }}
+                />
+              </div>
+            ) : (
+              <div
+                className="w-full h-44 rounded-xl overflow-hidden"
+                style={{
+                  backgroundImage: profile?.banner_url
+                    ? `url(${profile.banner_url})`
+                    : undefined,
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                 }}
               />
-            ) : (
+            )
+          ) : (
+            <div className="absolute inset-0 rounded-xl overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-zinc-800 via-zinc-700 to-zinc-800" />
-            )}
-          </div>
-
+            </div>
+          )}
         </div>
 
         {/* Profile row */}
