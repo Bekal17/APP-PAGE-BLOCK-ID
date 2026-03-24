@@ -1061,7 +1061,7 @@ const Profile = () => {
                     setShowFollowModal("followers");
                     setFollowListLoading(true);
                     try {
-                      const data = await getFollowers(wallet);
+                      const data = await getFollowers(wallet, address);
                       setFollowList(data.followers ?? data ?? []);
                     } catch {
                       setFollowList([]);
@@ -1077,7 +1077,7 @@ const Profile = () => {
                     setShowFollowModal("following");
                     setFollowListLoading(true);
                     try {
-                      const data = await getFollowing(wallet);
+                      const data = await getFollowing(wallet, address);
                       setFollowList(data.following ?? data ?? []);
                     } catch {
                       setFollowList([]);
@@ -2196,6 +2196,44 @@ const Profile = () => {
                             )}
                           </div>
                         </div>
+                        {/* Follow / Follow Back button */}
+                        {address && w && w !== address && (() => {
+                          const viewerFollows = item.viewer_follows;
+                          const followsViewer = item.follows_viewer;
+                          // Already mutual — show nothing
+                          if (viewerFollows && followsViewer) return null;
+                          // Viewer already follows but they don't follow back — show nothing
+                          if (viewerFollows && !followsViewer) return null;
+                          // They follow viewer but viewer hasn't followed back
+                          const isFollowBack = followsViewer && !viewerFollows;
+                          return (
+                            <button
+                              onClick={async (e) => {
+                                e.stopPropagation();
+                                if (!address) return;
+                                try {
+                                  await followWallet(address, w);
+                                  setFollowList((prev: any[]) =>
+                                    prev.map((fi: any) =>
+                                      (fi.wallet ?? fi.from_wallet ?? fi.to_wallet) === w
+                                        ? { ...fi, viewer_follows: true }
+                                        : fi
+                                    )
+                                  );
+                                } catch (e) {
+                                  console.error(e);
+                                }
+                              }}
+                              className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                                isFollowBack
+                                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                                  : "bg-zinc-700 text-zinc-100 hover:bg-zinc-600"
+                              }`}
+                            >
+                              {isFollowBack ? "Follow Back" : "Follow"}
+                            </button>
+                          );
+                        })()}
                       </div>
                     );
                   })}
