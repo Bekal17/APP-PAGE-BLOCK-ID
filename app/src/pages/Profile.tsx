@@ -1027,12 +1027,14 @@ const Profile = () => {
             </div>
           ) : (
             <div
-              className="w-full overflow-hidden -mx-4 md:-mx-8"
+              className="-mx-4 md:-mx-8 overflow-hidden"
               style={{
                 height: "280px",
                 backgroundImage: `url(${profile.banner_url})`,
-                backgroundSize: "cover",
+                backgroundSize: "100% 100%",
                 backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
+                width: "100%",
               }}
             />
           )
