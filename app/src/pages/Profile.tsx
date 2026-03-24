@@ -1004,14 +1004,14 @@ const Profile = () => {
 
   return (
     <DashboardLayout>
-      <div className="w-full max-w-screen-2xl mx-auto p-4 md:p-8">
+      <div className="w-full max-w-screen-2xl mx-auto">
         {/* Banner */}
         {profile?.banner_url ? (
           profile?.banner_type === "NFT" ? (
             <div
-              className="w-full rounded-xl overflow-hidden"
+              className="w-full overflow-hidden"
               style={{
-                height: "180px",
+                height: "200px",
                 border: "2px solid gold",
                 boxShadow: "0 0 12px rgba(255, 215, 0, 0.4)",
               }}
@@ -1027,9 +1027,9 @@ const Profile = () => {
             </div>
           ) : (
             <div
-              className="w-full rounded-xl overflow-hidden"
+              className="w-full overflow-hidden"
               style={{
-                height: "180px",
+                height: "200px",
                 backgroundImage: `url(${profile.banner_url})`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
@@ -1038,11 +1038,12 @@ const Profile = () => {
           )
         ) : (
           <div
-            className="w-full rounded-xl bg-gradient-to-r from-zinc-800 via-zinc-700 to-zinc-800"
-            style={{ height: "180px" }}
+            className="w-full bg-gradient-to-r from-zinc-800 via-zinc-700 to-zinc-800"
+            style={{ height: "200px" }}
           />
         )}
 
+        <div className="px-4 md:px-8 pb-4 md:pb-8">
         {/* Profile row */}
         <div className="flex items-start gap-4 -mt-10 ml-4 relative z-10">
           <div className="relative w-24 h-24 shrink-0">
@@ -3062,6 +3063,7 @@ const Profile = () => {
               </div>
             </div>
           </div>
+        </div>
         </div>
       )}
     </DashboardLayout>
