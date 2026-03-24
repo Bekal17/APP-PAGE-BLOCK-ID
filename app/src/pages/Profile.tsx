@@ -2358,7 +2358,7 @@ const Profile = () => {
                             if (res.success) {
                               setProfile((p: any) => ({
                                 ...p,
-                                avatar_url: res.avatar_url ?? nft.image,
+                                avatar_url: res.avatar_url ?? nft.image_url ?? nft.image,
                                 avatar_type: "NFT",
                                 avatar_nft_mint: nft.mint,
                                 avatar_nft_name: nft.name,
@@ -2372,7 +2372,7 @@ const Profile = () => {
                             if (res.success) {
                               setProfile((p: any) => ({
                                 ...p,
-                                banner_url: res.banner_url ?? nft.image,
+                                banner_url: res.banner_url ?? nft.image_url ?? nft.image,
                                 banner_type: "NFT",
                               }));
                             }
@@ -2384,11 +2384,14 @@ const Profile = () => {
                       }}
                       className="relative aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-yellow-400 transition-all group"
                     >
-                      {nft.image ? (
+                      {(nft.image ?? nft.image_url) ? (
                         <img
-                          src={nft.image}
+                          src={nft.image ?? nft.image_url}
                           alt={nft.name ?? "NFT"}
                           className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                          }}
                         />
                       ) : (
                         <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-xs text-muted-foreground p-1 text-center">
