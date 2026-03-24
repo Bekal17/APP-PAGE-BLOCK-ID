@@ -2983,33 +2983,50 @@ const Profile = () => {
                 />
               </div>
 
-              <div className="mt-2">
-                <button
-                  type="button"
-                  onClick={() => setMintNFTModalOpen(true)}
-                  className="w-full flex items-center justify-between px-4 py-3
-                    rounded-xl border border-yellow-500/30 bg-yellow-500/5
-                    hover:bg-yellow-500/10 transition-colors group"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center">
-                      <Image className="w-4 h-4 text-yellow-400" />
-                    </div>
-                    <div className="text-left">
-                      <p className="text-sm font-semibold text-foreground">
-                        Make Your Own NFT
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Mint your image as NFT avatar — ~0.005 SOL
-                      </p>
-                    </div>
+              {(() => {
+                const plan = ((profile as any)?.plan ?? "free").toLowerCase();
+                const canMintNFT = plan === "explorer" || plan === "pro";
+                return (
+                  <div className="mt-2">
+                    <button
+                      type="button"
+                      onClick={() => canMintNFT ? setMintNFTModalOpen(true) : null}
+                      className={`w-full flex items-center justify-between px-4 py-3
+                        rounded-xl border transition-colors group
+                        ${canMintNFT
+                          ? "border-yellow-500/30 bg-yellow-500/5 hover:bg-yellow-500/10 cursor-pointer"
+                          : "border-zinc-700 bg-zinc-800/50 cursor-not-allowed opacity-60"
+                        }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center
+                          ${canMintNFT ? "bg-yellow-500/20" : "bg-zinc-700"}`}>
+                          <Image className={`w-4 h-4 ${canMintNFT ? "text-yellow-400" : "text-zinc-500"}`} />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-sm font-semibold text-foreground">
+                            Make Your Own NFT
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {canMintNFT
+                              ? "Mint your image as NFT avatar — ~0.005 SOL"
+                              : "Upgrade to Explorer or PRO to unlock"
+                            }
+                          </p>
+                        </div>
+                      </div>
+                      <span className={`text-xs font-medium px-2 py-0.5
+                        rounded-full border
+                        ${canMintNFT
+                          ? "text-yellow-400 bg-yellow-500/10 border-yellow-500/20"
+                          : "text-zinc-500 bg-zinc-700/50 border-zinc-600"
+                        }`}>
+                        {canMintNFT ? "EXPLORER+" : "LOCKED"}
+                      </span>
+                    </button>
                   </div>
-                  <span className="text-xs text-yellow-400 font-medium px-2 py-0.5
-                    rounded-full bg-yellow-500/10 border border-yellow-500/20">
-                    PRO
-                  </span>
-                </button>
-              </div>
+                );
+              })()}
 
               {/* Spacer for avatar overflow */}
               <div className="h-10" />
