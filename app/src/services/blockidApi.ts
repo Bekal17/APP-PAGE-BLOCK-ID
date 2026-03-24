@@ -537,6 +537,7 @@ export async function setNFTAvatar(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       wallet,
+      type: "NFT",
       nft_mint: nftMint,
       signed_message: "BlockID Avatar",
       signature: "devtest_signature_bypass",
@@ -555,6 +556,7 @@ export async function setNFTBanner(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       wallet,
+      type: "NFT",
       nft_mint: nftMint,
       signed_message: "BlockID Banner",
       signature: "devtest_signature_bypass",
