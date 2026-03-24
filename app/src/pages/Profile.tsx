@@ -2168,7 +2168,13 @@ const Profile = () => {
                     return (
                       <div
                         key={i}
-                        className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/20 transition-colors"
+                        className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/20 transition-colors cursor-pointer"
+                        onClick={() => {
+                          if (w) {
+                            setShowFollowModal(null);
+                            navigate(`/profile/${w}`);
+                          }
+                        }}
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-9 h-9 rounded-full bg-zinc-700 flex items-center justify-center text-sm font-bold text-foreground">
