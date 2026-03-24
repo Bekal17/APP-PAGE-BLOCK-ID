@@ -32,8 +32,10 @@ const getNotifIcon = (type: string) => {
 
 const formatTimeAgo = (iso?: string) => {
   if (!iso) return "";
-  const utcIso = iso.endsWith("Z") ? iso : iso + "Z";
-  const diff = Date.now() - new Date(utcIso).getTime();
+  const normalized = iso.replace("+00:00", "Z").replace(/\.\d+Z$/, (m) => m);
+  const date = new Date(normalized);
+  if (isNaN(date.getTime())) return "";
+  const diff = Date.now() - date.getTime();
   const mins = Math.floor(diff / 60000);
   if (mins < 1) return "just now";
   if (mins < 60) return `${mins}m ago`;
