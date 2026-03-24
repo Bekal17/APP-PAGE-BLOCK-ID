@@ -1031,10 +1031,8 @@ const Profile = () => {
               style={{
                 height: "280px",
                 backgroundImage: `url(${profile.banner_url})`,
-                backgroundSize: "100% 100%",
+                backgroundSize: "cover",
                 backgroundPosition: "center",
-                backgroundRepeat: "no-repeat",
-                width: "100%",
               }}
             />
           )
@@ -1047,7 +1045,7 @@ const Profile = () => {
 
         <div className="px-4 md:px-8 pb-4 md:pb-8">
         {/* Profile row */}
-        <div className="flex items-start gap-4 -mt-10 ml-4 relative z-10">
+        <div className="flex items-start gap-4 -mt-14 ml-4 relative z-10">
           <div className="relative w-24 h-24 shrink-0">
               {avatarType === "NFT" && avatarUrl ? (
                 avatarIsAnimated ? (
@@ -1091,7 +1089,7 @@ const Profile = () => {
               )}
             </div>
 
-          <div className="flex-1 pb-2 mt-16">
+          <div className="flex-1 pb-2 mt-20">
               <p className="text-lg font-bold text-foreground flex items-center gap-1.5">
                 {profile?.handle ? `@${profile.handle}` : wallet.length > 16 ? `${wallet.slice(0, 8)}...${wallet.slice(-8)}` : wallet}
                 <SubscriptionBadge plan={(profile as any)?.plan ?? "free"} size="md" />
