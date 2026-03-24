@@ -1011,7 +1011,7 @@ const Profile = () => {
             <div
               className="overflow-hidden -mx-4 md:-mx-8"
               style={{
-                height: "200px",
+                height: "280px",
                 border: "2px solid gold",
                 boxShadow: "0 0 12px rgba(255, 215, 0, 0.4)",
               }}
@@ -1029,7 +1029,7 @@ const Profile = () => {
             <div
               className="w-full overflow-hidden -mx-4 md:-mx-8"
               style={{
-                height: "200px",
+                height: "280px",
                 backgroundImage: `url(${profile.banner_url})`,
                 backgroundSize: "cover",
                 backgroundPosition: "center",
@@ -1039,7 +1039,7 @@ const Profile = () => {
         ) : (
           <div
             className="w-full bg-gradient-to-r from-zinc-800 via-zinc-700 to-zinc-800 -mx-4 md:-mx-8"
-            style={{ height: "200px" }}
+            style={{ height: "280px" }}
           />
         )}
 
