@@ -1006,46 +1006,45 @@ const Profile = () => {
     <DashboardLayout>
       <div className="w-full max-w-screen-2xl mx-auto p-4 md:p-8">
         {/* Banner */}
-        <div className="relative w-full rounded-xl mb-0">
-          {profile?.banner_url ? (
-            profile?.banner_type === "NFT" ? (
+        {profile?.banner_url ? (
+          profile?.banner_type === "NFT" ? (
+            <div
+              className="w-full rounded-xl overflow-hidden"
+              style={{
+                height: "180px",
+                border: "2px solid gold",
+                boxShadow: "0 0 12px rgba(255, 215, 0, 0.4)",
+              }}
+            >
               <div
-                className="relative w-full h-44 rounded-xl overflow-hidden"
+                className="w-full h-full"
                 style={{
-                  border: "2px solid gold",
-                  boxShadow: "0 0 12px rgba(255, 215, 0, 0.4)",
-                }}
-              >
-                <div
-                  className="w-full h-full"
-                  style={{
-                    backgroundImage: `url(${profile.banner_url})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                  }}
-                />
-              </div>
-            ) : (
-              <div
-                className="w-full h-44 rounded-xl overflow-hidden"
-                style={{
-                  backgroundImage: profile?.banner_url
-                    ? `url(${profile.banner_url})`
-                    : undefined,
+                  backgroundImage: `url(${profile.banner_url})`,
                   backgroundSize: "cover",
                   backgroundPosition: "center",
                 }}
               />
-            )
-          ) : (
-            <div className="w-full h-36 rounded-xl overflow-hidden">
-              <div className="absolute inset-0 bg-gradient-to-r from-zinc-800 via-zinc-700 to-zinc-800" />
             </div>
-          )}
-        </div>
+          ) : (
+            <div
+              className="w-full rounded-xl overflow-hidden"
+              style={{
+                height: "180px",
+                backgroundImage: `url(${profile.banner_url})`,
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+              }}
+            />
+          )
+        ) : (
+          <div
+            className="w-full rounded-xl bg-gradient-to-r from-zinc-800 via-zinc-700 to-zinc-800"
+            style={{ height: "180px" }}
+          />
+        )}
 
         {/* Profile row */}
-        <div className="flex items-start gap-4 -mt-14 ml-4 relative z-10">
+        <div className="flex items-start gap-4 -mt-12 ml-4 relative z-10">
           <div className="relative w-24 h-24 shrink-0">
               {avatarType === "NFT" && avatarUrl ? (
                 avatarIsAnimated ? (
