@@ -1,4 +1,10 @@
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import {
+  LAMPORTS_PER_SOL,
+  PublicKey,
+  SystemProgram,
+  Transaction,
+} from "@solana/web3.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
@@ -213,6 +219,7 @@ const formatRelativeTime = (iso?: string) => {
 
 const Profile = () => {
   const { publicKey, connected } = useWallet();
+  const { connection } = useConnection();
   const { walletParam } = useParams<{ walletParam: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -1009,11 +1016,45 @@ const Profile = () => {
   };
 
   const handleMintNFTAvatar = async () => {
-    if (!publicKey || !mintNFTFile) return;
+    if (!publicKey || !mintNFTFile || !connection) return;
     setMintNFTLoading(true);
     try {
+      // Step 1: Transfer SOL to treasury
+      const TREASURY = new PublicKey("4DdLPRDiLRY8Q2E4Fv31kvcfMf3XJf11HgaSaW7tKVcx");
+      const MINT_PRICE_SOL = 0.01;
+      const lamports = Math.round(MINT_PRICE_SOL * LAMPORTS_PER_SOL);
+
+      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash();
+
+      const transaction = new Transaction({
+        recentBlockhash: blockhash,
+        feePayer: publicKey,
+      }).add(
+        SystemProgram.transfer({
+          fromPubkey: publicKey,
+          toPubkey: TREASURY,
+          lamports,
+        })
+      );
+
+      // Request wallet signature
+      if (!window.solana) {
+        throw new Error("Wallet not found. Please connect Phantom.");
+      }
+
+      const signed = await window.solana.signTransaction(transaction);
+      const txSignature = await connection.sendRawTransaction(signed.serialize());
+
+      // Wait for confirmation
+      await connection.confirmTransaction(
+        { signature: txSignature, blockhash, lastValidBlockHeight },
+        "confirmed"
+      );
+
+      // Step 2: Call mint API with tx signature
       const formData = new FormData();
       formData.append("wallet", publicKey.toString());
+      formData.append("tx_signature", txSignature);
       formData.append("file", mintNFTFile);
       formData.append("name", mintNFTName);
       formData.append("description", "Minted via BlockID");
@@ -1029,6 +1070,7 @@ const Profile = () => {
       }
 
       setMintNFTSuccess(true);
+
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Mint failed";
       toast({ title: message, variant: "destructive" });
@@ -3290,7 +3332,7 @@ const Profile = () => {
                     flex items-center justify-center gap-2">
                     <div className="w-4 h-4 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin" />
                     <span className="text-sm font-semibold text-yellow-400">
-                      Minting NFT on Solana...
+                      Processing payment & minting...
                     </span>
                   </div>
                 ) : (
@@ -3302,7 +3344,7 @@ const Profile = () => {
                       text-black font-bold text-sm transition-colors
                       disabled:opacity-40 disabled:cursor-not-allowed"
                   >
-                    Confirm & Mint NFT
+                    Confirm & Mint NFT — 0.01 SOL
                   </button>
                 )}
               </div>
