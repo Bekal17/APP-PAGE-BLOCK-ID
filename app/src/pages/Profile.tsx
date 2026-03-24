@@ -632,6 +632,7 @@ const Profile = () => {
   const riskExposure = walletDashboard?.risk_exposure;
   const activity = walletDashboard?.activity;
   const badges = walletDashboard?.badges;
+  const cyclops = walletDashboard?.cyclops ?? null;
 
   const score = trustScore;
   const riskColor =
@@ -1522,6 +1523,38 @@ const Profile = () => {
                           : summaryMessage || "No major threats detected."}
                       </p>
                     </div>
+                    {cyclops && !walletLoading && (
+                      <div className="mt-4 pt-4 border-t border-border/30">
+                        <p className="text-sm text-muted-foreground mb-2">Risk Intelligence</p>
+                        <div className="space-y-1.5">
+                          <div className="flex items-center gap-2">
+                            <span className={`w-2 h-2 rounded-full shrink-0 ${
+                              cyclops.is_sanctioned ? "bg-red-500" : "bg-green-500"
+                            }`} />
+                            <span className="text-xs text-foreground">
+                              {cyclops.is_sanctioned ? "SANCTIONED" : "Sanctions: Clean"}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                              cyclops.risk_level === "CRITICAL" ? "bg-red-500/20 text-red-400" :
+                              cyclops.risk_level === "HIGH" ? "bg-orange-500/20 text-orange-400" :
+                              cyclops.risk_level === "MEDIUM" ? "bg-yellow-500/20 text-yellow-400" :
+                              cyclops.risk_level === "LOW" ? "bg-blue-500/20 text-blue-400" :
+                              "bg-green-500/20 text-green-400"
+                            }`}>
+                              {cyclops.risk_level}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {cyclops.risk_score.toFixed(1)} / 100
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-muted-foreground/50 mt-1">
+                            Powered by Daemon Protocol
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
