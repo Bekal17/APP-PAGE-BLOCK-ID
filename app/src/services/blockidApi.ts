@@ -159,19 +159,21 @@ export async function getFollowingFeed(wallet: string) {
 }
 
 // Fetch followers for a wallet
-export async function getFollowers(wallet: string) {
-  const res = await fetch(
-    buildSocialUrl(`/social/followers/${encodeURIComponent(wallet)}`)
-  );
+export async function getFollowers(wallet: string, viewerWallet?: string) {
+  const path = viewerWallet
+    ? `/social/followers/${encodeURIComponent(wallet)}?viewer_wallet=${encodeURIComponent(viewerWallet)}`
+    : `/social/followers/${encodeURIComponent(wallet)}`;
+  const res = await fetch(buildSocialUrl(path));
   if (!res.ok) throw new Error("Failed to fetch followers");
   return res.json();
 }
 
 // Fetch following for a wallet
-export async function getFollowing(wallet: string) {
-  const res = await fetch(
-    buildSocialUrl(`/social/following/${encodeURIComponent(wallet)}`)
-  );
+export async function getFollowing(wallet: string, viewerWallet?: string) {
+  const path = viewerWallet
+    ? `/social/following/${encodeURIComponent(wallet)}?viewer_wallet=${encodeURIComponent(viewerWallet)}`
+    : `/social/following/${encodeURIComponent(wallet)}`;
+  const res = await fetch(buildSocialUrl(path));
   if (!res.ok) throw new Error("Failed to fetch following");
   return res.json();
 }
