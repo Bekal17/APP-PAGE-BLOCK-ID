@@ -284,6 +284,7 @@ const Profile = () => {
     useState<string | null>(null);
   const [pendingBannerPreview, setPendingBannerPreview] =
     useState<string | null>(null);
+  const [isFollowing, setIsFollowing] = useState(false);
 
   useEffect(() => {
     if (repostDropdownId === null) return;
@@ -323,6 +324,29 @@ const Profile = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, [modalAvatarMenu]);
 
+  const address = publicKey?.toBase58();
+  const wallet = walletParam ?? address ?? "";
+
+  useEffect(() => {
+    if (!address || !walletParam || walletParam === address) {
+      setIsFollowing(false);
+      return;
+    }
+    const checkFollow = async () => {
+      try {
+        const data = await getFollowing(address);
+        const list = data.following ?? data ?? [];
+        const found = list.some(
+          (f: any) => (f.wallet ?? f.following_wallet) === walletParam
+        );
+        setIsFollowing(found);
+      } catch {
+        setIsFollowing(false);
+      }
+    };
+    checkFollow();
+  }, [address, walletParam]);
+
   const handleFileSelect = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>, type: "avatar" | "banner") => {
       const file = e.target.files?.[0];
@@ -341,8 +365,6 @@ const Profile = () => {
     [publicKey]
   );
 
-  const address = publicKey?.toBase58();
-  const wallet = walletParam ?? address ?? "";
   const walletAddress = wallet || "REPLACE_WITH_CONNECTED_WALLET";
   const walletUrl = wallet ? `${APP_BASE_URL}/wallet/${wallet}` : "";
   const canShare = !!address && !!data && !walletLoading && !error;
@@ -1126,18 +1148,59 @@ const Profile = () => {
                 <div className="flex items-center gap-2 mt-2">
                   <Button
                     size="sm"
-                    className="h-7 px-3 rounded-full text-xs"
-                    variant="default"
+                    className={`h-7 px-3 rounded-full text-xs transition-all ${
+                      isFollowing
+                        ? "bg-zinc-700 hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30 text-zinc-100 border border-zinc-600"
+                        : ""
+                    }`}
+                    variant={isFollowing ? "outline" : "default"}
                     onClick={async () => {
                       if (!address) return;
                       try {
-                        await followWallet(address, wallet);
+                        if (isFollowing) {
+                          // Unfollow
+                          await fetch(
+                            `${API_BASE}/social/follow`,
+                            {
+                              method: "DELETE",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                follower_wallet: address,
+                                following_wallet: wallet,
+                              }),
+                            }
+                          );
+                          setIsFollowing(false);
+                          setProfile((prev: any) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  follower_count: Math.max(
+                                    (prev.follower_count ?? 1) - 1,
+                                    0
+                                  ),
+                                }
+                              : prev
+                          );
+                        } else {
+                          // Follow
+                          await followWallet(address, wallet);
+                          setIsFollowing(true);
+                          setProfile((prev: any) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  follower_count: (prev.follower_count ?? 0) + 1,
+                                }
+                              : prev
+                          );
+                        }
                       } catch (e) {
                         console.error(e);
                       }
                     }}
                   >
-                    Follow
+                    {isFollowing ? "Following" : "Follow"}
                   </Button>
                   <Button
                     size="sm"
@@ -2220,6 +2283,8 @@ const Profile = () => {
                                         : fi
                                     )
                                   );
+                                  // Update isFollowing if wallet matches viewed profile
+                                  if (w === wallet) setIsFollowing(true);
                                 } catch (e) {
                                   console.error(e);
                                 }
