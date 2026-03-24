@@ -285,6 +285,7 @@ const Profile = () => {
   const [pendingBannerPreview, setPendingBannerPreview] =
     useState<string | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [isHoveringFollow, setIsHoveringFollow] = useState(false);
 
   useEffect(() => {
     if (repostDropdownId === null) return;
@@ -1154,6 +1155,8 @@ const Profile = () => {
                         : ""
                     }`}
                     variant={isFollowing ? "outline" : "default"}
+                    onMouseEnter={() => { if (isFollowing) setIsHoveringFollow(true); }}
+                    onMouseLeave={() => setIsHoveringFollow(false)}
                     onClick={async () => {
                       if (!address) return;
                       try {
@@ -1200,7 +1203,11 @@ const Profile = () => {
                       }
                     }}
                   >
-                    {isFollowing ? "Following" : "Follow"}
+                    {isFollowing
+                      ? isHoveringFollow
+                        ? "Unfollow"
+                        : "Following"
+                      : "Follow"}
                   </Button>
                   <Button
                     size="sm"
