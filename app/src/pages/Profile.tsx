@@ -1044,7 +1044,7 @@ const Profile = () => {
         )}
 
         {/* Profile row */}
-        <div className="flex items-start gap-4 -mt-12 ml-4 relative z-10">
+        <div className="flex items-start gap-4 -mt-10 ml-4 relative z-10">
           <div className="relative w-24 h-24 shrink-0">
               {avatarType === "NFT" && avatarUrl ? (
                 avatarIsAnimated ? (
@@ -1057,8 +1057,9 @@ const Profile = () => {
                     className="w-24 h-24 object-cover"
                     style={{
                       borderRadius: "8px",
-                      border: "2px solid gold",
-                      boxShadow: "0 0 8px rgba(255,215,0,0.5)",
+                      border: "3px solid gold",
+                      boxShadow: "0 0 12px rgba(255,215,0,0.6)",
+                      outline: "3px solid #18181b",
                     }}
                   />
                 ) : (
@@ -1068,8 +1069,9 @@ const Profile = () => {
                     className="w-24 h-24 object-cover"
                     style={{
                       borderRadius: "8px",
-                      border: "2px solid gold",
-                      boxShadow: "0 0 8px rgba(255,215,0,0.5)",
+                      border: "3px solid gold",
+                      boxShadow: "0 0 12px rgba(255,215,0,0.6)",
+                      outline: "3px solid #18181b",
                     }}
                   />
                 )
@@ -1077,16 +1079,16 @@ const Profile = () => {
                 <img
                   src={avatarUrl}
                   alt={handle ?? profileWallet}
-                  className="w-24 h-24 object-cover rounded-full border-2 border-white"
+                  className="w-24 h-24 object-cover rounded-full border-2 border-white outline outline-[3px] outline-zinc-900"
                 />
               ) : (
-                <div className="w-24 h-24 rounded-full bg-zinc-700 border-2 border-zinc-600 flex items-center justify-center text-2xl font-bold text-foreground">
+                <div className="w-24 h-24 rounded-full bg-zinc-700 border-2 border-zinc-600 outline outline-[3px] outline-zinc-900 flex items-center justify-center text-2xl font-bold text-foreground">
                   {(profile?.handle ?? wallet ?? "?")[0]?.toUpperCase() ?? "?"}
                 </div>
               )}
             </div>
 
-          <div className="flex-1 pb-2 mt-14">
+          <div className="flex-1 pb-2 mt-16">
               <p className="text-lg font-bold text-foreground flex items-center gap-1.5">
                 {profile?.handle ? `@${profile.handle}` : wallet.length > 16 ? `${wallet.slice(0, 8)}...${wallet.slice(-8)}` : wallet}
                 <SubscriptionBadge plan={(profile as any)?.plan ?? "free"} size="md" />
