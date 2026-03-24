@@ -1006,7 +1006,7 @@ const Profile = () => {
     <DashboardLayout>
       <div className="w-full max-w-screen-2xl mx-auto p-4 md:p-8">
         {/* Banner */}
-        <div className="relative w-full h-36 rounded-xl mb-0">
+        <div className="relative w-full rounded-xl mb-0">
           {profile?.banner_url ? (
             profile?.banner_type === "NFT" ? (
               <div
@@ -1038,7 +1038,7 @@ const Profile = () => {
               />
             )
           ) : (
-            <div className="absolute inset-0 rounded-xl overflow-hidden">
+            <div className="w-full h-36 rounded-xl overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-r from-zinc-800 via-zinc-700 to-zinc-800" />
             </div>
           )}
