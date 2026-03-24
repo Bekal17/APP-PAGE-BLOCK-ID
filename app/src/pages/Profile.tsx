@@ -286,6 +286,11 @@ const Profile = () => {
     useState<string | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isHoveringFollow, setIsHoveringFollow] = useState(false);
+  const [mintNFTModalOpen, setMintNFTModalOpen] = useState(false);
+  const [mintNFTFile, setMintNFTFile] = useState<File | null>(null);
+  const [mintNFTPreview, setMintNFTPreview] = useState<string | null>(null);
+  const [mintNFTLoading, setMintNFTLoading] = useState(false);
+  const [mintNFTName, setMintNFTName] = useState("BlockID Avatar NFT");
 
   useEffect(() => {
     if (repostDropdownId === null) return;
@@ -999,6 +1004,44 @@ const Profile = () => {
       toast({ title: "Failed to post quote", variant: "destructive" });
     } finally {
       setQuoteModalLoading(false);
+    }
+  };
+
+  const handleMintNFTAvatar = async () => {
+    if (!publicKey || !mintNFTFile) return;
+    setMintNFTLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("wallet", publicKey.toString());
+      formData.append("file", mintNFTFile);
+      formData.append("name", mintNFTName);
+      formData.append("description", "Minted via BlockID");
+
+      const res = await fetch(
+        `${API_BASE}/social/nft/mint-avatar`,
+        { method: "POST", body: formData }
+      );
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.detail ?? data.error ?? "Mint failed");
+      }
+
+      setProfile((p: any) => ({
+        ...p,
+        avatar_url: data.avatar_url,
+        avatar_type: "NFT",
+      }));
+      setMintNFTModalOpen(false);
+      setMintNFTFile(null);
+      setMintNFTPreview(null);
+      toast({ title: "NFT minted and set as avatar!" });
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Mint failed";
+      toast({ title: message, variant: "destructive" });
+    } finally {
+      setMintNFTLoading(false);
     }
   };
 
@@ -2948,6 +2991,34 @@ const Profile = () => {
                 />
               </div>
 
+              <div className="mt-2">
+                <button
+                  type="button"
+                  onClick={() => setMintNFTModalOpen(true)}
+                  className="w-full flex items-center justify-between px-4 py-3
+                    rounded-xl border border-yellow-500/30 bg-yellow-500/5
+                    hover:bg-yellow-500/10 transition-colors group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+                      <Image className="w-4 h-4 text-yellow-400" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-semibold text-foreground">
+                        Make Your Own NFT
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Mint your image as NFT avatar — ~0.005 SOL
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-xs text-yellow-400 font-medium px-2 py-0.5
+                    rounded-full bg-yellow-500/10 border border-yellow-500/20">
+                    PRO
+                  </span>
+                </button>
+              </div>
+
               {/* Spacer for avatar overflow */}
               <div className="h-10" />
 
@@ -3061,6 +3132,136 @@ const Profile = () => {
                     focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {mintNFTModalOpen && (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 px-4"
+          onClick={() => {
+            if (!mintNFTLoading) {
+              setMintNFTModalOpen(false);
+              setMintNFTFile(null);
+              setMintNFTPreview(null);
+            }
+          }}
+        >
+          <div
+            className="bg-zinc-900 border border-zinc-700 rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
+              <span className="text-sm font-bold text-foreground">
+                Make Your Own NFT
+              </span>
+              <button
+                onClick={() => {
+                  if (!mintNFTLoading) {
+                    setMintNFTModalOpen(false);
+                    setMintNFTFile(null);
+                    setMintNFTPreview(null);
+                  }
+                }}
+                className="p-1 rounded-full hover:bg-zinc-800 transition-colors"
+              >
+                <X className="w-5 h-5 text-foreground" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-5 space-y-4">
+              {/* Upload area */}
+              <label className="block cursor-pointer">
+                <div
+                  className={`w-full aspect-square rounded-xl border-2 border-dashed
+                    flex items-center justify-center overflow-hidden transition-colors
+                    ${
+                      mintNFTPreview
+                        ? "border-yellow-500/50"
+                        : "border-zinc-700 hover:border-yellow-500/30"
+                    }`}
+                >
+                  {mintNFTPreview ? (
+                    <img
+                      src={mintNFTPreview}
+                      alt="NFT preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="text-center p-6">
+                      <Image className="w-10 h-10 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-sm text-foreground font-medium">
+                        Click to upload image
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        PNG, JPG, GIF, WebP — max 5MB
+                      </p>
+                    </div>
+                  )}
+                </div>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setMintNFTFile(file);
+                    const url = URL.createObjectURL(file);
+                    setMintNFTPreview(url);
+                  }}
+                />
+              </label>
+
+              {/* NFT Name input */}
+              {mintNFTFile && (
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider block mb-1.5">
+                    NFT Name
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={32}
+                    value={mintNFTName}
+                    onChange={(e) => setMintNFTName(e.target.value)}
+                    className="w-full px-4 py-2.5 bg-zinc-800 border border-zinc-700
+                      rounded-lg text-foreground text-sm focus:outline-none
+                      focus:ring-2 focus:ring-yellow-500/50"
+                  />
+                </div>
+              )}
+
+              {/* Cost info */}
+              <div className="flex items-center justify-between px-3 py-2
+                rounded-lg bg-zinc-800 border border-zinc-700">
+                <span className="text-xs text-muted-foreground">Mint cost</span>
+                <span className="text-xs font-semibold text-yellow-400">
+                  ~0.005 SOL
+                </span>
+              </div>
+
+              {/* Warning */}
+              <p className="text-xs text-muted-foreground/70 leading-relaxed">
+                Avoid uploading photos showing your full face.
+                NFTs cannot be deleted once minted on-chain.
+              </p>
+
+              {/* Confirm button */}
+              <button
+                type="button"
+                onClick={handleMintNFTAvatar}
+                disabled={!mintNFTFile || mintNFTLoading}
+                className="w-full py-3 rounded-xl bg-yellow-500 hover:bg-yellow-400
+                  text-black font-bold text-sm transition-colors
+                  disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {mintNFTLoading
+                  ? "Minting NFT on Solana..."
+                  : "Confirm & Mint NFT"}
+              </button>
             </div>
           </div>
         </div>
