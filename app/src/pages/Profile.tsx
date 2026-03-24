@@ -1009,7 +1009,7 @@ const Profile = () => {
         {profile?.banner_url ? (
           profile?.banner_type === "NFT" ? (
             <div
-              className="w-full overflow-hidden"
+              className="overflow-hidden -mx-4 md:-mx-8"
               style={{
                 height: "200px",
                 border: "2px solid gold",
@@ -1027,7 +1027,7 @@ const Profile = () => {
             </div>
           ) : (
             <div
-              className="w-full overflow-hidden"
+              className="w-full overflow-hidden -mx-4 md:-mx-8"
               style={{
                 height: "200px",
                 backgroundImage: `url(${profile.banner_url})`,
@@ -1038,7 +1038,7 @@ const Profile = () => {
           )
         ) : (
           <div
-            className="w-full bg-gradient-to-r from-zinc-800 via-zinc-700 to-zinc-800"
+            className="w-full bg-gradient-to-r from-zinc-800 via-zinc-700 to-zinc-800 -mx-4 md:-mx-8"
             style={{ height: "200px" }}
           />
         )}
@@ -3064,8 +3064,8 @@ const Profile = () => {
             </div>
           </div>
         </div>
-        </div>
       )}
+      </div>
     </DashboardLayout>
   );
 };
