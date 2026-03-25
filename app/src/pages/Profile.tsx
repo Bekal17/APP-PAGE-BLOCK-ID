@@ -43,6 +43,7 @@ import WalletActivityChart from "@/components/blockid/WalletActivityChart";
 import SubscriptionBadge from "@/components/blockid/SubscriptionBadge";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { useSubscription } from "@/hooks/useSubscription";
 import {
   ShareInvestigationModal,
   buildFullReport,
@@ -220,6 +221,7 @@ const formatRelativeTime = (iso?: string) => {
 const Profile = () => {
   const { publicKey, connected } = useWallet();
   const { connection } = useConnection();
+  const sub = useSubscription();
   const { walletParam } = useParams<{ walletParam: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -239,6 +241,7 @@ const Profile = () => {
   const [showNFTModal, setShowNFTModal] = useState<"avatar" | "banner" | null>(
     null
   );
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [nfts, setNfts] = useState<any[]>([]);
   const [nftsLoading, setNftsLoading] = useState(false);
   const [balance, setBalance] = useState<any>(null);
@@ -1394,16 +1397,17 @@ const Profile = () => {
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
             onClick={() => {
-              setActiveTab("wallet");
-              // Only count as scan when viewing another wallet's Wallet tab
-              if (
-                walletParam &&
-                address &&
-                walletParam !== address &&
-                activeTab !== "wallet"
-              ) {
-                incrementScan(address);
+              // If viewing another wallet's Wallet tab and at scan limit
+              if (walletParam && address && walletParam !== address) {
+                if (sub.isAtLimit) {
+                  setShowUpgradeModal(true);
+                  return;
+                }
+                if (activeTab !== "wallet") {
+                  incrementScan(address);
+                }
               }
+              setActiveTab("wallet");
             }}
           >
             Wallet
@@ -2513,6 +2517,104 @@ const Profile = () => {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        )}
+
+        {showUpgradeModal && (
+          <div
+            className="fixed inset-0 z-[70] flex items-center justify-center bg-black/80 px-4"
+            onClick={() => setShowUpgradeModal(false)}
+          >
+            <div
+              className="bg-zinc-900 border border-zinc-700 rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
+                <span className="text-sm font-bold text-foreground">
+                  Scan Limit Reached
+                </span>
+                <button
+                  onClick={() => setShowUpgradeModal(false)}
+                  className="p-1 rounded-full hover:bg-zinc-800 transition-colors"
+                >
+                  <X className="w-5 h-5 text-foreground" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="p-5 space-y-4">
+                <div className="flex items-center justify-center w-14 h-14 rounded-full bg-amber-500/10 border border-amber-500/20 mx-auto">
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#f59e0b"
+                    strokeWidth="2"
+                  >
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                  </svg>
+                </div>
+
+                <div className="text-center">
+                  <p className="text-sm font-semibold text-foreground mb-1">
+                    You've used all {sub.scansLimit} wallet scans this month
+                  </p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    Upgrade to Explorer to get 100 scans/month, or PRO
+                    for unlimited scans. Scans only count when viewing the
+                    Wallet tab on other profiles.
+                  </p>
+                </div>
+
+                {/* Plan comparison */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700">
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">
+                        Explorer
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        100 scans/month · @Handle
+                      </p>
+                    </div>
+                    <span className="text-sm font-bold text-blue-400">$9/mo</span>
+                  </div>
+                  <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700">
+                    <div>
+                      <p className="text-xs font-semibold text-foreground">
+                        PRO
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Unlimited scans · 3 handles · NFT
+                      </p>
+                    </div>
+                    <span className="text-sm font-bold text-purple-400">$29/mo</span>
+                  </div>
+                </div>
+
+                {/* CTA */}
+                <a
+                  href="https://blockidscore.fun/pricing-b2c.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-500 text-white font-bold text-sm text-center transition-opacity hover:opacity-90"
+                  onClick={() => setShowUpgradeModal(false)}
+                >
+                  View Pricing & Upgrade
+                </a>
+
+                <button
+                  onClick={() => setShowUpgradeModal(false)}
+                  className="block w-full py-2 text-xs text-muted-foreground hover:text-foreground transition-colors text-center"
+                >
+                  Maybe later
+                </button>
+              </div>
             </div>
           </div>
         )}
