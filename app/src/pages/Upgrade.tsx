@@ -204,7 +204,7 @@ export default function Upgrade() {
         { name: "Trust score (realtime)", free: true, explorer: true, pro: true },
         { name: "NFT identity (auto-mint)", free: true, explorer: true, pro: true },
         { name: "@Handle claim", free: false, explorer: "1 handle", pro: "3 handles" },
-        { name: "Make Your Own NFT avatar", free: false, explorer: true, pro: true },
+        { name: "Make Your Own NFT avatar", free: false, explorer: "1/month", pro: "Unlimited" },
       ],
     },
     {
@@ -349,7 +349,7 @@ export default function Upgrade() {
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
-                Make Your Own NFT avatar
+                Make Your Own NFT avatar (0.01 SOL)
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
