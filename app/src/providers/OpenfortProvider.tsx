@@ -5,7 +5,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import Openfort, {
+import {
+  Openfort,
   OpenfortConfiguration,
   OAuthProvider,
 } from "@openfort/openfort-js";
