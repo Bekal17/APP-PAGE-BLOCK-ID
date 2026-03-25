@@ -20,6 +20,7 @@ import Bookmarks from "./pages/Bookmarks";
 import PostDetail from "./pages/PostDetail";
 import NotFound from "./pages/NotFound";
 import AuthCallback from "@/pages/AuthCallback";
+import LoginEmail from "@/pages/LoginEmail";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +47,7 @@ const App = () => (
           <DashboardBackground />
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/analytics" element={<TrustAnalytics />} />
             <Route path="/explore" element={<Explore />} />
             <Route path="/identity" element={<Identity />} />
@@ -61,6 +63,7 @@ const App = () => (
             <Route path="/settings/privacy" element={<PrivacySettings />} />
             <Route path="/upgrade" element={<Upgrade />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/login-email" element={<LoginEmail />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
