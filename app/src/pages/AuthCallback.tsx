@@ -35,7 +35,20 @@ export default function AuthCallback() {
           });
         }
         await openfort.validateAndRefreshToken(true);
-        await openfort.user.get();
+        const user = await openfort.user.get();
+        console.log("Openfort user:", JSON.stringify(user, null, 2));
+
+        // Also check embedded wallet
+        try {
+          const embeddedState = await openfort.embeddedWallet.getEmbeddedState();
+          console.log("Embedded wallet state:", embeddedState);
+
+          const accounts = await openfort.embeddedWallet.get();
+          console.log("Embedded wallet accounts:", JSON.stringify(accounts, null, 2));
+        } catch (e) {
+          console.log("Embedded wallet error:", e);
+        }
+
         navigate("/", { replace: true });
       } catch {
         navigate("/", { replace: true });
