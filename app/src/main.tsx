@@ -1,4 +1,5 @@
 import { createRoot } from "react-dom/client";
+import { OpenfortProvider } from "@/providers/OpenfortProvider";
 import App from "./App.tsx";
 import "./index.css";
 
@@ -10,4 +11,8 @@ if (savedTheme === "light") {
   document.documentElement.classList.add("dark");
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <OpenfortProvider>
+    <App />
+  </OpenfortProvider>
+);
