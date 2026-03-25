@@ -2599,13 +2599,13 @@ const Profile = () => {
 
                 {/* CTA */}
                 <a
-                  href="https://blockidscore.fun/pricing-b2c.html"
+                  href="/upgrade"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="block w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-500 text-white font-bold text-sm text-center transition-opacity hover:opacity-90"
                   onClick={() => setShowUpgradeModal(false)}
                 >
-                  View Pricing & Upgrade
+                  View Plans & Upgrade
                 </a>
 
                 <button

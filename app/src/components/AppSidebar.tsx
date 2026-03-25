@@ -12,6 +12,7 @@ import {
   Users,
   Fingerprint,
   Settings,
+  Zap,
 } from "lucide-react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { getDMUnreadCount } from "@/services/blockidApi";
@@ -26,6 +27,7 @@ const navItems = [
   { title: "Identity", url: "/identity", icon: Fingerprint },
   { title: "Smart Router", url: "/router", icon: Route },
   { title: "Profile", url: "/profile", icon: Users },
+  { title: "Upgrade", url: "/upgrade", icon: Zap, highlight: true },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 
@@ -81,7 +83,7 @@ const AppSidebar = () => {
                 isActive
                   ? "bg-primary/10 text-primary"
                   : "text-zinc-400 hover:bg-zinc-800/50 hover:text-zinc-100"
-              }`}
+              } ${item.highlight ? "text-amber-400 font-bold" : ""}`}
               activeClassName=""
             >
               <item.icon className="w-4 h-4" />
