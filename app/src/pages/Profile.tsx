@@ -585,10 +585,6 @@ const Profile = () => {
 
     const run = async () => {
       try {
-        // Increment scan count when viewing another wallet (not own profile)
-        if (walletParam && address && walletParam !== address) {
-          incrementScan(address);
-        }
         const checkRes = await fetch(
           `${API_BASE}/wallet/${encodeURIComponent(walletAddress)}/needs-refresh`
         );
@@ -1397,7 +1393,18 @@ const Profile = () => {
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
-            onClick={() => setActiveTab("wallet")}
+            onClick={() => {
+              setActiveTab("wallet");
+              // Only count as scan when viewing another wallet's Wallet tab
+              if (
+                walletParam &&
+                address &&
+                walletParam !== address &&
+                activeTab !== "wallet"
+              ) {
+                incrementScan(address);
+              }
+            }}
           >
             Wallet
           </button>
