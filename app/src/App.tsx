@@ -12,6 +12,7 @@ import Identity from "./pages/Identity";
 import Explore from "./pages/Explore";
 import SmartRouter from "./pages/SmartRouter";
 import Profile from "./pages/Profile";
+import Upgrade from "./pages/Upgrade";
 import PrivacySettings from "@/pages/settings/Privacy";
 import Notifications from "./pages/Notifications";
 import Messages from "./pages/Messages";
@@ -57,6 +58,7 @@ const App = () => (
             <Route path="/post/:postId" element={<PostDetail />} />
             <Route path="/settings" element={<PrivacySettings />} />
             <Route path="/settings/privacy" element={<PrivacySettings />} />
+            <Route path="/upgrade" element={<Upgrade />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
