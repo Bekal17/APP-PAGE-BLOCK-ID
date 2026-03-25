@@ -1,9 +1,11 @@
 import { useSubscription } from "@/hooks/useSubscription";
+import { useNavigate } from "react-router-dom";
 
 const PRICING_URL = "https://blockidscore.fun/pricing-b2c.html";
 
 export default function QuotaBanner() {
   const sub = useSubscription();
+  const navigate = useNavigate();
 
   if (sub.loading || sub.plan === "pro") return null;
 
@@ -18,7 +20,7 @@ export default function QuotaBanner() {
           </p>
         </div>
         <button
-          onClick={() => window.open(PRICING_URL, "_blank")}
+          onClick={() => navigate("/upgrade")}
           className="shrink-0 px-3 py-1.5 rounded-lg bg-gradient-to-r from-purple-600 to-blue-500 text-white text-xs font-bold hover:opacity-90 transition-opacity"
         >
           Upgrade →
@@ -38,7 +40,7 @@ export default function QuotaBanner() {
           </p>
         </div>
         <button
-          onClick={() => window.open(PRICING_URL, "_blank")}
+          onClick={() => navigate("/upgrade")}
           className="shrink-0 px-3 py-1.5 rounded-lg bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-bold hover:bg-amber-500/30 transition-colors"
         >
           Upgrade
