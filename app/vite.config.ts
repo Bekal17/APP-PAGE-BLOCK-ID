@@ -18,4 +18,16 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  optimizeDeps: {
+    include: ["@openfort/openfort-js"],
+    esbuildOptions: {
+      target: "esnext",
+    },
+  },
+  build: {
+    target: "esnext",
+    commonjsOptions: {
+      include: [/@openfort\/openfort-js/, /node_modules/],
+    },
+  },
 }));
