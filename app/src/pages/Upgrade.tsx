@@ -221,8 +221,8 @@ export default function Upgrade() {
       items: [
         { name: "Early access to new features", free: false, explorer: false, pro: true },
         { name: "Priority support", free: false, explorer: false, pro: true },
-        { name: "Blue tick badge", free: false, explorer: true, pro: false },
-        { name: "Purple tick badge", free: false, explorer: false, pro: true },
+        { name: "Blue tick badge ✓", free: false, explorer: true, pro: false },
+        { name: "Gold tick badge ✓", free: false, explorer: false, pro: true },
       ],
     },
   ];
@@ -412,7 +412,7 @@ export default function Upgrade() {
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
-                Purple tick badge
+                Gold tick badge 
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />

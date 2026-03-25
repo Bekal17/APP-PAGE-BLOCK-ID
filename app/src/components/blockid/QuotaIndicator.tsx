@@ -1,9 +1,11 @@
 import { useSubscription } from "@/hooks/useSubscription";
+import { useNavigate } from "react-router-dom";
 
 const PRICING_URL = "https://blockidscore.fun/pricing-b2c.html";
 
 export default function QuotaIndicator() {
   const sub = useSubscription();
+  const navigate = useNavigate();
   console.log("[QuotaIndicator] state:", sub);
 
   if (sub.loading) {
@@ -51,7 +53,7 @@ export default function QuotaIndicator() {
       )}
       {sub.isAtLimit && (
         <button
-          onClick={() => window.open(PRICING_URL, "_blank")}
+          onClick={() => navigate("/upgrade")}
           className="mt-2 w-full text-xs text-center py-1.5 rounded-lg bg-gradient-to-r from-purple-600/80 to-blue-500/80 text-white font-semibold hover:opacity-90 transition-opacity"
         >
           Upgrade Plan
