@@ -7,14 +7,15 @@ import { SolflareWalletAdapter } from "@solana/wallet-adapter-solflare";
 import { BackpackWalletAdapter } from "@solana/wallet-adapter-backpack";
 import { clusterApiUrl } from "@solana/web3.js";
 
-import "@solana/wallet-adapter-react-ui/styles.css";
-
 interface SolanaWalletProviderProps {
   children: ReactNode;
 }
 
 const SolanaWalletProvider = ({ children }: SolanaWalletProviderProps) => {
-  const endpoint = useMemo(() => clusterApiUrl("mainnet-beta"), []);
+  const endpoint = useMemo(() => {
+    return import.meta.env.VITE_HELIUS_RPC_URL ?? clusterApiUrl("mainnet-beta");
+  }, []);
+
   const wallets = useMemo(
     () => [
       new PhantomWalletAdapter(),

@@ -1,6 +1,6 @@
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { useOpenfort } from "@/providers/OpenfortProvider";
 
@@ -8,25 +8,35 @@ export default function CustomWalletModal() {
   const { wallets, select } = useWallet();
   const { visible, setVisible } = useWalletModal();
   const { signInWithGoogle } = useOpenfort();
+  const [show, setShow] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
+
+  // When wallet adapter sets visible=true, intercept it
+  // Show our modal instead and immediately reset visible
+  useEffect(() => {
+    if (visible) {
+      setVisible(false); // prevent default modal
+      setShow(true); // show our custom modal
+    }
+  }, [visible, setVisible]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setVisible(false);
+      if (e.key === "Escape") setShow(false);
     };
     document.addEventListener("keydown", handleKey);
     return () => document.removeEventListener("keydown", handleKey);
-  }, [setVisible]);
+  }, []);
 
-  if (!visible) return null;
+  if (!show) return null;
 
   const handleWalletSelect = (walletName: string) => {
     select(walletName as any);
-    setVisible(false);
+    setShow(false);
   };
 
   const handleGoogleLogin = async () => {
-    setVisible(false);
+    setShow(false);
     await signInWithGoogle();
   };
 
@@ -34,7 +44,7 @@ export default function CustomWalletModal() {
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
       onClick={(e) => {
-        if (e.target === e.currentTarget) setVisible(false);
+        if (e.target === e.currentTarget) setShow(false);
       }}
     >
       <div
@@ -52,7 +62,7 @@ export default function CustomWalletModal() {
             </p>
           </div>
           <button
-            onClick={() => setVisible(false)}
+            onClick={() => setShow(false)}
             className="p-1.5 rounded-full hover:bg-zinc-800 transition-colors"
           >
             <X className="w-4 h-4 text-muted-foreground" />
@@ -65,7 +75,7 @@ export default function CustomWalletModal() {
             <button
               key={wallet.adapter.name}
               onClick={() => handleWalletSelect(wallet.adapter.name)}
-              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800 hover:border-zinc-700 transition-all text-left group"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800 hover:border-zinc-700 transition-all text-left"
             >
               <img
                 src={wallet.adapter.icon}
@@ -100,7 +110,7 @@ export default function CustomWalletModal() {
             </div>
           </div>
 
-          {/* Google login */}
+          {/* Google */}
           <button
             onClick={handleGoogleLogin}
             className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800 hover:border-zinc-700 transition-all text-sm font-medium text-zinc-200"
@@ -126,10 +136,10 @@ export default function CustomWalletModal() {
             Continue with Google
           </button>
 
-          {/* Email login */}
+          {/* Email */}
           <button
             onClick={() => {
-              setVisible(false);
+              setShow(false);
               window.location.href = "/login-email";
             }}
             className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800 hover:border-zinc-700 transition-all text-sm font-medium text-zinc-200"
