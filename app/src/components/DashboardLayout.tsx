@@ -4,12 +4,16 @@ import logo from "@/assets/blockid_logo.svg";
 import MobileNav from "@/components/MobileNav";
 import WalletIndicator from "@/components/WalletIndicator";
 import NotificationBell from "@/components/NotificationBell";
-import { Menu, Sun, Moon } from "lucide-react";
+import { Menu, Sun, Moon, Zap } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
+import { useSubscription } from "@/hooks/useSubscription";
+import { useNavigate } from "react-router-dom";
 
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const sub = useSubscription();
+  const navigate = useNavigate();
 
   return (
     <div className="flex min-h-screen w-full bg-background">
@@ -35,6 +39,20 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
           </div>
           <div className="flex items-center gap-4 ml-auto shrink-0">
             <div className="flex items-center gap-2">
+              {(!sub.loading && sub.plan === "free") && (
+                <button
+                  onClick={() => navigate("/upgrade")}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full
+      bg-gradient-to-r from-amber-500/20 to-orange-500/20
+      border border-amber-500/30 hover:border-amber-500/60
+      text-amber-400 text-xs font-bold transition-all
+      hover:shadow-lg hover:shadow-amber-500/20
+      group"
+                >
+                  <Zap className="w-3 h-3 group-hover:fill-amber-400 transition-all" />
+                  Upgrade
+                </button>
+              )}
               <NotificationBell />
               <button
                 onClick={toggleTheme}
