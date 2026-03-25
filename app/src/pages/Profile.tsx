@@ -79,6 +79,15 @@ import {
   type InvestigatorStep,
 } from "@/components/InvestigatorProgress";
 
+declare global {
+  interface Window {
+    solana?: {
+      signTransaction: (tx: unknown) => Promise<{ serialize: () => Uint8Array }>;
+      isPhantom?: boolean;
+    };
+  }
+}
+
 const APP_BASE_URL = "https://app.blockidscore.fun";
 const API_BASE =
   import.meta.env.VITE_EXPLORER_API_URL ||
