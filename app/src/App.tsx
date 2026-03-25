@@ -19,6 +19,7 @@ import Messages from "./pages/Messages";
 import Bookmarks from "./pages/Bookmarks";
 import PostDetail from "./pages/PostDetail";
 import NotFound from "./pages/NotFound";
+import AuthCallback from "@/pages/AuthCallback";
 
 const queryClient = new QueryClient();
 
@@ -59,6 +60,7 @@ const App = () => (
             <Route path="/settings" element={<PrivacySettings />} />
             <Route path="/settings/privacy" element={<PrivacySettings />} />
             <Route path="/upgrade" element={<Upgrade />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
