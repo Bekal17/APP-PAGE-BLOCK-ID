@@ -5,6 +5,7 @@ import {
   Transaction,
   SystemProgram,
   LAMPORTS_PER_SOL,
+  Connection,
 } from "@solana/web3.js";
 import {
   createTransferInstruction,
@@ -51,6 +52,8 @@ export default function Upgrade() {
   const sub = useSubscription();
   const { toast } = useToast();
 
+  const PUBLIC_RPC = "https://api.mainnet-beta.solana.com";
+
   const [billing, setBilling] = useState<"monthly" | "annual">("monthly");
   const [payToken, setPayToken] = useState<"USDC" | "SOL">("USDC");
   const [solPrice, setSolPrice] = useState<number>(0);
@@ -59,17 +62,30 @@ export default function Upgrade() {
 
   // Fetch SOL price from Jupiter
   const fetchSolPrice = async () => {
+    // Try Jupiter v2 first, fallback to CoinGecko
+    let price = 0;
     try {
       const res = await fetch(
-        "https://price.jup.ag/v6/price?ids=SOL&vsToken=USDC"
+        "https://api.jup.ag/price/v2?ids=So11111111111111111111111111111111111111112"
       );
       const data = await res.json();
-      const price = data?.data?.SOL?.price ?? 0;
-      setSolPrice(price);
-      return price;
+      price =
+        data?.data?.["So11111111111111111111111111111111111111112"]
+          ?.price ?? 0;
     } catch {
-      return 0;
+      // fallback to CoinGecko
+      try {
+        const res = await fetch(
+          "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
+        );
+        const data = await res.json();
+        price = data?.solana?.usd ?? 0;
+      } catch {
+        price = 0;
+      }
     }
+    setSolPrice(price);
+    return price;
   };
 
   // Pay with USDC
@@ -84,8 +100,19 @@ export default function Upgrade() {
     const fromATA = await getAssociatedTokenAddress(USDC_MINT, publicKey);
     const toATA = await getAssociatedTokenAddress(USDC_MINT, TREASURY);
 
-    const { blockhash, lastValidBlockHeight } =
-      await connection.getLatestBlockhash();
+    let blockhash: string;
+    let lastValidBlockHeight: number;
+    try {
+      const result = await connection.getLatestBlockhash();
+      blockhash = result.blockhash;
+      lastValidBlockHeight = result.lastValidBlockHeight;
+    } catch {
+      // fallback to public RPC
+      const fallbackConn = new Connection(PUBLIC_RPC, "confirmed");
+      const result = await fallbackConn.getLatestBlockhash();
+      blockhash = result.blockhash;
+      lastValidBlockHeight = result.lastValidBlockHeight;
+    }
 
     const tx = new Transaction({
       recentBlockhash: blockhash,
@@ -124,8 +151,19 @@ export default function Upgrade() {
     // Add 1% buffer for slippage
     const lamports = Math.round(solAmount * 1.01 * LAMPORTS_PER_SOL);
 
-    const { blockhash, lastValidBlockHeight } =
-      await connection.getLatestBlockhash();
+    let blockhash: string;
+    let lastValidBlockHeight: number;
+    try {
+      const result = await connection.getLatestBlockhash();
+      blockhash = result.blockhash;
+      lastValidBlockHeight = result.lastValidBlockHeight;
+    } catch {
+      // fallback to public RPC
+      const fallbackConn = new Connection(PUBLIC_RPC, "confirmed");
+      const result = await fallbackConn.getLatestBlockhash();
+      blockhash = result.blockhash;
+      lastValidBlockHeight = result.lastValidBlockHeight;
+    }
 
     const tx = new Transaction({
       recentBlockhash: blockhash,
