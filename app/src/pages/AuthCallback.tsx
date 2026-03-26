@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { openfortClient } from "@/providers/OpenfortProvider";
-import { RecoveryMethod } from "@openfort/openfort-js";
+import { RecoveryMethod, ChainTypeEnum } from "@openfort/openfort-js";
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -62,7 +62,7 @@ export default function AuthCallback() {
 
             // Configure signer with Shield session
             await openfortClient.embeddedWallet.configure({
-              chainId: 901,
+              chainType: ChainTypeEnum.SVM,
               recoveryParams: {
                 recoveryMethod: RecoveryMethod.AUTOMATIC,
                 encryptionSession: sessionData.session,
