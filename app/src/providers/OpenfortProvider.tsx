@@ -1,11 +1,11 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { Openfort, OpenfortConfiguration } from "@openfort/openfort-js";
+import { Openfort } from "@openfort/openfort-js";
 
 const openfort = new Openfort({
-  baseConfiguration: new OpenfortConfiguration({
+  baseConfiguration: {
     publishableKey: import.meta.env.VITE_OPENFORT_PUBLISHABLE_KEY ?? "",
-  }),
+  },
   shieldConfiguration: {
     shieldPublishableKey: import.meta.env.VITE_OPENFORT_SHIELD_KEY ?? "",
   },
