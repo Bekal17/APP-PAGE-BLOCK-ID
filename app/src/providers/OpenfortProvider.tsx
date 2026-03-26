@@ -5,6 +5,7 @@ import { Openfort } from "@openfort/openfort-js";
 const openfort = new Openfort({
   baseConfiguration: {
     publishableKey: import.meta.env.VITE_OPENFORT_PUBLISHABLE_KEY ?? "",
+    debug: true,
   },
   shieldConfiguration: {
     shieldPublishableKey: import.meta.env.VITE_OPENFORT_SHIELD_KEY ?? "",
