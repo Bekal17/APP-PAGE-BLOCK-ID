@@ -1,42 +1,79 @@
+import { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import {
-  OpenfortProvider as OpenfortReactProvider,
-  AuthProvider,
-  RecoveryMethod,
-  ChainTypeEnum,
-} from "@openfort/react";
-import { useOpenfortStore } from "@/stores/openfortStore";
+import { Openfort, OpenfortConfiguration } from "@openfort/openfort-js";
 
-const PUBLISHABLE_KEY = import.meta.env.VITE_OPENFORT_PUBLISHABLE_KEY ?? "";
-const SHIELD_KEY = import.meta.env.VITE_OPENFORT_SHIELD_KEY ?? "";
+const openfort = new Openfort({
+  baseConfiguration: new OpenfortConfiguration({
+    publishableKey: import.meta.env.VITE_OPENFORT_PUBLISHABLE_KEY ?? "",
+  }),
+});
+
+interface OpenfortContextType {
+  openfort: Openfort;
+  openfortUser: unknown | null;
+  openfortAddress: string | null;
+  openfortLoading: boolean;
+  signOut: () => Promise<void>;
+}
+
+const OpenfortContext = createContext<OpenfortContextType | null>(null);
 
 export function OpenfortProvider({ children }: { children: ReactNode }) {
+  const [openfortUser, setOpenfortUser] = useState<unknown | null>(null);
+  const [openfortAddress, setOpenfortAddress] = useState<string | null>(null);
+  const [openfortLoading, setOpenfortLoading] = useState(true);
+
+  useEffect(() => {
+    const init = async () => {
+      try {
+        await openfort.waitForInitialization();
+        const user = await openfort.user.get();
+        setOpenfortUser(user);
+
+        // Try to get wallet address
+        try {
+          const accounts = await openfort.embeddedWallet.get();
+          if (accounts && accounts.length > 0) {
+            setOpenfortAddress(accounts[0].address ?? null);
+            console.log("Openfort address:", accounts[0].address);
+          }
+        } catch {
+          // Wallet not configured yet
+        }
+      } catch {
+        setOpenfortUser(null);
+      } finally {
+        setOpenfortLoading(false);
+      }
+    };
+    void init();
+  }, []);
+
+  const signOut = async () => {
+    await openfort.auth.logout();
+    setOpenfortUser(null);
+    setOpenfortAddress(null);
+  };
+
   return (
-    <OpenfortReactProvider
-      publishableKey={PUBLISHABLE_KEY}
-      walletConfig={{
-        shieldPublishableKey: SHIELD_KEY,
-        chainType: ChainTypeEnum.SVM,
-        solana: { cluster: "mainnet-beta" },
-        connectOnLogin: true,
-        createEncryptedSessionEndpoint:
-          import.meta.env.VITE_OPENFORT_ENCRYPTION_SESSION_URL ?? "",
-      }}
-      uiConfig={{
-        authProviders: [AuthProvider.GOOGLE, AuthProvider.EMAIL_OTP],
-        walletRecovery: {
-          defaultMethod: RecoveryMethod.AUTOMATIC,
-        },
-      }}
-      onConnect={({ address }) => {
-        useOpenfortStore.getState().setOpenfortAddress(address ?? null);
-        console.log("Openfort wallet connected:", address);
-      }}
-      onDisconnect={() => {
-        useOpenfortStore.getState().setOpenfortAddress(null);
+    <OpenfortContext.Provider
+      value={{
+        openfort,
+        openfortUser,
+        openfortAddress,
+        openfortLoading,
+        signOut,
       }}
     >
       {children}
-    </OpenfortReactProvider>
+    </OpenfortContext.Provider>
   );
 }
+
+export function useOpenfort() {
+  const ctx = useContext(OpenfortContext);
+  if (!ctx) throw new Error("useOpenfort must be used within OpenfortProvider");
+  return ctx;
+}
+
+export { openfort as openfortClient };

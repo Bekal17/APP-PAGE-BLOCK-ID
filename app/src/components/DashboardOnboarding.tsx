@@ -1,11 +1,7 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
-import {
-  OAuthProvider,
-  useEmailAuth,
-  useOAuth,
-  useOpenfort,
-} from "@openfort/react";
+import { OAuthProvider } from "@openfort/openfort-js";
+import { openfortClient, useOpenfort } from "@/providers/OpenfortProvider";
 
 const FEATURES = [
   {
@@ -32,17 +28,7 @@ const FEATURES = [
 
 export default function DashboardOnboarding() {
   const { setVisible } = useWalletModal();
-  const { isLoading: openfortLoading } = useOpenfort();
-  const oauthRedirect = useMemo(
-    () => `${typeof window !== "undefined" ? window.location.origin : ""}/auth/callback`,
-    []
-  );
-  const { initOAuth, isLoading: oauthLoading } = useOAuth({
-    redirectTo: oauthRedirect,
-  });
-  const { signInEmail, signUpEmail, isLoading: emailLoading } = useEmailAuth({
-    recoverWalletAutomatically: true,
-  });
+  const { openfortLoading } = useOpenfort();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [authBusy, setAuthBusy] = useState(false);
@@ -88,8 +74,20 @@ export default function DashboardOnboarding() {
 
         <button
           type="button"
-          onClick={() => void initOAuth({ provider: OAuthProvider.GOOGLE })}
-          disabled={openfortLoading || oauthLoading || authBusy}
+          onClick={async () => {
+            try {
+              await openfortClient.waitForInitialization();
+              const url = await openfortClient.auth.initOAuth({
+                provider: OAuthProvider.GOOGLE,
+                redirectTo: `${window.location.origin}/auth/callback`,
+                options: { skipBrowserRedirect: true },
+              });
+              if (url) window.location.assign(url);
+            } catch (e) {
+              console.error("Google login error:", e);
+            }
+          }}
+          disabled={openfortLoading || authBusy}
           className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 transition-colors text-sm font-medium text-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
@@ -141,7 +139,11 @@ export default function DashboardOnboarding() {
                 setAuthError(null);
                 setAuthBusy(true);
                 try {
-                  await signInWithEmail(email, password);
+                  await openfortClient.waitForInitialization();
+                  await openfortClient.auth.logInWithEmailPassword({
+                    email,
+                    password,
+                  });
                 } catch {
                   setAuthError("Sign in failed. Check your email and password.");
                 } finally {
@@ -154,12 +156,13 @@ export default function DashboardOnboarding() {
             </button>
             <button
               type="button"
-              disabled={openfortLoading || oauthLoading || emailLoading || authBusy}
+              disabled={openfortLoading || authBusy}
               onClick={async () => {
                 setAuthError(null);
                 setAuthBusy(true);
                 try {
-                  await signUpEmail({
+                  await openfortClient.waitForInitialization();
+                  await openfortClient.auth.signUpWithEmailPassword({
                     email,
                     password,
                     name: email.split("@")[0],

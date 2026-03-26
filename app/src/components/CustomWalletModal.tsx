@@ -1,17 +1,13 @@
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
-import { OAuthProvider, useOAuth } from "@openfort/react";
+import { OAuthProvider } from "@openfort/openfort-js";
+import { openfortClient } from "@/providers/OpenfortProvider";
 
 export default function CustomWalletModal() {
   const { wallets, select } = useWallet();
   const { visible, setVisible } = useWalletModal();
-  const oauthRedirect = useMemo(
-    () => `${typeof window !== "undefined" ? window.location.origin : ""}/auth/callback`,
-    []
-  );
-  const { initOAuth } = useOAuth({ redirectTo: oauthRedirect });
   const [show, setShow] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -42,7 +38,13 @@ export default function CustomWalletModal() {
   const handleGoogleLogin = async () => {
     setShow(false);
     try {
-      await initOAuth({ provider: OAuthProvider.GOOGLE });
+      await openfortClient.waitForInitialization();
+      const url = await openfortClient.auth.initOAuth({
+        provider: OAuthProvider.GOOGLE,
+        redirectTo: `${window.location.origin}/auth/callback`,
+        options: { skipBrowserRedirect: true },
+      });
+      if (url) window.location.assign(url);
     } catch (e) {
       console.error("Google login error:", e);
     }
