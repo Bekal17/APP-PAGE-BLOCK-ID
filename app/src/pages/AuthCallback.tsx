@@ -71,9 +71,9 @@ export default function AuthCallback() {
             });
 
             // Get wallet address
-            const accounts = await openfortClient.embeddedWallet.get();
-            if (accounts && accounts.length > 0) {
-              console.log("Wallet address:", accounts[0].address);
+            const account = await openfortClient.embeddedWallet.get();
+            if (account && account.address) {
+              console.log("Wallet address:", account.address);
             }
           }
         } catch (walletErr) {
