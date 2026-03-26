@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useOpenfort } from "@/providers/OpenfortProvider";
+import { useEmailAuth } from "@openfort/react";
 import { useToast } from "@/hooks/use-toast";
 
 export default function LoginEmail() {
-  const { signInWithEmail, signUpWithEmail } = useOpenfort();
+  const { signInEmail, signUpEmail } = useEmailAuth({
+    recoverWalletAutomatically: true,
+  });
   const { toast } = useToast();
   const navigate = useNavigate();
   const [mode, setMode] = useState<"login" | "signup">("login");
@@ -17,9 +19,9 @@ export default function LoginEmail() {
     setLoading(true);
     try {
       if (mode === "login") {
-        await signInWithEmail(email, password);
+        await signInEmail({ email, password });
       } else {
-        await signUpWithEmail(email, password);
+        await signUpEmail({ email, password, name: email.split("@")[0] });
       }
       navigate("/dashboard");
     } catch (err: unknown) {

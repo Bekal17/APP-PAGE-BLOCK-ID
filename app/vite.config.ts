@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   optimizeDeps: {
-    include: ["@openfort/openfort-js"],
+    include: ["@openfort/react"],
     esbuildOptions: {
       target: "esnext",
     },
@@ -27,7 +27,7 @@ export default defineConfig(({ mode }) => ({
   build: {
     target: "esnext",
     commonjsOptions: {
-      include: [/@openfort\/openfort-js/, /node_modules/],
+      include: [/@openfort\/react/, /@openfort\/openfort-js/, /node_modules/],
     },
   },
 }));

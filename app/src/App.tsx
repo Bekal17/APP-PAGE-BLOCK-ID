@@ -4,7 +4,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, useLocation, useSearchParams } from "react-router-dom";
-import SolanaWalletProvider from "@/components/SolanaWalletProvider";
 import AutoLogin from "@/components/AutoLogin";
 import Dashboard from "./pages/Dashboard";
 import TrustAnalytics from "./pages/TrustAnalytics";
@@ -37,7 +36,6 @@ function DashboardBackground() {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <SolanaWalletProvider>
     <AutoLogin />
     <TooltipProvider>
       <Toaster />
@@ -69,7 +67,6 @@ const App = () => (
         </div>
       </BrowserRouter>
     </TooltipProvider>
-    </SolanaWalletProvider>
   </QueryClientProvider>
 );
 
