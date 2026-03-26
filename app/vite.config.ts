@@ -1,25 +1,19 @@
-import { defineConfig } from "vite";
+﻿import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import { componentTagger } from "lovable-tagger";
 
-// https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
-  server: {
-    host: "::",
-    port: 8080,
-    hmr: {
-      overlay: false,
-    },
-  },
-  plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
+export default defineConfig({
+  plugins: [react()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
   optimizeDeps: {
-    include: ["@openfort/react"],
+    include: [
+      "@openfort/react",
+      "@openfort/openfort-js",
+    ],
     esbuildOptions: {
       target: "esnext",
     },
@@ -27,7 +21,11 @@ export default defineConfig(({ mode }) => ({
   build: {
     target: "esnext",
     commonjsOptions: {
-      include: [/@openfort\/react/, /@openfort\/openfort-js/, /node_modules/],
+      include: [/@openfort/, /node_modules/],
+      transformMixedEsModules: true,
+    },
+    rollupOptions: {
+      external: [],
     },
   },
-}));
+});
