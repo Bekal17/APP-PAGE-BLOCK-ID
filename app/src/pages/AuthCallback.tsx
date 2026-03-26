@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { openfortClient } from "@/providers/OpenfortProvider";
-import { RecoveryMethod, ChainTypeEnum } from "@openfort/openfort-js";
+import { RecoveryMethod, ChainTypeEnum, AccountTypeEnum } from "@openfort/openfort-js";
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -60,19 +60,35 @@ export default function AuthCallback() {
             const sessionData = await sessionRes.json();
             console.log("Shield session:", sessionData);
 
-            // Configure signer with Shield session
-            await openfortClient.embeddedWallet.configure({
-              chainType: ChainTypeEnum.SVM,
-              recoveryParams: {
-                recoveryMethod: RecoveryMethod.AUTOMATIC,
-                encryptionSession: sessionData.session,
-              },
-            });
+            let account = null;
+            try {
+              account = await openfortClient.embeddedWallet.get();
+            } catch {
+              account = null;
+            }
 
-            // Get wallet address
-            const account = await openfortClient.embeddedWallet.get();
-            if (account && account.address) {
-              console.log("Wallet address:", account.address);
+            if (!account) {
+              await openfortClient.embeddedWallet.create({
+                chainType: ChainTypeEnum.SVM,
+                accountType: AccountTypeEnum.EOA,
+                recoveryParams: {
+                  recoveryMethod: RecoveryMethod.AUTOMATIC,
+                  encryptionSession: sessionData.session,
+                },
+              });
+            } else {
+              await openfortClient.embeddedWallet.recover({
+                account: account.id,
+                recoveryParams: {
+                  recoveryMethod: RecoveryMethod.AUTOMATIC,
+                  encryptionSession: sessionData.session,
+                },
+              });
+            }
+
+            const accountAfterSetup = await openfortClient.embeddedWallet.get();
+            if (accountAfterSetup && accountAfterSetup.address) {
+              console.log("Wallet address:", accountAfterSetup.address);
             }
           }
         } catch (walletErr) {
