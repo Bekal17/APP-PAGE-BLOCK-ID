@@ -19,6 +19,8 @@ export function OpenfortProvider({ children }: { children: ReactNode }) {
         chainType: ChainTypeEnum.SVM,
         solana: { cluster: "mainnet-beta" },
         connectOnLogin: true,
+        createEncryptedSessionEndpoint:
+          import.meta.env.VITE_OPENFORT_ENCRYPTION_SESSION_URL ?? "",
       }}
       uiConfig={{
         authProviders: [AuthProvider.GOOGLE, AuthProvider.EMAIL_OTP],
