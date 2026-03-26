@@ -32,10 +32,10 @@ export function OpenfortProvider({ children }: { children: ReactNode }) {
 
         // Try to get wallet address
         try {
-          const accounts = await openfort.embeddedWallet.get();
-          if (accounts && accounts.length > 0) {
-            setOpenfortAddress(accounts[0].address ?? null);
-            console.log("Openfort address:", accounts[0].address);
+          const account = await openfort.embeddedWallet.get();
+          if (account && account.address) {
+            setOpenfortAddress(account.address ?? null);
+            console.log("Openfort address:", account.address);
           }
         } catch {
           // Wallet not configured yet
