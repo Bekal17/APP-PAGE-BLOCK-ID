@@ -6,6 +6,9 @@ const openfort = new Openfort({
   baseConfiguration: new OpenfortConfiguration({
     publishableKey: import.meta.env.VITE_OPENFORT_PUBLISHABLE_KEY ?? "",
   }),
+  shieldConfiguration: {
+    shieldPublishableKey: import.meta.env.VITE_OPENFORT_SHIELD_KEY ?? "",
+  },
 });
 
 interface OpenfortContextType {
