@@ -1,6 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
-import { useOpenfort } from "@/providers/OpenfortProvider";
+import {
+  OAuthProvider,
+  useEmailAuth,
+  useOAuth,
+  useOpenfort,
+} from "@openfort/react";
 
 const FEATURES = [
   {
@@ -27,8 +32,17 @@ const FEATURES = [
 
 export default function DashboardOnboarding() {
   const { setVisible } = useWalletModal();
-  const { signInWithGoogle, signInWithEmail, signUpWithEmail, openfortLoading } =
-    useOpenfort();
+  const { isLoading: openfortLoading } = useOpenfort();
+  const oauthRedirect = useMemo(
+    () => `${typeof window !== "undefined" ? window.location.origin : ""}/auth/callback`,
+    []
+  );
+  const { initOAuth, isLoading: oauthLoading } = useOAuth({
+    redirectTo: oauthRedirect,
+  });
+  const { signInEmail, signUpEmail, isLoading: emailLoading } = useEmailAuth({
+    recoverWalletAutomatically: true,
+  });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [authBusy, setAuthBusy] = useState(false);
@@ -74,8 +88,8 @@ export default function DashboardOnboarding() {
 
         <button
           type="button"
-          onClick={() => void signInWithGoogle()}
-          disabled={openfortLoading || authBusy}
+          onClick={() => void initOAuth({ provider: OAuthProvider.GOOGLE })}
+          disabled={openfortLoading || oauthLoading || authBusy}
           className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 transition-colors text-sm font-medium text-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
@@ -140,12 +154,16 @@ export default function DashboardOnboarding() {
             </button>
             <button
               type="button"
-              disabled={openfortLoading || authBusy}
+              disabled={openfortLoading || oauthLoading || emailLoading || authBusy}
               onClick={async () => {
                 setAuthError(null);
                 setAuthBusy(true);
                 try {
-                  await signUpWithEmail(email, password);
+                  await signUpEmail({
+                    email,
+                    password,
+                    name: email.split("@")[0],
+                  });
                 } catch {
                   setAuthError("Sign up failed. You may need to verify your email.");
                 } finally {
