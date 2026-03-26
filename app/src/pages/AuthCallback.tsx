@@ -40,11 +40,7 @@ export default function AuthCallback() {
 
         // Configure embedded wallet with Shield
         try {
-          const sessionData2 = await openfortClient.getSessionToken();
-          const accessToken =
-            sessionData2?.token ??
-            (await openfortClient.validateAndRefreshToken(false))?.token ??
-            "";
+          const accessToken = await openfortClient.getAccessToken();
           console.log("Access token:", accessToken ? "exists" : "missing");
 
           // Get encryption session from our backend
