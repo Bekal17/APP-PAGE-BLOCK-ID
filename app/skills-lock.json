@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "skills": {
+    "ares-system": {
+      "source": "ares-system/skills",
+      "sourceType": "github",
+      "computedHash": "fb5cd2bff26a9a7c8e545a3af5383aa72cfdf5af006e85811f368817906d5cc7"
+    },
+    "cyclops": {
+      "source": "ares-system/skills",
+      "sourceType": "github",
+      "computedHash": "d8a67adcb4bb217fdf3b4df94f296e0ce8fc7f665f5ca2822f164abe03c303da"
+    },
+    "daemon-intelligence": {
+      "source": "ares-system/skills",
+      "sourceType": "github",
+      "computedHash": "d52d1c0c03a2d391136879e3fc71228ab08ecf7f7654bc08c5585783f3894561"
+    },
+    "obscura-privacy": {
+      "source": "ares-system/skills",
+      "sourceType": "github",
+      "computedHash": "72468f3f6d75b2f4389d89d1d749dd4e91d1e98f89097554bca48dc587f2604d"
+    }
+  }
+}
