@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { openfortClient } from "@/providers/OpenfortProvider";
-import { RecoveryMethod, ChainTypeEnum, AccountTypeEnum } from "@openfort/openfort-js";
+import { RecoveryMethod } from "@openfort/openfort-js";
 
 export default function AuthCallback() {
   const navigate = useNavigate();
@@ -68,9 +68,8 @@ export default function AuthCallback() {
             }
 
             if (!account) {
-              await openfortClient.embeddedWallet.create({
-                chainType: ChainTypeEnum.SVM,
-                accountType: AccountTypeEnum.EOA,
+              await openfortClient.embeddedWallet.configure({
+                chainId: 901,
                 recoveryParams: {
                   recoveryMethod: RecoveryMethod.AUTOMATIC,
                   encryptionSession: sessionData.session,
