@@ -114,6 +114,13 @@ const formatRelativeTime = (iso?: string) => {
   return `${Math.floor(hrs / 24)}d ago`;
 };
 
+const sortPostsByCreatedAtDesc = (posts: SocialPost[]) =>
+  [...posts].sort(
+    (a, b) =>
+      new Date(b.created_at ?? 0).getTime() -
+      new Date(a.created_at ?? 0).getTime()
+  );
+
 const Dashboard = () => {
   const { publicKey } = useWallet();
   const navigate = useNavigate();
@@ -121,7 +128,9 @@ const Dashboard = () => {
   const address = publicKey?.toBase58() ?? publicKey?.toString();
   const [feed, setFeed] = useState<SocialPost[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"explore" | "following">("explore");
+  const [activeTab, setActiveTab] = useState<
+    "explore" | "following" | "newest"
+  >("explore");
   const [profiles, setProfiles] = useState<Record<string, WalletProfile>>({});
   const [likeLoading, setLikeLoading] = useState<Record<number, boolean>>({});
   const [followLoading, setFollowLoading] = useState<Record<string, boolean>>({});
@@ -209,9 +218,13 @@ const Dashboard = () => {
       try {
         const cachedPosts = JSON.parse(cachedFeed);
         const arr = Array.isArray(cachedPosts) ? cachedPosts : [];
-        setFeed(
-          activeTab === "explore" ? [...arr].reverse() : arr
-        );
+        if (activeTab === "explore") {
+          setFeed([...arr].reverse());
+        } else if (activeTab === "newest") {
+          setFeed(sortPostsByCreatedAtDesc(arr));
+        } else {
+          setFeed(arr);
+        }
         setLoading(false);
         const savedScroll = sessionStorage.getItem("dashboard_scroll");
         if (savedScroll) {
@@ -244,6 +257,30 @@ const Dashboard = () => {
           if (!cancelled) {
             const exploreOrdered = [...posts].reverse();
             setFeed(exploreOrdered);
+            sessionStorage.setItem(
+              "dashboard_feed_cache",
+              JSON.stringify(posts)
+            );
+            sessionStorage.setItem("dashboard_feed_time", Date.now().toString());
+            const savedScroll = sessionStorage.getItem("dashboard_scroll");
+            if (savedScroll) {
+              sessionStorage.removeItem("dashboard_scroll");
+              const y = parseInt(savedScroll, 10);
+              setTimeout(() => {
+                window.scrollTo({ top: y, behavior: "instant" });
+              }, 100);
+            }
+          }
+        } else if (activeTab === "newest") {
+          const data = await getSocialFeed();
+          const posts: SocialPost[] = data.posts ?? data ?? [];
+          if (!Array.isArray(posts)) {
+            if (!cancelled) setFeed([]);
+            return;
+          }
+          if (!cancelled) {
+            const sorted = sortPostsByCreatedAtDesc(posts);
+            setFeed(sorted);
             sessionStorage.setItem(
               "dashboard_feed_cache",
               JSON.stringify(posts)
@@ -703,6 +740,17 @@ const Dashboard = () => {
           >
             <Users className="w-3 h-3 sm:w-4 sm:h-4" />
             Explore
+          </button>
+          <button
+            className={`px-3 py-1.5 text-xs sm:text-sm rounded-full flex items-center gap-1 ${
+              activeTab === "newest"
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-muted/20"
+            }`}
+            onClick={() => setActiveTab("newest")}
+          >
+            <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
+            Newest
           </button>
           <button
             className={`px-3 py-1.5 text-xs sm:text-sm rounded-full flex items-center gap-1 ${
@@ -1346,7 +1394,15 @@ const Dashboard = () => {
                                           publicKey.toString()
                                         )
                                       : await getSocialFeed();
-                                  setFeed(data.posts ?? data ?? []);
+                                  const raw = data.posts ?? data ?? [];
+                                  const posts = Array.isArray(raw) ? raw : [];
+                                  if (activeTab === "explore") {
+                                    setFeed([...posts].reverse());
+                                  } else if (activeTab === "newest") {
+                                    setFeed(sortPostsByCreatedAtDesc(posts));
+                                  } else {
+                                    setFeed(posts);
+                                  }
                                 } catch (e) {
                                   console.error(e);
                                 }
