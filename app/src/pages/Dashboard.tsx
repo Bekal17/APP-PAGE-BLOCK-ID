@@ -1154,7 +1154,15 @@ const Dashboard = () => {
                         <img
                           src={imgUrl}
                           alt="Post image"
-                          className="w-full object-cover rounded-xl max-h-96"
+                          style={{
+                            width: "100%",
+                            height: "auto",
+                            maxHeight: "none",
+                            objectFit: "contain",
+                            borderRadius: 12,
+                            display: "block",
+                            marginTop: 8,
+                          }}
                           onClick={(e) => e.stopPropagation()}
                         />
                       </div>
