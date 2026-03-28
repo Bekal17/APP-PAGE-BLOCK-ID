@@ -81,11 +81,40 @@ export default function PostDetailPanel({
   const [replyContent, setReplyContent] = useState("");
   const [replyToId, setReplyToId] = useState<number>(post.id);
   const [replyLoading, setReplyLoading] = useState(false);
+  const [nestedReplies, setNestedReplies] = useState<Record<number, any[]>>(
+    {}
+  );
 
   useEffect(() => {
     setReplyToId(post.id);
     setReplyContent("");
   }, [post.id]);
+
+  useEffect(() => {
+    setNestedReplies({});
+  }, [post.id]);
+
+  useEffect(() => {
+    const loadNestedReplies = async () => {
+      for (const reply of replies) {
+        if (reply.id == null) continue;
+        if ((reply.reply_count ?? reply.replies_count ?? 0) > 0) {
+          try {
+            const data = await getPost(Number(reply.id));
+            if (data.replies?.length > 0) {
+              setNestedReplies((prev) => ({
+                ...prev,
+                [reply.id]: data.replies,
+              }));
+            }
+          } catch {
+            /* skip */
+          }
+        }
+      }
+    };
+    if (replies.length > 0) void loadNestedReplies();
+  }, [replies.length]);
 
   const originalPost = post.original_post ?? null;
   const isRepost = originalPost != null || !!post.is_repost;
@@ -353,131 +382,211 @@ export default function PostDetailPanel({
               style={{
                 padding: "10px 0",
                 borderBottom: "1px solid rgba(255,255,255,0.06)",
+                display: "flex",
+                gap: 0,
+                position: "relative",
               }}
             >
               <div
                 style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  marginBottom: 6,
+                  position: "absolute",
+                  left: 15,
+                  top: 0,
+                  bottom: 0,
+                  width: 2,
+                  background: "rgba(255,255,255,0.1)",
+                  borderRadius: 2,
                 }}
-              >
+              />
+
+              <div style={{ flex: 1, paddingLeft: 4 }}>
                 <div
                   style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: "50%",
-                    background: "rgba(99,102,241,0.15)",
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
-                    color: "#818cf8",
-                    fontWeight: "bold",
-                    fontSize: 11,
-                    flexShrink: 0,
+                    gap: 8,
+                    marginBottom: 6,
                   }}
                 >
-                  {(reply.handle ?? reply.wallet ?? "?")[0]?.toUpperCase()}
-                </div>
-                <div>
                   <div
                     style={{
-                      color: "#fff",
-                      fontWeight: 600,
-                      fontSize: 13,
+                      width: 32,
+                      height: 32,
+                      borderRadius: "50%",
+                      background: "rgba(99,102,241,0.15)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#818cf8",
+                      fontWeight: "bold",
+                      fontSize: 11,
+                      flexShrink: 0,
                     }}
                   >
-                    {reply.handle
-                      ? `@${reply.handle}`
-                      : `${reply.wallet?.slice(0, 4)}...${reply.wallet?.slice(-4)}`}
+                    {(reply.handle ?? reply.wallet ?? "?")[0]?.toUpperCase()}
                   </div>
-                  <div style={{ color: "#666", fontSize: 11 }}>
-                    {formatRelativeTime(reply.created_at)}
+                  <div>
+                    <div
+                      style={{
+                        color: "#fff",
+                        fontWeight: 600,
+                        fontSize: 13,
+                      }}
+                    >
+                      {reply.handle
+                        ? `@${reply.handle}`
+                        : `${reply.wallet?.slice(0, 4)}...${reply.wallet?.slice(-4)}`}
+                    </div>
+                    <div style={{ color: "#666", fontSize: 11 }}>
+                      {formatRelativeTime(reply.created_at)}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <p
-                style={{
-                  color: "#e2e8f0",
-                  fontSize: 14,
-                  lineHeight: 1.5,
-                  whiteSpace: "pre-wrap",
-                  marginLeft: 40,
-                  marginBottom: 8,
-                }}
-              >
-                {reply.content}
-              </p>
-
-              <div style={{ display: "flex", gap: 16, marginLeft: 40 }}>
-                <button
-                  type="button"
-                  onClick={() => handleLikeReply(reply)}
+                <p
                   style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 4,
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    color: likedIds.has(reply.id) ? "#f87171" : "#666",
-                    fontSize: 12,
+                    color: "#e2e8f0",
+                    fontSize: 14,
+                    lineHeight: 1.5,
+                    whiteSpace: "pre-wrap",
+                    marginLeft: 40,
+                    marginBottom: 8,
                   }}
                 >
-                  <Heart
-                    className={`w-[13px] h-[13px] shrink-0 ${
-                      likedIds.has(reply.id)
-                        ? "fill-red-400 text-red-400"
-                        : "text-zinc-500"
-                    }`}
-                  />
-                  {localLikeCounts[reply.id] ??
-                    reply.like_count ??
-                    reply.likes_count ??
-                    0}
-                </button>
+                  {reply.content}
+                </p>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (!publicKey) return;
-                    setReplyToId(reply.id);
-                    setReplyContent("");
-                  }}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 4,
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    color: "#666",
-                    fontSize: 12,
-                  }}
-                >
-                  <MessageSquare className="w-[13px] h-[13px] shrink-0" />
-                  {reply.reply_count ?? reply.replies_count ?? 0}
-                </button>
+                <div style={{ display: "flex", gap: 16, marginLeft: 40 }}>
+                  <button
+                    type="button"
+                    onClick={() => handleLikeReply(reply)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 4,
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      color: likedIds.has(reply.id) ? "#f87171" : "#666",
+                      fontSize: 12,
+                    }}
+                  >
+                    <Heart
+                      className={`w-[13px] h-[13px] shrink-0 ${
+                        likedIds.has(reply.id)
+                          ? "fill-red-400 text-red-400"
+                          : "text-zinc-500"
+                      }`}
+                    />
+                    {localLikeCounts[reply.id] ??
+                      reply.like_count ??
+                      reply.likes_count ??
+                      0}
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => void handleRepostReply(reply)}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 4,
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    color: repostedIds.has(reply.id) ? "#4ade80" : "#666",
-                    fontSize: 12,
-                  }}
-                >
-                  <Repeat2 className="w-[13px] h-[13px] shrink-0" />
-                  {reply.repost_count ?? 0}
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!publicKey) return;
+                      setReplyToId(reply.id);
+                      setReplyContent("");
+                    }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 4,
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      color: "#666",
+                      fontSize: 12,
+                    }}
+                  >
+                    <MessageSquare className="w-[13px] h-[13px] shrink-0" />
+                    {reply.reply_count ?? reply.replies_count ?? 0}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => void handleRepostReply(reply)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 4,
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      color: repostedIds.has(reply.id) ? "#4ade80" : "#666",
+                      fontSize: 12,
+                    }}
+                  >
+                    <Repeat2 className="w-[13px] h-[13px] shrink-0" />
+                    {reply.repost_count ?? 0}
+                  </button>
+                </div>
+
+                {(nestedReplies[reply.id] ?? []).map((nested: any) => (
+                  <div
+                    key={
+                      nested.id ??
+                      `n-${nested.wallet ?? ""}-${nested.created_at ?? ""}`
+                    }
+                    style={{
+                      marginLeft: 40,
+                      marginTop: 8,
+                      paddingLeft: 12,
+                      borderLeft: "2px solid rgba(255,255,255,0.08)",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        marginBottom: 4,
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 24,
+                          height: 24,
+                          borderRadius: "50%",
+                          background: "rgba(99,102,241,0.15)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#818cf8",
+                          fontWeight: "bold",
+                          fontSize: 10,
+                          flexShrink: 0,
+                        }}
+                      >
+                        {(nested.handle ?? nested.wallet ?? "?")[0]?.toUpperCase()}
+                      </div>
+                      <span
+                        style={{ color: "#fff", fontWeight: 600, fontSize: 12 }}
+                      >
+                        {nested.handle
+                          ? `@${nested.handle}`
+                          : `${nested.wallet?.slice(0, 4)}...${nested.wallet?.slice(-4)}`}
+                      </span>
+                      <span style={{ color: "#666", fontSize: 11 }}>
+                        {formatRelativeTime(nested.created_at)}
+                      </span>
+                    </div>
+                    <p
+                      style={{
+                        color: "#e2e8f0",
+                        fontSize: 13,
+                        lineHeight: 1.5,
+                        whiteSpace: "pre-wrap",
+                        marginLeft: 30,
+                      }}
+                    >
+                      {nested.content}
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
           ))
