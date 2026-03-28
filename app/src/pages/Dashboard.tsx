@@ -171,62 +171,20 @@ const Dashboard = () => {
     new Set()
   );
   const [selectedPost, setSelectedPost] = useState<SocialPost | null>(null);
-  const [modalReplies, setModalReplies] = useState<any[]>([]);
-  const [modalRepliesLoading, setModalRepliesLoading] = useState(false);
   const selectedPostIdRef = useRef<number | null>(null);
   selectedPostIdRef.current = selectedPost?.id ?? null;
 
   useEffect(() => {
-    if (!selectedPost) {
-      setModalReplies([]);
-      setModalRepliesLoading(false);
-      return;
-    }
-    const postId = selectedPost.id;
-    let cancelled = false;
-    setModalRepliesLoading(true);
-    const base = (
-      import.meta.env.VITE_SOCIAL_API_URL ??
-      "https://blockid-backend-production.up.railway.app"
-    ).replace(/\/$/, "");
-
-    (async () => {
-      try {
-        const commentsRes = await fetch(
-          `${base}/social/post/${postId}/comments`
-        );
-        if (!cancelled && commentsRes.ok) {
-          const data = await commentsRes.json();
-          const list =
-            data.comments ??
-            data.replies ??
-            data.posts ??
-            (Array.isArray(data) ? data : []);
-          setModalReplies(Array.isArray(list) ? list : []);
-          if (!cancelled) setModalRepliesLoading(false);
-          return;
-        }
-      } catch {
-        /* fall through to getPost */
-      }
-      try {
-        const data = await getPost(postId);
-        if (!cancelled) {
-          setModalReplies(
-            Array.isArray(data.replies) ? data.replies : []
-          );
-        }
-      } catch {
-        if (!cancelled) setModalReplies([]);
-      } finally {
-        if (!cancelled) setModalRepliesLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedPost]);
+    if (!selectedPost?.id) return;
+    getPost(selectedPost.id)
+      .then((data) => {
+        setReplies((prev) => ({
+          ...prev,
+          [selectedPost.id]: data.replies ?? [],
+        }));
+      })
+      .catch(() => {});
+  }, [selectedPost?.id]);
 
   useEffect(() => {
     if (repostDropdownId === null) return;
@@ -515,7 +473,6 @@ const Dashboard = () => {
     try {
       await createPost(publicKey.toString(), replyContent.trim(), "PUBLIC", postId);
       setReplyContent("");
-      setReplyToId(null);
 
       const data = await getPost(postId);
       setReplies((prev) => ({
@@ -524,22 +481,50 @@ const Dashboard = () => {
       }));
       setShowReplies((prev) => ({ ...prev, [postId]: true }));
 
-      if (selectedPostIdRef.current === postId) {
-        setModalReplies(Array.isArray(data.replies) ? data.replies : []);
-        setSelectedPost((prev) =>
-          prev && prev.id === postId
-            ? {
-                ...prev,
-                reply_count: (prev.reply_count ?? 0) + 1,
-                replies_count: (prev.replies_count ?? 0) + 1,
-              }
-            : prev
-        );
+      const rootId = selectedPostIdRef.current;
+      if (rootId != null && rootId !== postId) {
+        try {
+          const rootData = await getPost(rootId);
+          setReplies((prev) => ({
+            ...prev,
+            [rootId]: rootData.replies ?? [],
+          }));
+        } catch {
+          /* ignore */
+        }
       }
 
+      if (rootId != null) {
+        setReplyToId(rootId);
+        if (rootId === postId) {
+          setSelectedPost((prev) =>
+            prev && prev.id === postId
+              ? {
+                  ...prev,
+                  reply_count: (prev.reply_count ?? 0) + 1,
+                  replies_count: (prev.replies_count ?? 0) + 1,
+                }
+              : prev
+          );
+        } else {
+          setSelectedPost((prev) =>
+            prev && prev.id === rootId
+              ? {
+                  ...prev,
+                  reply_count: (prev.reply_count ?? 0) + 1,
+                  replies_count: (prev.replies_count ?? 0) + 1,
+                }
+              : prev
+          );
+        }
+      } else {
+        setReplyToId(null);
+      }
+
+      const feedPostId = rootId ?? postId;
       setFeed((prev) =>
         prev.map((p) =>
-          p.id === postId
+          p.id === feedPostId
             ? {
                 ...p,
                 reply_count: (p.reply_count ?? 0) + 1,
@@ -1115,8 +1100,9 @@ const Dashboard = () => {
                         "dashboard_scroll",
                         window.scrollY.toString()
                       );
-                      setReplyToId(null);
                       setSelectedPost(post);
+                      setReplyToId(post.id);
+                      setReplyContent("");
                     }}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -1295,8 +1281,9 @@ const Dashboard = () => {
                               "dashboard_scroll",
                               window.scrollY.toString()
                             );
-                            setReplyToId(null);
                             setSelectedPost(post);
+                            setReplyToId(post.id);
+                            setReplyContent("");
                           }}
                         />
                       </div>
@@ -1859,11 +1846,6 @@ const Dashboard = () => {
           const handleLine = displayHandle
             ? `@${displayHandle}`
             : truncateWallet(displayWallet);
-          const likeCount =
-            livePost.likes_count ?? livePost.like_count ?? 0;
-          const replyCount =
-            livePost.replies_count ?? livePost.reply_count ?? 0;
-          const repostCount = livePost.repost_count ?? 0;
 
           return (
             <div
@@ -2044,7 +2026,223 @@ const Dashboard = () => {
                     {formatRelativeTime(post.created_at)}
                   </div>
 
-                  {replyToId === post.id && publicKey && (
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 16,
+                      marginTop: 12,
+                      paddingBottom: 12,
+                      borderBottom: "1px solid rgba(255,255,255,0.08)",
+                    }}
+                  >
+                    <span style={{ color: "#888", fontSize: 13 }}>
+                      {livePost.likes_count ?? livePost.like_count ?? 0} Likes
+                    </span>
+                    <span style={{ color: "#888", fontSize: 13 }}>
+                      {livePost.replies_count ?? livePost.reply_count ?? 0}{" "}
+                      Replies
+                    </span>
+                    <span style={{ color: "#888", fontSize: 13 }}>
+                      {livePost.repost_count ?? 0} Reposts
+                    </span>
+                  </div>
+
+                  <div
+                    style={{
+                      borderTop: "1px solid rgba(255,255,255,0.08)",
+                      margin: "12px 0",
+                    }}
+                  />
+
+                  {(replies[post.id] ?? []).map((reply: any) => (
+                    <div
+                      key={
+                        reply.id ??
+                        `r-${reply.wallet ?? ""}-${reply.created_at ?? ""}`
+                      }
+                      style={{
+                        padding: "10px 0",
+                        borderBottom: "1px solid rgba(255,255,255,0.06)",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          marginBottom: 6,
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: "50%",
+                            background: "rgba(99,102,241,0.15)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            color: "#818cf8",
+                            fontWeight: "bold",
+                            fontSize: 11,
+                            flexShrink: 0,
+                          }}
+                        >
+                          {(reply.handle ?? reply.wallet ?? "?")[0]?.toUpperCase()}
+                        </div>
+                        <div>
+                          <div
+                            style={{
+                              color: "#fff",
+                              fontWeight: 600,
+                              fontSize: 13,
+                            }}
+                          >
+                            {reply.handle
+                              ? `@${reply.handle}`
+                              : `${reply.wallet?.slice(0, 4)}...${reply.wallet?.slice(-4)}`}
+                          </div>
+                          <div style={{ color: "#666", fontSize: 11 }}>
+                            {formatRelativeTime(reply.created_at)}
+                          </div>
+                        </div>
+                      </div>
+                      <p
+                        style={{
+                          color: "#e2e8f0",
+                          fontSize: 14,
+                          lineHeight: 1.5,
+                          whiteSpace: "pre-wrap",
+                          marginLeft: 40,
+                        }}
+                      >
+                        {reply.content}
+                      </p>
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: 16,
+                          marginLeft: 40,
+                          marginTop: 8,
+                        }}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!publicKey) return;
+                            const wallet = publicKey.toBase58();
+                            const isLiked = likedPostIds.has(reply.id);
+                            if (isLiked) {
+                              setLikedPostIds((prev) => {
+                                const n = new Set(prev);
+                                n.delete(reply.id);
+                                return n;
+                              });
+                              unlikePost(wallet, reply.id).catch(console.error);
+                            } else {
+                              setLikedPostIds((prev) => {
+                                const n = new Set(prev);
+                                n.add(reply.id);
+                                return n;
+                              });
+                              likePost(wallet, reply.id).catch(console.error);
+                            }
+                          }}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 4,
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            color: likedPostIds.has(reply.id)
+                              ? "#f87171"
+                              : "#666",
+                            fontSize: 12,
+                          }}
+                        >
+                          <Heart
+                            className={`w-[13px] h-[13px] shrink-0 ${
+                              likedPostIds.has(reply.id)
+                                ? "fill-red-400 text-red-400"
+                                : "text-zinc-500"
+                            }`}
+                          />
+                          {reply.like_count ?? reply.likes_count ?? 0}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!publicKey) return;
+                            setReplyToId(reply.id);
+                            setReplyContent("");
+                          }}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 4,
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            color: "#666",
+                            fontSize: 12,
+                          }}
+                        >
+                          <MessageSquare className="w-[13px] h-[13px] shrink-0" />
+                          {reply.reply_count ?? reply.replies_count ?? 0}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (!publicKey) return;
+                            try {
+                              await repostPost(
+                                publicKey.toBase58(),
+                                reply.id
+                              );
+                              setRepostedPostIds((prev) => {
+                                const n = new Set(prev);
+                                n.add(reply.id);
+                                return n;
+                              });
+                            } catch (e) {
+                              console.error(e);
+                            }
+                          }}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 4,
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            color: repostedPostIds.has(reply.id)
+                              ? "#4ade80"
+                              : "#666",
+                            fontSize: 12,
+                          }}
+                        >
+                          <Repeat2 className="w-[13px] h-[13px] shrink-0" />
+                          {reply.repost_count ?? 0}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                  {(replies[post.id] ?? []).length === 0 && (
+                    <div
+                      style={{
+                        color: "#555",
+                        fontSize: 13,
+                        textAlign: "center",
+                        padding: "16px 0",
+                      }}
+                    >
+                      No replies yet. Be the first!
+                    </div>
+                  )}
+
+                  {replyToId != null && publicKey && (
                     <div
                       style={{
                         marginTop: 16,
@@ -2114,7 +2312,7 @@ const Dashboard = () => {
                               <button
                                 type="button"
                                 onClick={() => {
-                                  setReplyToId(null);
+                                  setReplyToId(post.id);
                                   setReplyContent("");
                                 }}
                                 style={{
@@ -2162,116 +2360,6 @@ const Dashboard = () => {
                       </div>
                     </div>
                   )}
-
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 20,
-                      marginBottom: 16,
-                      marginTop: 8,
-                      color: "#a1a1aa",
-                      fontSize: 13,
-                    }}
-                  >
-                    <button
-                      type="button"
-                      disabled={!publicKey || likeLoading[post.id]}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleLike(post);
-                      }}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 6,
-                        background: "transparent",
-                        border: "none",
-                        color: likedPostIds.has(post.id)
-                          ? "#f87171"
-                          : "#a1a1aa",
-                        cursor:
-                          publicKey && !likeLoading[post.id]
-                            ? "pointer"
-                            : "default",
-                        padding: 0,
-                      }}
-                    >
-                      <Heart
-                        className={`w-4 h-4 ${
-                          likedPostIds.has(post.id) ? "fill-red-400" : ""
-                        }`}
-                      />
-                      <span>{likeCount}</span>
-                    </button>
-                    <span
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 6,
-                      }}
-                    >
-                      <MessageSquare className="w-4 h-4" />
-                      {replyCount}
-                    </span>
-                    <span
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 6,
-                      }}
-                    >
-                      <Repeat2 className="w-4 h-4" />
-                      {repostCount}
-                    </span>
-                  </div>
-
-                  <div style={{ marginBottom: 8 }}>
-                    {modalRepliesLoading ? (
-                      <p style={{ color: "#888", fontSize: 13 }}>
-                        Loading replies…
-                      </p>
-                    ) : modalReplies.length === 0 ? (
-                      <p style={{ color: "#888", fontSize: 13 }}>
-                        No replies yet.
-                      </p>
-                    ) : (
-                      modalReplies.map((r: any) => (
-                        <div
-                          key={r.id ?? `${r.wallet}-${r.created_at}`}
-                          style={{
-                            borderBottom:
-                              "1px solid rgba(255,255,255,0.08)",
-                            paddingBottom: 10,
-                            marginBottom: 10,
-                          }}
-                        >
-                          <div
-                            style={{ color: "#a1a1aa", fontSize: 12 }}
-                          >
-                            {r.handle
-                              ? `@${r.handle}`
-                              : truncateWallet(r.wallet ?? "")}
-                          </div>
-                          <p
-                            style={{
-                              color: "#fff",
-                              fontSize: 14,
-                              whiteSpace: "pre-wrap",
-                              marginTop: 4,
-                            }}
-                          >
-                            {r.content}
-                          </p>
-                          <div
-                            style={{ color: "#71717a", fontSize: 11 }}
-                          >
-                            {formatRelativeTime(r.created_at)}
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
                 </div>
               </div>
             </div>
