@@ -7,7 +7,6 @@ import ReactCrop, {
   makeAspectCrop,
 } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
-import { useNavigate } from "react-router-dom";
 import { useWallet } from "@solana/wallet-adapter-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import {
@@ -123,7 +122,6 @@ const sortPostsByCreatedAtDesc = (posts: SocialPost[]) =>
 
 const Dashboard = () => {
   const { publicKey } = useWallet();
-  const navigate = useNavigate();
   const { toast } = useToast();
   const address = publicKey?.toBase58() ?? publicKey?.toString();
   const [feed, setFeed] = useState<SocialPost[]>([]);
@@ -172,6 +170,7 @@ const Dashboard = () => {
   const [repostedPostIds, setRepostedPostIds] = useState<Set<number>>(
     new Set()
   );
+  const [selectedPost, setSelectedPost] = useState<SocialPost | null>(null);
 
   useEffect(() => {
     if (repostDropdownId === null) return;
@@ -1043,14 +1042,11 @@ const Dashboard = () => {
                   <div
                     className="glass-card p-4 flex flex-col gap-3 animate-slide-up cursor-pointer"
                     onClick={() => {
-                      sessionStorage.setItem("dashboard_scroll", window.scrollY.toString());
-                      navigate(
-                        `/post/${
-                          isRepost && (post as any)?.repost_of
-                            ? (post as any).repost_of
-                            : post?.id
-                        }`
+                      sessionStorage.setItem(
+                        "dashboard_scroll",
+                        window.scrollY.toString()
                       );
+                      setSelectedPost(post);
                     }}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -1225,7 +1221,7 @@ const Dashboard = () => {
                           }}
                           onClick={(e) => {
                             e.stopPropagation();
-                            navigate(`/post/${post.id}`);
+                            setSelectedPost(post);
                           }}
                         />
                       </div>
@@ -1747,6 +1743,180 @@ const Dashboard = () => {
           </div>
         </div>
       )}
+
+      {selectedPost &&
+        (() => {
+          const post = selectedPost;
+          const originalPost = post.original_post ?? null;
+          const isRepost =
+            originalPost != null || !!(post as { is_repost?: boolean }).is_repost;
+          const isQuoteRepost = !!(post as { quote_content?: string }).quote_content;
+          const displayWallet =
+            isRepost && originalPost
+              ? originalPost.wallet
+              : post.wallet ?? "";
+          const authorProfile: WalletProfile =
+            profiles[displayWallet] ?? { wallet: displayWallet };
+          const displayHandle =
+            isRepost && originalPost
+              ? originalPost.handle ?? null
+              : authorProfile?.handle ?? post.handle ?? null;
+          const displayContent =
+            isRepost && originalPost ? originalPost.content : post.content;
+          const imgUrl =
+            isRepost && originalPost
+              ? originalPost.image_url
+              : post.image_url;
+          const avatarSource =
+            isRepost && originalPost
+              ? originalPost.handle ?? originalPost.wallet ?? "?"
+              : displayHandle ?? post.wallet ?? "?";
+          const avatarLetter = avatarSource[0]?.toUpperCase() ?? "?";
+          const handleLine = displayHandle
+            ? `@${displayHandle}`
+            : truncateWallet(displayWallet);
+
+          return (
+            <div
+              role="dialog"
+              aria-modal="true"
+              onClick={() => setSelectedPost(null)}
+              style={{
+                position: "fixed",
+                inset: 0,
+                background: "rgba(0,0,0,0.7)",
+                backdropFilter: "blur(2px)",
+                zIndex: 1000,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "20px",
+              }}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  background: "var(--card-bg, #1a1a2e)",
+                  borderRadius: 16,
+                  maxWidth: 600,
+                  width: "100%",
+                  maxHeight: "90vh",
+                  overflowY: "auto",
+                  padding: 24,
+                  position: "relative",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setSelectedPost(null)}
+                  style={{
+                    position: "absolute",
+                    top: 12,
+                    right: 12,
+                    background: "transparent",
+                    border: "none",
+                    color: "#fff",
+                    fontSize: 20,
+                    cursor: "pointer",
+                  }}
+                  aria-label="Close"
+                >
+                  ✕
+                </button>
+
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    marginBottom: 12,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: "50%",
+                      background: "#333",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#fff",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {avatarLetter}
+                  </div>
+                  <div>
+                    <div style={{ fontWeight: "bold", color: "#fff" }}>
+                      {handleLine}
+                    </div>
+                    <div style={{ color: "#888", fontSize: 12 }}>
+                      {truncateWallet(displayWallet)}
+                    </div>
+                  </div>
+                </div>
+
+                {isQuoteRepost && (
+                  <div
+                    style={{
+                      marginBottom: 12,
+                      padding: 12,
+                      borderRadius: 12,
+                      border: "1px solid rgba(255,255,255,0.12)",
+                      background: "rgba(255,255,255,0.04)",
+                    }}
+                  >
+                    <p style={{ color: "#888", fontSize: 11, marginBottom: 6 }}>
+                      Quote
+                    </p>
+                    <p
+                      style={{
+                        color: "#fff",
+                        fontSize: 14,
+                        whiteSpace: "pre-wrap",
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      {(post as { quote_content?: string }).quote_content}
+                    </p>
+                  </div>
+                )}
+
+                <p
+                  style={{
+                    color: "#fff",
+                    marginBottom: 12,
+                    lineHeight: 1.6,
+                    whiteSpace: "pre-wrap",
+                  }}
+                >
+                  {displayContent}
+                </p>
+
+                {imgUrl ? (
+                  <img
+                    src={imgUrl}
+                    alt="Post"
+                    style={{
+                      width: "100%",
+                      height: "auto",
+                      maxHeight: 600,
+                      objectFit: "contain",
+                      borderRadius: 12,
+                      display: "block",
+                      marginTop: 8,
+                    }}
+                  />
+                ) : null}
+
+                <div style={{ color: "#888", fontSize: 13, marginTop: 12 }}>
+                  {formatRelativeTime(post.created_at)}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
     </DashboardLayout>
   );
 };
