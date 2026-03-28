@@ -149,7 +149,7 @@ const Dashboard = () => {
   const imgRef = useRef<HTMLImageElement>(null);
   const cropAspectRef = useRef<number | undefined>(undefined);
   const postImageInputRef = useRef<HTMLInputElement>(null);
-  const [posting, setPosting] = useState(false);
+  const [isPosting, setIsPosting] = useState(false);
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<number>>(new Set());
   const [bookmarkLoading, setBookmarkLoading] = useState<Record<number, boolean>>({});
   const [followedWallets, setFollowedWallets] = useState<Set<string>>(new Set());
@@ -630,8 +630,11 @@ const Dashboard = () => {
   };
 
   const handlePost = async () => {
-    if (!publicKey || !postContent.trim()) return;
-    setPosting(true);
+    setIsPosting(true);
+    if (!publicKey || !postContent.trim()) {
+      setIsPosting(false);
+      return;
+    }
     try {
       if (postImage) {
         const formData = new FormData();
@@ -670,8 +673,9 @@ const Dashboard = () => {
         title: err?.message ?? "Failed to post",
         variant: "destructive",
       });
+    } finally {
+      setIsPosting(false);
     }
-    setPosting(false);
   };
 
   return (
@@ -791,10 +795,35 @@ const Dashboard = () => {
                 </div>
                 <button
                   onClick={handlePost}
-                  disabled={!postContent.trim() || posting}
+                  disabled={
+                    isPosting || (!postContent.trim() && !postImage)
+                  }
                   className="px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {posting ? "Posting..." : "Post"}
+                  {isPosting ? (
+                    <span
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                      }}
+                    >
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        style={{ animation: "spin 1s linear infinite" }}
+                      >
+                        <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                      </svg>
+                      Posting...
+                    </span>
+                  ) : (
+                    "Post"
+                  )}
                 </button>
               </div>
             </div>
