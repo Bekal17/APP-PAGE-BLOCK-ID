@@ -1153,20 +1153,32 @@ const Dashboard = () => {
                         ? (originalPost as any).image_url
                         : (post as any).image_url;
                     return imgUrl ? (
-                      <div className="mt-2">
+                      <div
+                        style={{
+                          width: "100%",
+                          maxWidth: "100%",
+                          overflow: "hidden",
+                          marginTop: 8,
+                          borderRadius: 12,
+                          backgroundColor: "#000",
+                        }}
+                      >
                         <img
                           src={imgUrl}
                           alt="Post image"
                           style={{
                             width: "100%",
                             height: "auto",
-                            maxHeight: "none",
+                            maxHeight: "600px",
                             objectFit: "contain",
                             borderRadius: 12,
                             display: "block",
-                            marginTop: 8,
+                            backgroundColor: "#000",
                           }}
-                          onClick={(e) => e.stopPropagation()}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/post/${post.id}`);
+                          }}
                         />
                       </div>
                     ) : null;
