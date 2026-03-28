@@ -74,6 +74,9 @@ export default function PostDetailPanel({
 }: Props) {
   const { publicKey } = useWallet();
   const [likedIds, setLikedIds] = useState<Set<number>>(new Set());
+  const [localLikeCounts, setLocalLikeCounts] = useState<
+    Record<number, number>
+  >({});
   const [repostedIds, setRepostedIds] = useState<Set<number>>(new Set());
   const [replyContent, setReplyContent] = useState("");
   const [replyToId, setReplyToId] = useState<number>(post.id);
@@ -115,6 +118,15 @@ export default function PostDetailPanel({
       else n.add(reply.id);
       return n;
     });
+    setLocalLikeCounts((prev) => ({
+      ...prev,
+      [reply.id]: isLiked
+        ? Math.max(
+            (prev[reply.id] ?? reply.like_count ?? reply.likes_count ?? 0) - 1,
+            0
+          )
+        : (prev[reply.id] ?? reply.like_count ?? reply.likes_count ?? 0) + 1,
+    }));
     (isLiked ? unlikePost(wallet, reply.id) : likePost(wallet, reply.id)).catch(
       console.error
     );
@@ -421,7 +433,10 @@ export default function PostDetailPanel({
                         : "text-zinc-500"
                     }`}
                   />
-                  {reply.like_count ?? reply.likes_count ?? 0}
+                  {localLikeCounts[reply.id] ??
+                    reply.like_count ??
+                    reply.likes_count ??
+                    0}
                 </button>
 
                 <button
