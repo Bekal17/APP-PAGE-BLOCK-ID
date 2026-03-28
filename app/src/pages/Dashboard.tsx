@@ -171,6 +171,63 @@ const Dashboard = () => {
     new Set()
   );
   const [selectedPost, setSelectedPost] = useState<SocialPost | null>(null);
+  const [modalReplies, setModalReplies] = useState<any[]>([]);
+  const [modalRepliesLoading, setModalRepliesLoading] = useState(false);
+  const [postModalReplyText, setPostModalReplyText] = useState("");
+  const [postModalReplyLoading, setPostModalReplyLoading] = useState(false);
+
+  useEffect(() => {
+    if (!selectedPost) {
+      setPostModalReplyText("");
+      setModalReplies([]);
+      setModalRepliesLoading(false);
+      return;
+    }
+    const postId = selectedPost.id;
+    let cancelled = false;
+    setModalRepliesLoading(true);
+    const base = (
+      import.meta.env.VITE_SOCIAL_API_URL ??
+      "https://blockid-backend-production.up.railway.app"
+    ).replace(/\/$/, "");
+
+    (async () => {
+      try {
+        const commentsRes = await fetch(
+          `${base}/social/post/${postId}/comments`
+        );
+        if (!cancelled && commentsRes.ok) {
+          const data = await commentsRes.json();
+          const list =
+            data.comments ??
+            data.replies ??
+            data.posts ??
+            (Array.isArray(data) ? data : []);
+          setModalReplies(Array.isArray(list) ? list : []);
+          if (!cancelled) setModalRepliesLoading(false);
+          return;
+        }
+      } catch {
+        /* fall through to getPost */
+      }
+      try {
+        const data = await getPost(postId);
+        if (!cancelled) {
+          setModalReplies(
+            Array.isArray(data.replies) ? data.replies : []
+          );
+        }
+      } catch {
+        if (!cancelled) setModalReplies([]);
+      } finally {
+        if (!cancelled) setModalRepliesLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedPost]);
 
   useEffect(() => {
     if (repostDropdownId === null) return;
@@ -483,6 +540,47 @@ const Dashboard = () => {
       console.error("Failed to reply", e);
     }
     setReplyLoading(false);
+  };
+
+  const handlePostModalReply = async () => {
+    if (!publicKey || !selectedPost?.id || !postModalReplyText.trim()) return;
+    const targetId = selectedPost.id;
+    setPostModalReplyLoading(true);
+    try {
+      await createPost(
+        publicKey.toString(),
+        postModalReplyText.trim(),
+        "PUBLIC",
+        targetId
+      );
+      setPostModalReplyText("");
+      const data = await getPost(targetId);
+      setModalReplies(Array.isArray(data.replies) ? data.replies : []);
+      setFeed((prev) =>
+        prev.map((p) =>
+          p.id === targetId
+            ? {
+                ...p,
+                reply_count: (p.reply_count ?? 0) + 1,
+                replies_count: (p.replies_count ?? 0) + 1,
+              }
+            : p
+        )
+      );
+      setSelectedPost((prev) =>
+        prev && prev.id === targetId
+          ? {
+              ...prev,
+              reply_count: (prev.reply_count ?? 0) + 1,
+              replies_count: (prev.replies_count ?? 0) + 1,
+            }
+          : prev
+      );
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setPostModalReplyLoading(false);
+    }
   };
 
   const handleLoadReplies = async (postId: number) => {
@@ -1747,6 +1845,8 @@ const Dashboard = () => {
       {selectedPost &&
         (() => {
           const post = selectedPost;
+          const livePost =
+            feed.find((p) => p.id === post.id) ?? post;
           const originalPost = post.original_post ?? null;
           const isRepost =
             originalPost != null || !!(post as { is_repost?: boolean }).is_repost;
@@ -1767,6 +1867,7 @@ const Dashboard = () => {
             isRepost && originalPost
               ? originalPost.image_url
               : post.image_url;
+          const hasImage = !!imgUrl;
           const avatarSource =
             isRepost && originalPost
               ? originalPost.handle ?? originalPost.wallet ?? "?"
@@ -1775,6 +1876,11 @@ const Dashboard = () => {
           const handleLine = displayHandle
             ? `@${displayHandle}`
             : truncateWallet(displayWallet);
+          const likeCount =
+            livePost.likes_count ?? livePost.like_count ?? 0;
+          const replyCount =
+            livePost.replies_count ?? livePost.reply_count ?? 0;
+          const repostCount = livePost.repost_count ?? 0;
 
           return (
             <div
@@ -1796,122 +1902,334 @@ const Dashboard = () => {
               <div
                 onClick={(e) => e.stopPropagation()}
                 style={{
-                  background: "var(--card-bg, #1a1a2e)",
-                  borderRadius: 16,
-                  maxWidth: 600,
+                  maxWidth: 900,
                   width: "100%",
-                  maxHeight: "90vh",
-                  overflowY: "auto",
-                  padding: 24,
+                  height: "80vh",
+                  display: "flex",
+                  flexDirection: "row",
+                  borderRadius: 16,
+                  overflow: "hidden",
                   position: "relative",
                 }}
               >
-                <button
-                  type="button"
-                  onClick={() => setSelectedPost(null)}
-                  style={{
-                    position: "absolute",
-                    top: 12,
-                    right: 12,
-                    background: "transparent",
-                    border: "none",
-                    color: "#fff",
-                    fontSize: 20,
-                    cursor: "pointer",
-                  }}
-                  aria-label="Close"
-                >
-                  ✕
-                </button>
-
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    marginBottom: 12,
-                  }}
-                >
+                {hasImage ? (
                   <div
                     style={{
-                      width: 40,
-                      height: 40,
-                      borderRadius: "50%",
-                      background: "#333",
+                      flex: "0 0 55%",
+                      background: "#000",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      color: "#fff",
-                      fontWeight: "bold",
+                      overflow: "hidden",
+                      borderRadius: "16px 0 0 16px",
                     }}
                   >
-                    {avatarLetter}
+                    <img
+                      src={imgUrl as string}
+                      alt="Post"
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
+                      }}
+                    />
                   </div>
-                  <div>
-                    <div style={{ fontWeight: "bold", color: "#fff" }}>
-                      {handleLine}
-                    </div>
-                    <div style={{ color: "#888", fontSize: 12 }}>
-                      {truncateWallet(displayWallet)}
-                    </div>
-                  </div>
-                </div>
+                ) : null}
 
-                {isQuoteRepost && (
+                <div
+                  style={{
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    minWidth: 0,
+                    padding: 20,
+                    overflow: "hidden",
+                    borderRadius: hasImage ? "0 16px 16px 0" : 16,
+                    background: "var(--card-bg, #1a1a2e)",
+                    borderLeft: hasImage
+                      ? "1px solid rgba(255,255,255,0.1)"
+                      : "none",
+                    position: "relative",
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPost(null)}
+                    style={{
+                      position: "absolute",
+                      top: 12,
+                      right: 12,
+                      zIndex: 2,
+                      background: "transparent",
+                      border: "none",
+                      color: "#fff",
+                      fontSize: 20,
+                      cursor: "pointer",
+                    }}
+                    aria-label="Close"
+                  >
+                    ✕
+                  </button>
+
                   <div
                     style={{
-                      marginBottom: 12,
-                      padding: 12,
-                      borderRadius: 12,
-                      border: "1px solid rgba(255,255,255,0.12)",
-                      background: "rgba(255,255,255,0.04)",
+                      flex: 1,
+                      overflowY: "auto",
+                      minHeight: 0,
+                      paddingRight: 8,
                     }}
                   >
-                    <p style={{ color: "#888", fontSize: 11, marginBottom: 6 }}>
-                      Quote
-                    </p>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        marginBottom: 12,
+                        paddingRight: 32,
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 40,
+                          height: 40,
+                          borderRadius: "50%",
+                          background: "#333",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#fff",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {avatarLetter}
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: "bold", color: "#fff" }}>
+                          {handleLine}
+                        </div>
+                        <div style={{ color: "#888", fontSize: 12 }}>
+                          {truncateWallet(displayWallet)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {isQuoteRepost && (
+                      <div
+                        style={{
+                          marginBottom: 12,
+                          padding: 12,
+                          borderRadius: 12,
+                          border: "1px solid rgba(255,255,255,0.12)",
+                          background: "rgba(255,255,255,0.04)",
+                        }}
+                      >
+                        <p
+                          style={{
+                            color: "#888",
+                            fontSize: 11,
+                            marginBottom: 6,
+                          }}
+                        >
+                          Quote
+                        </p>
+                        <p
+                          style={{
+                            color: "#fff",
+                            fontSize: 14,
+                            whiteSpace: "pre-wrap",
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          {(post as { quote_content?: string }).quote_content}
+                        </p>
+                      </div>
+                    )}
+
                     <p
                       style={{
                         color: "#fff",
-                        fontSize: 14,
+                        marginBottom: 12,
+                        lineHeight: 1.6,
                         whiteSpace: "pre-wrap",
-                        lineHeight: 1.5,
                       }}
                     >
-                      {(post as { quote_content?: string }).quote_content}
+                      {displayContent}
                     </p>
+
+                    <div
+                      style={{ color: "#888", fontSize: 13, marginBottom: 16 }}
+                    >
+                      {formatRelativeTime(post.created_at)}
+                    </div>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 20,
+                        marginBottom: 16,
+                        color: "#a1a1aa",
+                        fontSize: 13,
+                      }}
+                    >
+                      <button
+                        type="button"
+                        disabled={!publicKey || likeLoading[post.id]}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleLike(post);
+                        }}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                          background: "transparent",
+                          border: "none",
+                          color: likedPostIds.has(post.id)
+                            ? "#f87171"
+                            : "#a1a1aa",
+                          cursor:
+                            publicKey && !likeLoading[post.id]
+                              ? "pointer"
+                              : "default",
+                          padding: 0,
+                        }}
+                      >
+                        <Heart
+                          className={`w-4 h-4 ${
+                            likedPostIds.has(post.id) ? "fill-red-400" : ""
+                          }`}
+                        />
+                        <span>{likeCount}</span>
+                      </button>
+                      <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                        }}
+                      >
+                        <MessageSquare className="w-4 h-4" />
+                        {replyCount}
+                      </span>
+                      <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 6,
+                        }}
+                      >
+                        <Repeat2 className="w-4 h-4" />
+                        {repostCount}
+                      </span>
+                    </div>
+
+                    <div style={{ marginBottom: 8 }}>
+                      {modalRepliesLoading ? (
+                        <p style={{ color: "#888", fontSize: 13 }}>
+                          Loading replies…
+                        </p>
+                      ) : modalReplies.length === 0 ? (
+                        <p style={{ color: "#888", fontSize: 13 }}>
+                          No replies yet.
+                        </p>
+                      ) : (
+                        modalReplies.map((r: any) => (
+                          <div
+                            key={r.id ?? `${r.wallet}-${r.created_at}`}
+                            style={{
+                              borderBottom:
+                                "1px solid rgba(255,255,255,0.08)",
+                              paddingBottom: 10,
+                              marginBottom: 10,
+                            }}
+                          >
+                            <div
+                              style={{ color: "#a1a1aa", fontSize: 12 }}
+                            >
+                              {r.handle
+                                ? `@${r.handle}`
+                                : truncateWallet(r.wallet ?? "")}
+                            </div>
+                            <p
+                              style={{
+                                color: "#fff",
+                                fontSize: 14,
+                                whiteSpace: "pre-wrap",
+                                marginTop: 4,
+                              }}
+                            >
+                              {r.content}
+                            </p>
+                            <div
+                              style={{ color: "#71717a", fontSize: 11 }}
+                            >
+                              {formatRelativeTime(r.created_at)}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
                   </div>
-                )}
 
-                <p
-                  style={{
-                    color: "#fff",
-                    marginBottom: 12,
-                    lineHeight: 1.6,
-                    whiteSpace: "pre-wrap",
-                  }}
-                >
-                  {displayContent}
-                </p>
-
-                {imgUrl ? (
-                  <img
-                    src={imgUrl}
-                    alt="Post"
+                  <div
                     style={{
-                      width: "100%",
-                      height: "auto",
-                      maxHeight: 600,
-                      objectFit: "contain",
-                      borderRadius: 12,
-                      display: "block",
-                      marginTop: 8,
+                      flexShrink: 0,
+                      marginTop: "auto",
+                      paddingTop: 16,
+                      borderTop: "1px solid rgba(255,255,255,0.1)",
                     }}
-                  />
-                ) : null}
-
-                <div style={{ color: "#888", fontSize: 13, marginTop: 12 }}>
-                  {formatRelativeTime(post.created_at)}
+                  >
+                    <textarea
+                      placeholder="Post your reply..."
+                      value={postModalReplyText}
+                      onChange={(e) =>
+                        setPostModalReplyText(e.target.value)
+                      }
+                      rows={3}
+                      maxLength={280}
+                      disabled={!publicKey}
+                      style={{
+                        width: "100%",
+                        boxSizing: "border-box",
+                        background: "rgba(0,0,0,0.35)",
+                        color: "#fff",
+                        border: "1px solid rgba(255,255,255,0.15)",
+                        borderRadius: 10,
+                        padding: "10px 12px",
+                        resize: "none",
+                        fontSize: 14,
+                        marginBottom: 10,
+                      }}
+                    />
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "flex-end",
+                        alignItems: "center",
+                        gap: 12,
+                      }}
+                    >
+                      <span style={{ color: "#888", fontSize: 12 }}>
+                        {postModalReplyText.length}/280
+                      </span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void handlePostModalReply();
+                        }}
+                        disabled={
+                          !publicKey ||
+                          !postModalReplyText.trim() ||
+                          postModalReplyLoading
+                        }
+                        className="px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {postModalReplyLoading ? "Replying…" : "Reply"}
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
