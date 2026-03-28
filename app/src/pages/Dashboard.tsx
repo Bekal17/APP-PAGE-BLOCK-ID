@@ -1160,7 +1160,7 @@ const Dashboard = () => {
                           overflow: "hidden",
                           marginTop: 8,
                           borderRadius: 12,
-                          backgroundColor: "#000",
+                          backgroundColor: "transparent",
                         }}
                       >
                         <img
@@ -1173,7 +1173,7 @@ const Dashboard = () => {
                             objectFit: "contain",
                             borderRadius: 12,
                             display: "block",
-                            backgroundColor: "#000",
+                            backgroundColor: "transparent",
                           }}
                           onClick={(e) => {
                             e.stopPropagation();
