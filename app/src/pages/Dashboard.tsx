@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import ReactCrop, {
   type Crop,
   type PixelCrop,
@@ -77,6 +77,17 @@ type SocialPost = {
   } | null;
   plan?: string;
   image_url?: string | null;
+  top_reply?: {
+    id: number;
+    wallet: string;
+    handle?: string | null;
+    content: string;
+    created_at?: string;
+    like_count?: number;
+    reply_count?: number;
+    repost_count?: number;
+    plan?: string;
+  } | null;
 };
 
 type WalletProfile = {
@@ -1498,6 +1509,210 @@ const Dashboard = () => {
                   </div>
 
                 </div>
+
+                {activeTab === "following" && post.top_reply && (
+                  <div style={{ position: "relative", marginTop: 0 }}>
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: 28,
+                        top: 0,
+                        height: "100%",
+                        width: 2,
+                        background: "rgba(255,255,255,0.08)",
+                        zIndex: 0,
+                      }}
+                    />
+
+                    <div
+                      className="glass-card"
+                      style={{
+                        marginTop: 1,
+                        borderTop: "none",
+                        borderTopLeftRadius: 0,
+                        borderTopRightRadius: 0,
+                        padding: "10px 16px 10px 16px",
+                        position: "relative",
+                        zIndex: 1,
+                        cursor: "pointer",
+                      }}
+                      onClick={() => {
+                        sessionStorage.setItem(
+                          "dashboard_scroll",
+                          window.scrollY.toString()
+                        );
+                        setSelectedPost({
+                          ...post.top_reply!,
+                          id: post.top_reply!.id,
+                        } as SocialPost);
+                        setReplyToId(post.top_reply!.id);
+                        setReplyContent("");
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "flex-start",
+                          gap: 10,
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: 32,
+                            height: 32,
+                            borderRadius: "50%",
+                            background: "rgba(99,102,241,0.15)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            color: "#818cf8",
+                            fontWeight: "bold",
+                            fontSize: 11,
+                            flexShrink: 0,
+                          }}
+                        >
+                          {(
+                            post.top_reply.handle ??
+                            post.top_reply.wallet ??
+                            "?"
+                          )[0]?.toUpperCase()}
+                        </div>
+
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 6,
+                              marginBottom: 3,
+                            }}
+                          >
+                            <span
+                              style={{
+                                color: "#fff",
+                                fontWeight: 600,
+                                fontSize: 13,
+                              }}
+                            >
+                              {post.top_reply.handle
+                                ? `@${post.top_reply.handle}`
+                                : `${post.top_reply.wallet?.slice(0, 4)}...${post.top_reply.wallet?.slice(-4)}`}
+                            </span>
+                            <span style={{ color: "#555", fontSize: 11 }}>
+                              · {formatRelativeTime(post.top_reply.created_at)}
+                            </span>
+                          </div>
+
+                          <p
+                            style={
+                              {
+                                color: "#adb5bd",
+                                fontSize: 13,
+                                lineHeight: 1.5,
+                                whiteSpace: "pre-wrap",
+                                overflow: "hidden",
+                                display: "-webkit-box",
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: "vertical",
+                              } as CSSProperties
+                            }
+                          >
+                            {post.top_reply.content}
+                          </p>
+
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: 14,
+                              marginTop: 8,
+                            }}
+                          >
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (!publicKey) return;
+                                likePost(
+                                  publicKey.toString(),
+                                  post.top_reply!.id
+                                ).catch(console.error);
+                              }}
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 4,
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                                color: "#555",
+                                fontSize: 12,
+                              }}
+                            >
+                              <Heart
+                                className="w-3 h-3 shrink-0"
+                                strokeWidth={2}
+                              />
+                              {post.top_reply.like_count ?? 0}
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (!publicKey) return;
+                                sessionStorage.setItem(
+                                  "dashboard_scroll",
+                                  window.scrollY.toString()
+                                );
+                                setSelectedPost(post);
+                                setReplyToId(post.top_reply!.id);
+                                setReplyContent("");
+                              }}
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 4,
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                                color: "#555",
+                                fontSize: 12,
+                              }}
+                            >
+                              <MessageSquare className="w-3 h-3 shrink-0" />
+                              {post.top_reply.reply_count ?? 0}
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (!publicKey) return;
+                                repostPost(
+                                  publicKey.toString(),
+                                  post.top_reply!.id
+                                ).catch(console.error);
+                              }}
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 4,
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                                color: "#555",
+                                fontSize: 12,
+                              }}
+                            >
+                              <Repeat2 className="w-3 h-3 shrink-0" />
+                              {post.top_reply.repost_count ?? 0}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
               );
             })
