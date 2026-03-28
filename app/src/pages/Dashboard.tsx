@@ -207,8 +207,11 @@ const Dashboard = () => {
 
     if (cachedFeed && cacheAge < 5 * 60 * 1000 && isReturningFromPost) {
       try {
-        const parsed = JSON.parse(cachedFeed);
-        setFeed(parsed);
+        const cachedPosts = JSON.parse(cachedFeed);
+        const arr = Array.isArray(cachedPosts) ? cachedPosts : [];
+        setFeed(
+          activeTab === "explore" ? [...arr].reverse() : arr
+        );
         setLoading(false);
         const savedScroll = sessionStorage.getItem("dashboard_scroll");
         if (savedScroll) {
@@ -243,7 +246,7 @@ const Dashboard = () => {
             setFeed(exploreOrdered);
             sessionStorage.setItem(
               "dashboard_feed_cache",
-              JSON.stringify(exploreOrdered)
+              JSON.stringify(posts)
             );
             sessionStorage.setItem("dashboard_feed_time", Date.now().toString());
             const savedScroll = sessionStorage.getItem("dashboard_scroll");
@@ -1150,7 +1153,7 @@ const Dashboard = () => {
                         ? (originalPost as any).image_url
                         : (post as any).image_url;
                     return imgUrl ? (
-                      <div className="mt-2 rounded-xl overflow-hidden">
+                      <div className="mt-2">
                         <img
                           src={imgUrl}
                           alt="Post image"
