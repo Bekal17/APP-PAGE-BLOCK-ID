@@ -1,4 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import ReactCrop, {
+  type Crop,
+  type PixelCrop,
+  centerCrop,
+  convertToPixelCrop,
+  makeAspectCrop,
+} from "react-image-crop";
+import "react-image-crop/dist/ReactCrop.css";
 import { useNavigate } from "react-router-dom";
 import { useWallet } from "@solana/wallet-adapter-react";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -127,6 +135,20 @@ const Dashboard = () => {
   const [postContent, setPostContent] = useState("");
   const [postImage, setPostImage] = useState<File | null>(null);
   const [postImagePreview, setPostImagePreview] = useState<string | null>(null);
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [rawImage, setRawImage] = useState<string | null>(null);
+  const [crop, setCrop] = useState<Crop>({
+    unit: "%",
+    width: 100,
+    height: 100,
+    x: 0,
+    y: 0,
+  });
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null);
+  const [cropAspect, setCropAspect] = useState<number | undefined>(undefined);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const cropAspectRef = useRef<number | undefined>(undefined);
+  const postImageInputRef = useRef<HTMLInputElement>(null);
   const [posting, setPosting] = useState(false);
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<number>>(new Set());
   const [bookmarkLoading, setBookmarkLoading] = useState<Record<number, boolean>>({});
@@ -490,6 +512,123 @@ const Dashboard = () => {
     }
   };
 
+  const revokeIfBlob = (url: string | null) => {
+    if (url?.startsWith("blob:")) URL.revokeObjectURL(url);
+  };
+
+  const handleCropImageLoaded = () => {
+    const img = imgRef.current;
+    if (!img) return;
+    const w = img.width;
+    const h = img.height;
+    const aspect = cropAspectRef.current;
+    if (aspect === undefined) {
+      setCrop({ unit: "%", width: 100, height: 100, x: 0, y: 0 });
+    } else {
+      setCrop(
+        centerCrop(makeAspectCrop({ unit: "%", width: 90 }, aspect, w, h), w, h)
+      );
+    }
+  };
+
+  const setAspectMode = (aspect: number | undefined) => {
+    cropAspectRef.current = aspect;
+    setCropAspect(aspect);
+    const img = imgRef.current;
+    if (!img?.width || !img?.height) return;
+    const w = img.width;
+    const h = img.height;
+    if (aspect === undefined) {
+      setCrop({ unit: "%", width: 100, height: 100, x: 0, y: 0 });
+    } else {
+      setCrop(centerCrop(makeAspectCrop({ unit: "%", width: 90 }, aspect, w, h), w, h));
+    }
+  };
+
+  const getCroppedImage = (): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const image = imgRef.current;
+      if (!image) {
+        reject(new Error("No image"));
+        return;
+      }
+      let pixelCrop: PixelCrop | null = completedCrop;
+      if (
+        !pixelCrop ||
+        !pixelCrop.width ||
+        !pixelCrop.height
+      ) {
+        pixelCrop = convertToPixelCrop(crop, image.width, image.height);
+      }
+      if (!pixelCrop.width || !pixelCrop.height) {
+        reject(new Error("Invalid crop"));
+        return;
+      }
+      const scaleX = image.naturalWidth / image.width;
+      const scaleY = image.naturalHeight / image.height;
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(pixelCrop.width * scaleX);
+      canvas.height = Math.round(pixelCrop.height * scaleY);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        reject(new Error("No canvas context"));
+        return;
+      }
+      ctx.drawImage(
+        image,
+        pixelCrop.x * scaleX,
+        pixelCrop.y * scaleY,
+        pixelCrop.width * scaleX,
+        pixelCrop.height * scaleY,
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error("Canvas is empty"));
+            return;
+          }
+          const file = new File([blob], "cropped.jpg", { type: "image/jpeg" });
+          resolve(file);
+        },
+        "image/jpeg",
+        0.92
+      );
+    });
+  };
+
+  const handleCropApply = async () => {
+    try {
+      const file = await getCroppedImage();
+      revokeIfBlob(postImagePreview);
+      setPostImage(file);
+      setPostImagePreview(URL.createObjectURL(file));
+      revokeIfBlob(rawImage);
+      setRawImage(null);
+      setCompletedCrop(null);
+      setCropModalOpen(false);
+      cropAspectRef.current = undefined;
+      setCropAspect(undefined);
+      if (postImageInputRef.current) postImageInputRef.current.value = "";
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Could not crop image";
+      toast({ title: message, variant: "destructive" });
+    }
+  };
+
+  const handleCropCancel = () => {
+    revokeIfBlob(rawImage);
+    setRawImage(null);
+    setCompletedCrop(null);
+    setCropModalOpen(false);
+    cropAspectRef.current = undefined;
+    setCropAspect(undefined);
+    if (postImageInputRef.current) postImageInputRef.current.value = "";
+  };
+
   const handlePost = async () => {
     if (!publicKey || !postContent.trim()) return;
     setPosting(true);
@@ -590,6 +729,7 @@ const Dashboard = () => {
                   />
                   <button
                     onClick={() => {
+                      revokeIfBlob(postImagePreview);
                       setPostImage(null);
                       setPostImagePreview(null);
                     }}
@@ -611,6 +751,7 @@ const Dashboard = () => {
                   <label className="cursor-pointer p-1.5 rounded-full hover:bg-muted/30 text-muted-foreground hover:text-foreground transition-colors">
                     <ImageIcon className="w-4 h-4" />
                     <input
+                      ref={postImageInputRef}
                       type="file"
                       accept="image/jpeg,image/png,image/gif,image/webp"
                       className="hidden"
@@ -623,11 +764,24 @@ const Dashboard = () => {
                             description: "Max 5MB",
                             variant: "destructive",
                           });
+                          e.target.value = "";
                           return;
                         }
-                        setPostImage(file);
-                        const url = URL.createObjectURL(file);
-                        setPostImagePreview(url);
+                        cropAspectRef.current = undefined;
+                        setCropAspect(undefined);
+                        setCrop({
+                          unit: "%",
+                          width: 100,
+                          height: 100,
+                          x: 0,
+                          y: 0,
+                        });
+                        setCompletedCrop(null);
+                        setRawImage((prev) => {
+                          revokeIfBlob(prev);
+                          return URL.createObjectURL(file);
+                        });
+                        setCropModalOpen(true);
                       }}
                     />
                   </label>
@@ -641,6 +795,71 @@ const Dashboard = () => {
                   className="px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {posting ? "Posting..." : "Post"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {cropModalOpen && rawImage && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4">
+            <div className="bg-card border border-border rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] flex flex-col text-foreground">
+              <div className="p-4 border-b border-border space-y-3">
+                <h2 className="text-sm font-semibold">Crop image</h2>
+                <div className="flex flex-wrap gap-2">
+                  {(
+                    [
+                      { label: "Free", aspect: undefined as number | undefined },
+                      { label: "1:1", aspect: 1 },
+                      { label: "4:3", aspect: 4 / 3 },
+                      { label: "16:9", aspect: 16 / 9 },
+                    ] as const
+                  ).map(({ label, aspect }) => (
+                    <button
+                      key={label}
+                      type="button"
+                      onClick={() => setAspectMode(aspect)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                        cropAspect === aspect
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted/40 text-muted-foreground hover:bg-muted/60"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="p-4 overflow-auto flex-1 flex justify-center items-start">
+                <ReactCrop
+                  crop={crop}
+                  onChange={(_, percentCrop) => setCrop(percentCrop)}
+                  onComplete={(pixelCrop) => setCompletedCrop(pixelCrop)}
+                  aspect={cropAspect}
+                >
+                  <img
+                    ref={imgRef}
+                    src={rawImage}
+                    alt="Crop preview"
+                    onLoad={handleCropImageLoaded}
+                    className="max-h-[60vh] max-w-full block"
+                  />
+                </ReactCrop>
+              </div>
+              <div className="p-4 border-t border-border flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={handleCropCancel}
+                  className="px-4 py-2 rounded-full text-sm font-medium bg-muted/40 text-foreground hover:bg-muted/60 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleCropApply()}
+                  className="px-4 py-2 rounded-full text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                >
+                  Apply Crop
                 </button>
               </div>
             </div>
