@@ -222,6 +222,22 @@ const PostDetail = () => {
             {post?.content}
           </p>
 
+          {post.image_url && (
+            <img
+              src={post.image_url}
+              alt="Post image"
+              style={{
+                width: "100%",
+                height: "auto",
+                maxHeight: "none",
+                objectFit: "contain",
+                borderRadius: 12,
+                display: "block",
+                marginTop: 8,
+              }}
+            />
+          )}
+
           {/* Timestamp */}
           <p className="text-xs text-muted-foreground pb-3 border-b border-border/50">
             {formatTime(post?.created_at)}
