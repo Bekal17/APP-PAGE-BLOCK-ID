@@ -239,8 +239,12 @@ const Dashboard = () => {
             return;
           }
           if (!cancelled) {
-            setFeed(posts);
-            sessionStorage.setItem("dashboard_feed_cache", JSON.stringify(posts));
+            const exploreOrdered = [...posts].reverse();
+            setFeed(exploreOrdered);
+            sessionStorage.setItem(
+              "dashboard_feed_cache",
+              JSON.stringify(exploreOrdered)
+            );
             sessionStorage.setItem("dashboard_feed_time", Date.now().toString());
             const savedScroll = sessionStorage.getItem("dashboard_scroll");
             if (savedScroll) {
