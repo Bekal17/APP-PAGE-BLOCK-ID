@@ -1037,8 +1037,25 @@ const Dashboard = () => {
             </div>
           ) : (
             feed.map((post: SocialPost) => (
-              <PostCard
+              <div
                 key={post?.id}
+                style={{ overflow: "visible", position: "relative" }}
+              >
+                {activeTab === "following" && post.top_reply && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      left: 43,
+                      top: "auto",
+                      bottom: 52,
+                      height: 40,
+                      width: 2,
+                      background: "rgba(255,255,255,0.12)",
+                      zIndex: 2,
+                    }}
+                  />
+                )}
+                <PostCard
                 post={post}
                 profile={profiles[post.wallet] ?? { wallet: post.wallet }}
                 publicKey={publicKey}
@@ -1167,7 +1184,8 @@ const Dashboard = () => {
                   setReplyToId(replyId);
                   setReplyContent("");
                 }}
-              />
+                />
+              </div>
             ))
           )}
         </div>
