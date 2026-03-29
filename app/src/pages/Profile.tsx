@@ -231,6 +231,11 @@ const formatRelativeTime = (iso?: string) => {
   return `${Math.floor(hrs / 24)}d ago`;
 };
 
+function isSelectingText(): boolean {
+  const selection = window.getSelection();
+  return Boolean(selection && selection.toString().length > 0);
+}
+
 const Profile = () => {
   const { publicKey, connected } = useWallet();
   const { connection } = useConnection();
@@ -1941,6 +1946,8 @@ const Profile = () => {
                   className="glass-card p-4 flex gap-3 items-start cursor-pointer
                     hover:bg-muted/5 transition-colors"
                   onClick={() => {
+                    // Don't open modal if user is selecting text
+                    if (isSelectingText()) return;
                     const postId =
                       item.id ?? item.post_id ?? item.parent_id;
                     if (postId == null) return;
@@ -2053,6 +2060,8 @@ const Profile = () => {
                       cursor-pointer hover:bg-muted/5
                       transition-colors"
                     onClick={() => {
+                      // Don't open modal if user is selecting text
+                      if (isSelectingText()) return;
                       sessionStorage.setItem(
                         "profile_scroll",
                         window.scrollY.toString()
@@ -2329,6 +2338,8 @@ const Profile = () => {
                           className="flex items-center gap-1 hover:text-primary transition-colors"
                           onClick={(e) => {
                             e.stopPropagation();
+                            // Don't open modal if user is selecting text
+                            if (isSelectingText()) return;
                             setSelectedPost(post);
                           }}
                         >

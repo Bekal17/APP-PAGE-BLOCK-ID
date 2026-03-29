@@ -96,6 +96,12 @@ export type PostCardProps = {
 const truncateWallet = (wallet: string) =>
   wallet.length > 8 ? `${wallet.slice(0, 4)}...${wallet.slice(-4)}` : wallet;
 
+/** Skip opening post / reply modal when the user is selecting text in the card. */
+function isSelectingText(): boolean {
+  const selection = window.getSelection();
+  return Boolean(selection && selection.toString().length > 0);
+}
+
 const getTrustColor = (score?: number | null) => {
   if (score == null) return "bg-muted text-muted-foreground";
   if (score >= 70) return "bg-emerald-500/10 text-emerald-400";
@@ -312,7 +318,11 @@ export default function PostCard({
         flexDirection: "column",
         gap: 12,
       }}
-      onClick={() => onPostClick(post)}
+      onClick={() => {
+        // Don't open modal if user is selecting text
+        if (isSelectingText()) return;
+        onPostClick(post);
+      }}
     >
         <div
           style={{
@@ -514,6 +524,8 @@ export default function PostCard({
                     }}
                     onClick={(e) => {
                       e.stopPropagation();
+                      // Don't open modal if user is selecting text
+                      if (isSelectingText()) return;
                       onPostClick(post);
                     }}
                   />
@@ -591,10 +603,20 @@ export default function PostCard({
   if (activeTab === "following" && post.top_reply) {
     const tr = post.top_reply;
     return (
-      <>
+      <div style={{ position: "relative" }}>
         <div
-          style={{ marginBottom: 0, paddingBottom: 0 }}
-        >
+          style={{
+            position: "absolute",
+            left: 43,
+            top: "auto",
+            bottom: 52,
+            height: 40,
+            width: 2,
+            background: "rgba(255,255,255,0.12)",
+            zIndex: 2,
+          }}
+        />
+        <div style={{ marginBottom: 0, paddingBottom: 0 }}>
           {repostLabel}
           {mainPostCard}
         </div>
@@ -612,139 +634,141 @@ export default function PostCard({
           }}
           onClick={(e) => {
             e.stopPropagation();
+            // Don't open modal if user is selecting text
+            if (isSelectingText()) return;
             onTopReplyClick(tr);
           }}
         >
-            <div
-              style={{
-                display: "flex",
-                gap: 10,
-                alignItems: "flex-start",
-              }}
-            >
-              <UserAvatar
-                avatarUrl={(tr as any).avatar_url}
-                avatarType={(tr as any).avatar_type}
-                avatarIsAnimated={(tr as any).avatar_is_animated}
-                handle={tr.handle}
-                wallet={tr.wallet}
-                size={32}
-              />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              alignItems: "flex-start",
+            }}
+          >
+            <UserAvatar
+              avatarUrl={(tr as any).avatar_url}
+              avatarType={(tr as any).avatar_type}
+              avatarIsAnimated={(tr as any).avatar_is_animated}
+              handle={tr.handle}
+              wallet={tr.wallet}
+              size={32}
+            />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  marginBottom: 3,
+                }}
+              >
+                <span
+                  style={{
+                    color: "#fff",
+                    fontWeight: 600,
+                    fontSize: 13,
+                  }}
+                >
+                  {tr.handle
+                    ? `@${tr.handle}`
+                    : `${tr.wallet?.slice(0, 4)}...${tr.wallet?.slice(-4)}`}
+                </span>
+                <span style={{ color: "#555", fontSize: 11 }}>
+                  · {formatRelativeTime(tr.created_at)}
+                </span>
+              </div>
+              <p
+                style={
+                  {
+                    color: "#adb5bd",
+                    fontSize: 13,
+                    lineHeight: 1.5,
+                    whiteSpace: "pre-wrap",
+                    overflow: "hidden",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical",
+                  } as CSSProperties
+                }
+              >
+                {tr.content}
+              </p>
+              <div
+                style={{
+                  display: "flex",
+                  gap: 14,
+                  marginTop: 8,
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!publicKey) return;
+                    onTopReplyLike(tr.id);
+                  }}
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 6,
-                    marginBottom: 3,
+                    gap: 4,
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "#555",
+                    fontSize: 12,
                   }}
                 >
-                  <span
-                    style={{
-                      color: "#fff",
-                      fontWeight: 600,
-                      fontSize: 13,
-                    }}
-                  >
-                    {tr.handle
-                      ? `@${tr.handle}`
-                      : `${tr.wallet?.slice(0, 4)}...${tr.wallet?.slice(-4)}`}
-                  </span>
-                  <span style={{ color: "#555", fontSize: 11 }}>
-                    · {formatRelativeTime(tr.created_at)}
-                  </span>
-                </div>
-                <p
-                  style={
-                    {
-                      color: "#adb5bd",
-                      fontSize: 13,
-                      lineHeight: 1.5,
-                      whiteSpace: "pre-wrap",
-                      overflow: "hidden",
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
-                    } as CSSProperties
-                  }
-                >
-                  {tr.content}
-                </p>
-                <div
+                  <Heart className="w-3 h-3 shrink-0" />
+                  {tr.like_count ?? 0}
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!publicKey) return;
+                    onTopReplyComment(post, tr.id);
+                  }}
                   style={{
                     display: "flex",
-                    gap: 14,
-                    marginTop: 8,
+                    alignItems: "center",
+                    gap: 4,
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "#555",
+                    fontSize: 12,
                   }}
                 >
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (!publicKey) return;
-                      onTopReplyLike(tr.id);
-                    }}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 4,
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      color: "#555",
-                      fontSize: 12,
-                    }}
-                  >
-                    <Heart className="w-3 h-3 shrink-0" />
-                    {tr.like_count ?? 0}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (!publicKey) return;
-                      onTopReplyComment(post, tr.id);
-                    }}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 4,
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      color: "#555",
-                      fontSize: 12,
-                    }}
-                  >
-                    <MessageSquare className="w-3 h-3 shrink-0" />
-                    {tr.reply_count ?? 0}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (!publicKey) return;
-                      onTopReplyRepost(tr.id);
-                    }}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 4,
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      color: "#555",
-                      fontSize: 12,
-                    }}
-                  >
-                    <Repeat2 className="w-3 h-3 shrink-0" />
-                    {tr.repost_count ?? 0}
-                  </button>
-                </div>
+                  <MessageSquare className="w-3 h-3 shrink-0" />
+                  {tr.reply_count ?? 0}
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!publicKey) return;
+                    onTopReplyRepost(tr.id);
+                  }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "#555",
+                    fontSize: 12,
+                  }}
+                >
+                  <Repeat2 className="w-3 h-3 shrink-0" />
+                  {tr.repost_count ?? 0}
+                </button>
               </div>
             </div>
           </div>
-      </>
+        </div>
+      </div>
     );
   }
 
