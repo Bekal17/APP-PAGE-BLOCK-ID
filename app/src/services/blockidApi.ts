@@ -634,3 +634,17 @@ export async function incrementScan(wallet: string): Promise<void> {
     // silent fail — don't block UX
   }
 }
+
+export async function getWalletActivity(
+  wallet: string,
+  viewerWallet: string,
+  limit: number = 20
+) {
+  const res = await fetch(
+    buildSocialUrl(
+      `/social/activity/${encodeURIComponent(wallet)}?viewer_wallet=${encodeURIComponent(viewerWallet)}&limit=${limit}`
+    )
+  );
+  if (!res.ok) throw new Error("Failed to fetch activity");
+  return res.json();
+}

@@ -34,6 +34,7 @@ import {
   incrementScan,
   updateProfile,
   getSessionToken,
+  getWalletActivity,
 } from "@/services/blockidApi";
 import { normalizeGraphResponse } from "@/components/investigation/WalletGraph";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -238,7 +239,11 @@ const Profile = () => {
   const { toast } = useToast();
   const [profile, setProfile] = useState<any | null>(null);
   const [posts, setPosts] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<"wallet" | "posts">("posts");
+  const [activeProfileTab, setActiveProfileTab] = useState<
+    "posts" | "wallet" | "activity"
+  >("posts");
+  const [activityFeed, setActivityFeed] = useState<any[]>([]);
+  const [activityLoading, setActivityLoading] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const [walletLoading, setWalletLoading] = useState(false);
@@ -383,6 +388,22 @@ const Profile = () => {
     };
     checkFollow();
   }, [address, walletParam]);
+
+  useEffect(() => {
+    if (activeProfileTab !== "activity") return;
+    if (!walletParam && !publicKey) return;
+
+    const profileWallet = walletParam ?? publicKey?.toString() ?? "";
+    const viewerWallet = publicKey?.toString() ?? "";
+
+    if (profileWallet !== viewerWallet) return;
+
+    setActivityLoading(true);
+    getWalletActivity(profileWallet, viewerWallet)
+      .then((data) => setActivityFeed(data.activities ?? []))
+      .catch(() => setActivityFeed([]))
+      .finally(() => setActivityLoading(false));
+  }, [activeProfileTab, walletParam, publicKey]);
 
   const handleFileSelect = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>, type: "avatar" | "banner") => {
@@ -1399,20 +1420,22 @@ const Profile = () => {
         </div>
 
         {/* Tab switcher */}
-        <div className="border-b border-border flex gap-6 text-sm mt-4">
+        <div className="border-b border-border flex flex-wrap gap-6 text-sm mt-4">
           <button
+            type="button"
             className={`pb-2 px-1 -mb-px border-b-2 transition-colors ${
-              activeTab === "posts"
+              activeProfileTab === "posts"
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
-            onClick={() => setActiveTab("posts")}
+            onClick={() => setActiveProfileTab("posts")}
           >
             Posts
           </button>
           <button
+            type="button"
             className={`pb-2 px-1 -mb-px border-b-2 transition-colors ${
-              activeTab === "wallet"
+              activeProfileTab === "wallet"
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
@@ -1423,19 +1446,32 @@ const Profile = () => {
                   setShowUpgradeModal(true);
                   return;
                 }
-                if (activeTab !== "wallet") {
+                if (activeProfileTab !== "wallet") {
                   incrementScan(address);
                 }
               }
-              setActiveTab("wallet");
+              setActiveProfileTab("wallet");
             }}
           >
             Wallet
           </button>
+          {isOwnProfile && (
+            <button
+              type="button"
+              onClick={() => setActiveProfileTab("activity")}
+              className={
+                activeProfileTab === "activity"
+                  ? "border-b-2 border-primary text-primary font-semibold px-4 py-2 text-sm -mb-px"
+                  : "text-muted-foreground px-4 py-2 text-sm hover:text-foreground"
+              }
+            >
+              Activity
+            </button>
+          )}
         </div>
 
         {/* Tab content */}
-        {activeTab === "wallet" ? (
+        {activeProfileTab === "wallet" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-6 animate-slide-up">
             {/* 0. Portfolio Balance - above Wallet Health */}
             {canShowBalance && (
@@ -1886,6 +1922,91 @@ const Profile = () => {
             {/* 6. Wallet Activity Chart - full width */}
             {isOwnProfile && <WalletActivityChart wallet={wallet} activity={walletDashboard?.activity ?? []} />}
 
+          </div>
+        ) : activeProfileTab === "activity" ? (
+          <div className="space-y-3 mt-4">
+            {activityLoading ? (
+              <div className="glass-card p-4 text-center text-sm text-muted-foreground">
+                Loading activity...
+              </div>
+            ) : activityFeed.length === 0 ? (
+              <div className="glass-card p-6 text-center text-sm text-muted-foreground">
+                No activity yet.
+              </div>
+            ) : (
+              activityFeed.map((item, idx) => (
+                <div
+                  key={`${item.activity_type ?? "act"}-${item.created_at ?? ""}-${item.post_id ?? item.id ?? idx}`}
+                  className="glass-card p-4 flex gap-3 items-start cursor-pointer
+                    hover:bg-muted/5 transition-colors"
+                  onClick={() => {
+                    const postId =
+                      item.id ?? item.post_id ?? item.parent_id;
+                    if (postId == null) return;
+                    getPost(Number(postId))
+                      .then((data) => {
+                        setSelectedPost(data.post ?? data);
+                        setSelectedPostReplies(data.replies ?? []);
+                      })
+                      .catch(() => {});
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: "50%",
+                      background:
+                        item.activity_type === "liked"
+                          ? "rgba(248,113,113,0.15)"
+                          : item.activity_type === "reposted"
+                            ? "rgba(74,222,128,0.15)"
+                            : "rgba(99,102,241,0.15)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {item.activity_type === "liked" && (
+                      <Heart className="w-4 h-4 text-red-400" />
+                    )}
+                    {item.activity_type === "reposted" && (
+                      <Repeat2 className="w-4 h-4 text-green-400" />
+                    )}
+                    {item.activity_type === "commented" && (
+                      <MessageSquare className="w-4 h-4 text-indigo-400" />
+                    )}
+                  </div>
+
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p className="text-sm text-foreground font-medium mb-1">
+                      {item.activity_type === "liked" && "Liked a post"}
+                      {item.activity_type === "reposted" && "Reposted"}
+                      {item.activity_type === "commented" && "Replied to a post"}
+                    </p>
+                    <p className="text-xs text-muted-foreground line-clamp-2">
+                      {item.activity_type === "commented"
+                        ? item.content
+                        : item.parent_content ?? ""}
+                    </p>
+                    {item.activity_type === "commented" && item.parent_content && (
+                      <p
+                        className="text-xs text-muted-foreground/60 mt-1
+                line-clamp-1 border-l-2 border-border pl-2"
+                      >
+                        {item.parent_content}
+                      </p>
+                    )}
+                    <p className="text-[11px] text-muted-foreground/50 mt-1">
+                      {item.created_at
+                        ? formatRelativeTime(item.created_at)
+                        : ""}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         ) : (
           <div className="space-y-3 animate-slide-up">
