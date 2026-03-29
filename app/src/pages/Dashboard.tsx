@@ -1041,149 +1041,135 @@ const Dashboard = () => {
                 key={post?.id}
                 style={{ overflow: "visible", position: "relative" }}
               >
-                {activeTab === "following" && post.top_reply && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      left: 43,
-                      top: "auto",
-                      bottom: 52,
-                      height: 40,
-                      width: 2,
-                      background: "rgba(255,255,255,0.12)",
-                      zIndex: 2,
-                    }}
-                  />
-                )}
                 <PostCard
-                post={post}
-                profile={profiles[post.wallet] ?? { wallet: post.wallet }}
-                publicKey={publicKey}
-                activeTab={activeTab}
-                likedPostIds={likedPostIds}
-                repostedPostIds={repostedPostIds}
-                bookmarkedIds={bookmarkedIds}
-                bookmarkLoading={bookmarkLoading}
-                followedWallets={followedWallets}
-                likeLoading={likeLoading}
-                menuOpenId={menuOpenId}
-                repostDropdownId={repostDropdownId}
-                repostTargetId={repostTargetId}
-                onPostClick={(p) => {
-                  sessionStorage.setItem(
-                    "dashboard_scroll",
-                    window.scrollY.toString()
-                  );
-                  setSelectedPost(p);
-                  setReplyToId(p.id);
-                  setReplyContent("");
-                }}
-                onLike={handleLike}
-                onReply={(postId) => {
-                  const target = feed.find((x) => x.id === postId);
-                  if (!target || !publicKey) return;
-                  sessionStorage.setItem(
-                    "dashboard_scroll",
-                    window.scrollY.toString()
-                  );
-                  setSelectedPost(target);
-                  setReplyToId(postId);
-                  setReplyContent("");
-                }}
-                onRepost={async (_postId, targetId) => {
-                  if (!publicKey) return;
-                  try {
-                    await repostPost(publicKey.toString(), targetId);
+                  post={post}
+                  profile={profiles[post.wallet] ?? { wallet: post.wallet }}
+                  publicKey={publicKey}
+                  activeTab={activeTab}
+                  likedPostIds={likedPostIds}
+                  repostedPostIds={repostedPostIds}
+                  bookmarkedIds={bookmarkedIds}
+                  bookmarkLoading={bookmarkLoading}
+                  followedWallets={followedWallets}
+                  likeLoading={likeLoading}
+                  menuOpenId={menuOpenId}
+                  repostDropdownId={repostDropdownId}
+                  repostTargetId={repostTargetId}
+                  onPostClick={(p) => {
+                    sessionStorage.setItem(
+                      "dashboard_scroll",
+                      window.scrollY.toString()
+                    );
+                    setSelectedPost(p);
+                    setReplyToId(p.id);
+                    setReplyContent("");
+                  }}
+                  onLike={handleLike}
+                  onReply={(postId) => {
+                    const target = feed.find((x) => x.id === postId);
+                    if (!target || !publicKey) return;
+                    sessionStorage.setItem(
+                      "dashboard_scroll",
+                      window.scrollY.toString()
+                    );
+                    setSelectedPost(target);
+                    setReplyToId(postId);
+                    setReplyContent("");
+                  }}
+                  onRepost={async (_postId, targetId) => {
+                    if (!publicKey) return;
+                    try {
+                      await repostPost(publicKey.toString(), targetId);
+                      setRepostedPostIds((prev) => {
+                        const n = new Set(prev);
+                        n.add(targetId);
+                        return n;
+                      });
+                      const data =
+                        activeTab === "following" && publicKey
+                          ? await getFollowingFeed(publicKey.toString())
+                          : await getSocialFeed();
+                      const raw = data.posts ?? data ?? [];
+                      const posts = Array.isArray(raw) ? raw : [];
+                      if (activeTab === "explore") setFeed([...posts].reverse());
+                      else if (activeTab === "newest")
+                        setFeed(sortPostsByCreatedAtDesc(posts));
+                      else setFeed(posts);
+                      setRepostDropdownId(null);
+                      setRepostTargetId(null);
+                    } catch (e) {
+                      console.error(e);
+                    }
+                  }}
+                  onQuote={(p) => {
+                    setQuoteModalPost(p);
+                    setRepostDropdownId(null);
+                    setQuoteModalText("");
+                  }}
+                  onBookmark={handleBookmark}
+                  onReport={(postId) => {
+                    setReportModalId(postId);
+                    setMenuOpenId(null);
+                  }}
+                  onMenuOpen={setMenuOpenId}
+                  onRepostDropdown={(postId, targetId) => {
+                    setRepostDropdownId(postId);
+                    setRepostTargetId(targetId);
+                  }}
+                  onUndoRepost={(targetId) => {
                     setRepostedPostIds((prev) => {
                       const n = new Set(prev);
-                      n.add(targetId);
+                      n.delete(targetId);
                       return n;
                     });
-                    const data =
-                      activeTab === "following" && publicKey
-                        ? await getFollowingFeed(publicKey.toString())
-                        : await getSocialFeed();
-                    const raw = data.posts ?? data ?? [];
-                    const posts = Array.isArray(raw) ? raw : [];
-                    if (activeTab === "explore") setFeed([...posts].reverse());
-                    else if (activeTab === "newest")
-                      setFeed(sortPostsByCreatedAtDesc(posts));
-                    else setFeed(posts);
+                    setFeed((prev) =>
+                      prev.map((p) => {
+                        const match =
+                          (p as { repost_of?: number }).repost_of ===
+                            targetId || p.id === targetId;
+                        return match
+                          ? {
+                              ...p,
+                              repost_count: Math.max(
+                                (p.repost_count ?? 0) - 1,
+                                0
+                              ),
+                            }
+                          : p;
+                      })
+                    );
                     setRepostDropdownId(null);
                     setRepostTargetId(null);
-                  } catch (e) {
-                    console.error(e);
-                  }
-                }}
-                onQuote={(p) => {
-                  setQuoteModalPost(p);
-                  setRepostDropdownId(null);
-                  setQuoteModalText("");
-                }}
-                onBookmark={handleBookmark}
-                onReport={(postId) => {
-                  setReportModalId(postId);
-                  setMenuOpenId(null);
-                }}
-                onMenuOpen={setMenuOpenId}
-                onRepostDropdown={(postId, targetId) => {
-                  setRepostDropdownId(postId);
-                  setRepostTargetId(targetId);
-                }}
-                onUndoRepost={(targetId) => {
-                  setRepostedPostIds((prev) => {
-                    const n = new Set(prev);
-                    n.delete(targetId);
-                    return n;
-                  });
-                  setFeed((prev) =>
-                    prev.map((p) => {
-                      const match =
-                        (p as { repost_of?: number }).repost_of ===
-                          targetId || p.id === targetId;
-                      return match
-                        ? {
-                            ...p,
-                            repost_count: Math.max(
-                              (p.repost_count ?? 0) - 1,
-                              0
-                            ),
-                          }
-                        : p;
-                    })
-                  );
-                  setRepostDropdownId(null);
-                  setRepostTargetId(null);
-                }}
-                onTopReplyClick={(reply) => {
-                  if (!reply) return;
-                  sessionStorage.setItem(
-                    "dashboard_scroll",
-                    window.scrollY.toString()
-                  );
-                  setSelectedPost(reply as unknown as SocialPost);
-                  setReplyToId(reply.id);
-                  setReplyContent("");
-                }}
-                onTopReplyLike={(replyId) => {
-                  if (!publicKey) return;
-                  likePost(publicKey.toString(), replyId).catch(console.error);
-                }}
-                onTopReplyRepost={(replyId) => {
-                  if (!publicKey) return;
-                  repostPost(publicKey.toString(), replyId).catch(
-                    console.error
-                  );
-                }}
-                onTopReplyComment={(p, replyId) => {
-                  sessionStorage.setItem(
-                    "dashboard_scroll",
-                    window.scrollY.toString()
-                  );
-                  setSelectedPost(p);
-                  setReplyToId(replyId);
-                  setReplyContent("");
-                }}
+                  }}
+                  onTopReplyClick={(reply) => {
+                    if (!reply) return;
+                    sessionStorage.setItem(
+                      "dashboard_scroll",
+                      window.scrollY.toString()
+                    );
+                    setSelectedPost(reply as unknown as SocialPost);
+                    setReplyToId(reply.id);
+                    setReplyContent("");
+                  }}
+                  onTopReplyLike={(replyId) => {
+                    if (!publicKey) return;
+                    likePost(publicKey.toString(), replyId).catch(console.error);
+                  }}
+                  onTopReplyRepost={(replyId) => {
+                    if (!publicKey) return;
+                    repostPost(publicKey.toString(), replyId).catch(
+                      console.error
+                    );
+                  }}
+                  onTopReplyComment={(p, replyId) => {
+                    sessionStorage.setItem(
+                      "dashboard_scroll",
+                      window.scrollY.toString()
+                    );
+                    setSelectedPost(p);
+                    setReplyToId(replyId);
+                    setReplyContent("");
+                  }}
                 />
               </div>
             ))
