@@ -383,63 +383,65 @@ export default function PostDetailPanel({
                 padding: "10px 0",
                 borderBottom: "1px solid rgba(255,255,255,0.06)",
                 display: "flex",
+                flexDirection: "row",
                 gap: 0,
-                position: "relative",
+                alignItems: "stretch",
               }}
             >
               <div
                 style={{
-                  position: "absolute",
-                  left: 15,
-                  top: 40,
-                  bottom: 0,
-                  width: 2,
-                  background: "rgba(255,255,255,0.1)",
-                  borderRadius: 2,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  flexShrink: 0,
+                  width: 32,
                 }}
-              />
+              >
+                <div
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: "50%",
+                    background: "rgba(99,102,241,0.15)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#818cf8",
+                    fontWeight: "bold",
+                    fontSize: 11,
+                    flexShrink: 0,
+                  }}
+                >
+                  {(reply.handle ?? reply.wallet ?? "?")[0]?.toUpperCase()}
+                </div>
+                <div
+                  style={{
+                    width: 2,
+                    flex: 1,
+                    background: "rgba(255,255,255,0.1)",
+                    borderRadius: 1,
+                    marginTop: 4,
+                  }}
+                />
+              </div>
 
-              <div style={{ flex: 1, paddingLeft: 4 }}>
+              <div style={{ flex: 1, paddingLeft: 10, minWidth: 0 }}>
                 <div
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 8,
-                    marginBottom: 6,
+                    gap: 6,
+                    marginBottom: 4,
+                    height: 32,
                   }}
                 >
-                  <div
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: "50%",
-                      background: "rgba(99,102,241,0.15)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      color: "#818cf8",
-                      fontWeight: "bold",
-                      fontSize: 11,
-                      flexShrink: 0,
-                    }}
-                  >
-                    {(reply.handle ?? reply.wallet ?? "?")[0]?.toUpperCase()}
+                  <div style={{ color: "#fff", fontWeight: 600, fontSize: 13 }}>
+                    {reply.handle
+                      ? `@${reply.handle}`
+                      : `${reply.wallet?.slice(0, 4)}...${reply.wallet?.slice(-4)}`}
                   </div>
-                  <div>
-                    <div
-                      style={{
-                        color: "#fff",
-                        fontWeight: 600,
-                        fontSize: 13,
-                      }}
-                    >
-                      {reply.handle
-                        ? `@${reply.handle}`
-                        : `${reply.wallet?.slice(0, 4)}...${reply.wallet?.slice(-4)}`}
-                    </div>
-                    <div style={{ color: "#666", fontSize: 11 }}>
-                      {formatRelativeTime(reply.created_at)}
-                    </div>
+                  <div style={{ color: "#666", fontSize: 11 }}>
+                    {formatRelativeTime(reply.created_at)}
                   </div>
                 </div>
 
@@ -449,14 +451,13 @@ export default function PostDetailPanel({
                     fontSize: 14,
                     lineHeight: 1.5,
                     whiteSpace: "pre-wrap",
-                    marginLeft: 40,
                     marginBottom: 8,
                   }}
                 >
                   {reply.content}
                 </p>
 
-                <div style={{ display: "flex", gap: 16, marginLeft: 40 }}>
+                <div style={{ display: "flex", gap: 16, marginBottom: 4 }}>
                   <button
                     type="button"
                     onClick={() => handleLikeReply(reply)}
