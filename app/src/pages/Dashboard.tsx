@@ -10,24 +10,15 @@ import "react-image-crop/dist/ReactCrop.css";
 import { useWallet } from "@solana/wallet-adapter-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import PostDetailPanel from "@/components/PostDetailPanel";
+import PostCard from "@/components/PostCard";
 import {
-  MessageSquare,
-  Heart,
   Users,
-  Shield,
   Clock,
   Star,
-  Search,
-  MoreVertical,
-  Repeat2,
-  MessageSquareQuote,
-  Flag,
   AlertTriangle,
-  Bookmark,
   X,
   Image as ImageIcon,
 } from "lucide-react";
-import WalletHoverCard from "@/components/WalletHoverCard";
 import QuotaBanner from "@/components/blockid/QuotaBanner";
 import SubscriptionBadge from "@/components/blockid/SubscriptionBadge";
 import {
@@ -94,16 +85,6 @@ type WalletProfile = {
   wallet: string;
   handle?: string | null;
   trust_score?: number | null;
-};
-
-const truncateWallet = (wallet: string) =>
-  wallet.length > 8 ? `${wallet.slice(0, 4)}...${wallet.slice(-4)}` : wallet;
-
-const getTrustColor = (score?: number | null) => {
-  if (score == null) return "bg-muted text-muted-foreground";
-  if (score >= 70) return "bg-emerald-500/10 text-emerald-400";
-  if (score >= 40) return "bg-amber-500/10 text-amber-400";
-  return "bg-rose-500/10 text-rose-400";
 };
 
 const normalizeIso = (iso?: string): string => {
@@ -1055,1165 +1036,139 @@ const Dashboard = () => {
               No posts yet. Be the first to post!
             </div>
           ) : (
-            feed.map((post: any) => {
-              const profile = (profiles[post.wallet] ?? {}) as WalletProfile;
-              const trustScore =
-                profile?.trust_score ?? post?.trust_score ?? undefined;
-              const isConnected = !!publicKey;
-              const originalPost = (post as any).original_post ?? null;
-              const isRepost =
-                originalPost != null ||
-                (!!(post as any).is_repost &&
-                  (post as any).is_repost !== false);
-
-              const displayWallet =
-                isRepost && originalPost ? originalPost.wallet : post.wallet ?? "";
-
-              const displayHandle =
-                isRepost && originalPost
-                  ? originalPost.handle
-                  : profile?.handle ?? post.handle ?? null;
-
-              const isQuoteRepost =
-                isRepost && !!(post as any)?.quote_content;
-
-              const displayContent =
-                isRepost && originalPost ? originalPost.content : post.content;
-
-              const displayTrustScore =
-                isRepost && originalPost ? originalPost.trust_score : trustScore;
-
-              const trustColor = getTrustColor(displayTrustScore);
-              const targetWalletForActions =
-                isRepost && originalPost
-                  ? originalPost.wallet
-                  : post?.wallet ?? "";
-
-              const avatarLetter =
-                (
-                  isRepost && originalPost
-                    ? (originalPost.handle ??
-                        originalPost.wallet ??
-                        "?")
-                    : (displayHandle ?? displayWallet ?? "?")
-                )[0]?.toUpperCase() ?? "?";
-
-              const postHeaderAndCard = (
-                <>
-                  {isRepost && (
-                    <div className="flex items-center gap-1.5 px-1 pb-1 text-xs text-muted-foreground">
-                      <Repeat2 className="w-3.5 h-3.5 text-green-400" />
-                      <span>
-                        {post?.handle
-                          ? `@${post.handle}`
-                          : truncateWallet(post?.wallet ?? "")}{" "}
-                        reposted
-                      </span>
-                    </div>
-                  )}
-                  <div
-                    className="glass-card p-4 animate-slide-up cursor-pointer"
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 12,
-                    }}
-                    onClick={() => {
-                      sessionStorage.setItem(
-                        "dashboard_scroll",
-                        window.scrollY.toString()
-                      );
-                      setSelectedPost(post);
-                      setReplyToId(post.id);
-                      setReplyContent("");
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "flex-start",
-                        gap: 12,
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          flexShrink: 0,
-                          alignSelf: "stretch",
-                        }}
-                      >
-                        <div
-                          className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary"
-                          style={{ flexShrink: 0 }}
-                        >
-                          {avatarLetter}
-                        </div>
-                      </div>
-
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                        <div className="flex items-center gap-2">
-                          <WalletHoverCard
-                            wallet={
-                              isRepost && originalPost
-                                ? originalPost.wallet
-                                : post.wallet ?? ""
-                            }
-                            handle={
-                              isRepost && originalPost
-                                ? (originalPost.handle ?? undefined)
-                                : (profile?.handle ?? post.handle ?? undefined)
-                            }
-                            isFollowing={followedWallets.has(
-                              isRepost && originalPost
-                                ? originalPost.wallet
-                                : post.wallet ?? ""
-                            )}
-                          >
-                            <span className="text-sm font-semibold text-foreground inline-flex items-center gap-1">
-                              {isRepost && originalPost
-                                ? originalPost.handle
-                                  ? `@${originalPost.handle}`
-                                  : truncateWallet(originalPost.wallet ?? "")
-                                : displayHandle
-                                ? `@${displayHandle}`
-                                : truncateWallet(post?.wallet ?? "")}
-                              <SubscriptionBadge
-                                plan={
-                                  (isRepost && originalPost
-                                    ? (originalPost as any)?.plan
-                                    : (post as any)?.plan) ?? "free"
-                                }
-                                size="sm"
-                              />
-                            </span>
-                          </WalletHoverCard>
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1 ${trustColor}`}
-                          >
-                            <Shield className="w-3 h-3" />
-                            {displayTrustScore != null
-                              ? Math.round(displayTrustScore)
-                              : "No score"}
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-muted-foreground">
-                          {truncateWallet(displayWallet)}
-                        </p>
-                      </div>
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                        <Clock className="w-3 h-3" />
-                        <span>{formatRelativeTime(post?.created_at)}</span>
-                      </div>
-                      <div className="relative">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setMenuOpenId(
-                              menuOpenId === post?.id ? null : (post?.id ?? 0)
-                            );
-                          }}
-                          className="p-1 rounded-md hover:bg-muted/30 text-muted-foreground"
-                        >
-                          <MoreVertical className="w-4 h-4" />
-                        </button>
-
-                        {menuOpenId === post?.id && (
-                          <div
-                            className="absolute right-0 top-6 z-50 w-44 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl py-1"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <button
-                              onClick={() => {
-                                handleBookmark(post);
-                                setMenuOpenId(null);
-                              }}
-                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-zinc-100 hover:bg-zinc-800 transition-colors"
-                            >
-                              <Bookmark
-                                className={`w-4 h-4 ${
-                                  bookmarkedIds.has(post?.id)
-                                    ? "text-yellow-400 fill-yellow-400"
-                                    : "text-zinc-400"
-                                }`}
-                              />
-                              {bookmarkedIds.has(post?.id)
-                                ? "Remove Bookmark"
-                                : "Bookmark"}
-                            </button>
-
-                            {publicKey &&
-                              post?.wallet !== publicKey.toString() && (
-                                <button
-                                  onClick={() => {
-                                    setReportModalId(post?.id ?? null);
-                                    setMenuOpenId(null);
-                                  }}
-                                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-zinc-800 transition-colors"
-                                >
-                                  <Flag className="w-4 h-4" />
-                                  Report Post
-                                </button>
-                              )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Quote content if quote repost */}
-                  {isQuoteRepost && (
-                    <div className="mt-1 p-3 rounded-xl border border-border bg-muted/20">
-                      <p className="text-xs text-muted-foreground mb-1">
-                        Quote
-                      </p>
-                      <p className="text-sm text-foreground whitespace-pre-wrap">
-                        {(post as any)?.quote_content}
-                      </p>
-                    </div>
-                  )}
-
-                  {isRepost && !originalPost ? (
-                    <div className="h-4 bg-muted/30 rounded animate-pulse w-2/3" />
-                  ) : (
-                    <p className="text-sm text-foreground whitespace-pre-wrap">
-                      {displayContent}
-                    </p>
-                  )}
-                  {(() => {
-                    const imgUrl =
-                      isRepost && originalPost
-                        ? (originalPost as any).image_url
-                        : (post as any).image_url;
-                    return imgUrl ? (
-                      <div
-                        style={{
-                          width: "100%",
-                          maxWidth: "100%",
-                          overflow: "hidden",
-                          marginTop: 8,
-                          borderRadius: 12,
-                          backgroundColor: "transparent",
-                        }}
-                      >
-                        <img
-                          src={imgUrl}
-                          alt="Post image"
-                          style={{
-                            width: "100%",
-                            height: "auto",
-                            maxHeight: "600px",
-                            objectFit: "contain",
-                            borderRadius: 12,
-                            display: "block",
-                            backgroundColor: "transparent",
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            sessionStorage.setItem(
-                              "dashboard_scroll",
-                              window.scrollY.toString()
-                            );
-                            setSelectedPost(post);
-                            setReplyToId(post.id);
-                            setReplyContent("");
-                          }}
-                        />
-                      </div>
-                    ) : null;
-                  })()}
-
-                  <div className="flex items-center justify-between pt-1 text-xs text-muted-foreground">
-                    <div className="flex items-center gap-4">
-                      <button
-                        className={`flex items-center gap-1 transition-colors disabled:opacity-60 ${
-                          likedPostIds.has(post?.id)
-                            ? "text-red-400 hover:text-red-300"
-                            : "hover:text-red-400"
-                        }`}
-                        disabled={likeLoading[post?.id]}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleLike(post);
-                        }}
-                      >
-                        <Heart
-                          className={`w-3.5 h-3.5 ${
-                            likeLoading[post?.id]
-                              ? "animate-pulse"
-                              : likedPostIds.has(post?.id)
-                              ? "fill-red-400"
-                              : ""
-                          }`}
-                        />
-                        <span>
-                          {post?.likes_count ?? post?.like_count ?? 0}
-                        </span>
-                      </button>
-                      <button
-                        className="flex items-center gap-1 hover:text-primary transition-colors"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!post?.id || !publicKey) return;
-                          sessionStorage.setItem(
-                            "dashboard_scroll",
-                            window.scrollY.toString()
-                          );
-                          setSelectedPost(post);
-                          setReplyToId(post.id);
-                          setReplyContent("");
-                        }}
-                      >
-                        <MessageSquare className="w-3.5 h-3.5" />
-                        <span>
-                          {post?.replies_count ?? post?.reply_count ?? 0}
-                        </span>
-                      </button>
-                      <div className="relative">
-                        <button
-                          className={`flex items-center gap-1 
-                            transition-colors text-sm ${
-                              repostedPostIds.has(
-                                (post as any)?.repost_of ?? post?.id ?? 0
-                              )
-                                ? "text-green-400 hover:text-green-300"
-                                : "text-muted-foreground hover:text-green-400"
-                            }`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (!publicKey) return;
-                            const targetId =
-                              isRepost && (post as any)?.repost_of
-                                ? (post as any).repost_of
-                                : post?.id ?? null;
-
-                            setRepostDropdownId(
-                              repostDropdownId === (post?.id ?? null)
-                                ? null
-                                : post?.id ?? null
-                            );
-                            setRepostTargetId(targetId);
-                          }}
-                        >
-                          <Repeat2
-                            className={`w-4 h-4 ${
-                              repostedPostIds.has(
-                                (post as any)?.repost_of ?? post?.id ?? 0
-                              )
-                                ? "fill-green-400/20"
-                                : ""
-                            }`}
-                          />
-                          {post?.repost_count ?? 0}
-                        </button>
-
-                        {repostDropdownId === post?.id && (
-                          <div
-                            className="absolute bottom-full left-0 mb-2 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl py-1 w-44 z-50"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {repostedPostIds.has(
-                              repostTargetId ?? repostDropdownId ?? 0
-                            ) && (
-                              <button
-                                onClick={() => {
-                                  const tid =
-                                    repostTargetId ?? repostDropdownId;
-                                  if (tid == null) return;
-                                  setRepostedPostIds((prev) => {
-                                    const next = new Set(prev);
-                                    next.delete(tid);
-                                    return next;
-                                  });
-                                  setFeed((prev) =>
-                                    prev.map((p) => {
-                                      const match =
-                                        (p as any).repost_of === tid ||
-                                        p.id === tid;
-                                      return match
-                                        ? {
-                                            ...p,
-                                            repost_count: Math.max(
-                                              (p.repost_count ?? 0) - 1,
-                                              0
-                                            ),
-                                          }
-                                        : p;
-                                    })
-                                  );
-                                  setRepostDropdownId(null);
-                                  setRepostTargetId(null);
-                                }}
-                                className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-green-400 hover:bg-zinc-800 transition-colors"
-                              >
-                                <Repeat2 className="w-4 h-4" />
-                                Undo Repost
-                              </button>
-                            )}
-
-                            <button
-                              onClick={async () => {
-                                if (!publicKey) return;
-                                try {
-                                  const idToRepost =
-                                    repostTargetId ??
-                                    repostDropdownId ??
-                                    null;
-                                  if (idToRepost == null) return;
-                                  await repostPost(
-                                    publicKey.toString(),
-                                    idToRepost
-                                  );
-                                  setRepostedPostIds((prev) => {
-                                    const next = new Set(prev);
-                                    next.add(idToRepost);
-                                    return next;
-                                  });
-                                  setFeed((prev) =>
-                                    prev.map((p) => {
-                                      const match =
-                                        (p as any).repost_of === idToRepost ||
-                                        p.id === idToRepost;
-                                      return match
-                                        ? {
-                                            ...p,
-                                            repost_count:
-                                              (p.repost_count ?? 0) + 1,
-                                          }
-                                        : p;
-                                    })
-                                  );
-                                  setRepostDropdownId(null);
-                                  setRepostTargetId(null);
-                                  const data =
-                                    activeTab === "following" && publicKey
-                                      ? await getFollowingFeed(
-                                          publicKey.toString()
-                                        )
-                                      : await getSocialFeed();
-                                  const raw = data.posts ?? data ?? [];
-                                  const posts = Array.isArray(raw) ? raw : [];
-                                  if (activeTab === "explore") {
-                                    setFeed([...posts].reverse());
-                                  } else if (activeTab === "newest") {
-                                    setFeed(sortPostsByCreatedAtDesc(posts));
-                                  } else {
-                                    setFeed(posts);
-                                  }
-                                } catch (e) {
-                                  console.error(e);
-                                }
-                              }}
-                              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-zinc-100 hover:bg-zinc-800 transition-colors"
-                            >
-                              <Repeat2 className="w-4 h-4 text-green-400" />
-                              Repost
-                            </button>
-
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setQuoteModalPost(post);
-                                setRepostDropdownId(null);
-                                setQuoteModalText("");
-                              }}
-                              className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-zinc-100 hover:bg-zinc-800 transition-colors"
-                            >
-                              <MessageSquareQuote className="w-4 h-4 text-blue-400" />
-                              Quote
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                  </div>
-
-                      </div>
-                    </div>
-                </div>
-              </>
-              );
-
-              return activeTab === "following" && post.top_reply ? (
-                <div
-                  key={post?.id}
-                  style={{ overflow: "visible", position: "relative" }}
-                >
-                  {isRepost && (
-                    <div className="flex items-center gap-1.5 px-1 pb-1 text-xs text-muted-foreground">
-                      <Repeat2 className="w-3.5 h-3.5 text-green-400" />
-                      <span>
-                        {post?.handle
-                          ? `@${post.handle}`
-                          : truncateWallet(post?.wallet ?? "")}{" "}
-                        reposted
-                      </span>
-                    </div>
-                  )}
-
-                  <div
-                    className="glass-card animate-slide-up"
-                    style={{ padding: 0, overflow: "hidden" }}
-                  >
-                    <div
-                      style={{
-                        padding: "16px 16px 8px 16px",
-                        cursor: "pointer",
-                      }}
-                      onClick={() => {
-                        sessionStorage.setItem(
-                          "dashboard_scroll",
-                          window.scrollY.toString()
-                        );
-                        setSelectedPost(post);
-                        setReplyToId(post.id);
-                        setReplyContent("");
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: 12,
-                          alignItems: "flex-start",
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                            flexShrink: 0,
-                            alignSelf: "stretch",
-                          }}
-                        >
-                          <div
-                            className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary"
-                            style={{ flexShrink: 0 }}
-                          >
-                            {avatarLetter}
-                          </div>
-                          <div
-                            style={{
-                              width: 2,
-                              flex: 1,
-                              marginTop: 4,
-                              marginBottom: 4,
-                              background: "rgba(255,255,255,0.15)",
-                              borderRadius: 1,
-                              minHeight: 12,
-                            }}
-                          />
-                        </div>
-
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div
-                            className="flex items-start justify-between gap-3"
-                            style={{ marginBottom: 6 }}
-                          >
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <WalletHoverCard
-                                  wallet={
-                                    isRepost && originalPost
-                                      ? originalPost.wallet
-                                      : post.wallet ?? ""
-                                  }
-                                  handle={
-                                    isRepost && originalPost
-                                      ? (originalPost.handle ?? undefined)
-                                      : (profile?.handle ??
-                                        post.handle ??
-                                        undefined)
-                                  }
-                                  isFollowing={followedWallets.has(
-                                    isRepost && originalPost
-                                      ? originalPost.wallet
-                                      : post.wallet ?? ""
-                                  )}
-                                >
-                                  <span className="text-sm font-semibold text-foreground inline-flex items-center gap-1">
-                                    {isRepost && originalPost
-                                      ? originalPost.handle
-                                        ? `@${originalPost.handle}`
-                                        : truncateWallet(
-                                            originalPost.wallet ?? ""
-                                          )
-                                      : displayHandle
-                                        ? `@${displayHandle}`
-                                        : truncateWallet(post?.wallet ?? "")}
-                                    <SubscriptionBadge
-                                      plan={
-                                        (isRepost && originalPost
-                                          ? (originalPost as any)?.plan
-                                          : (post as any)?.plan) ?? "free"
-                                      }
-                                      size="sm"
-                                    />
-                                  </span>
-                                </WalletHoverCard>
-                                <span
-                                  className={`px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1 ${trustColor}`}
-                                >
-                                  <Shield className="w-3 h-3" />
-                                  {displayTrustScore != null
-                                    ? Math.round(displayTrustScore)
-                                    : "No score"}
-                                </span>
-                              </div>
-                              <p className="text-[11px] text-muted-foreground">
-                                {truncateWallet(displayWallet)}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                              <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                                <Clock className="w-3 h-3" />
-                                <span>
-                                  {formatRelativeTime(post?.created_at)}
-                                </span>
-                              </div>
-                              <div className="relative">
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setMenuOpenId(
-                                      menuOpenId === post?.id
-                                        ? null
-                                        : (post?.id ?? 0)
-                                    );
-                                  }}
-                                  className="p-1 rounded-md hover:bg-muted/30 text-muted-foreground"
-                                >
-                                  <MoreVertical className="w-4 h-4" />
-                                </button>
-                                {menuOpenId === post?.id && (
-                                  <div
-                                    className="absolute right-0 top-6 z-50 w-44 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl py-1"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        handleBookmark(post);
-                                        setMenuOpenId(null);
-                                      }}
-                                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-zinc-100 hover:bg-zinc-800 transition-colors"
-                                    >
-                                      <Bookmark
-                                        className={`w-4 h-4 ${
-                                          bookmarkedIds.has(post?.id)
-                                            ? "text-yellow-400 fill-yellow-400"
-                                            : "text-zinc-400"
-                                        }`}
-                                      />
-                                      {bookmarkedIds.has(post?.id)
-                                        ? "Remove Bookmark"
-                                        : "Bookmark"}
-                                    </button>
-                                    {publicKey &&
-                                      post?.wallet !==
-                                        publicKey.toString() && (
-                                        <button
-                                          type="button"
-                                          onClick={() => {
-                                            setReportModalId(post?.id ?? null);
-                                            setMenuOpenId(null);
-                                          }}
-                                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-zinc-800 transition-colors"
-                                        >
-                                          <Flag className="w-4 h-4" />
-                                          Report Post
-                                        </button>
-                                      )}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-
-                          {isQuoteRepost && (
-                            <div className="mt-1 mb-2 p-3 rounded-xl border border-border bg-muted/20">
-                              <p className="text-xs text-muted-foreground mb-1">
-                                Quote
-                              </p>
-                              <p className="text-sm text-foreground whitespace-pre-wrap">
-                                {(post as any)?.quote_content}
-                              </p>
-                            </div>
-                          )}
-
-                          {isRepost && !originalPost ? (
-                            <div className="h-4 bg-muted/30 rounded animate-pulse w-2/3 mb-2" />
-                          ) : (
-                            <p
-                              className="text-sm text-foreground whitespace-pre-wrap"
-                              style={{ marginBottom: 8 }}
-                            >
-                              {displayContent}
-                            </p>
-                          )}
-
-                          {(() => {
-                            const imgUrl =
-                              isRepost && originalPost
-                                ? (originalPost as any).image_url
-                                : (post as any).image_url;
-                            return imgUrl ? (
-                              <img
-                                src={imgUrl}
-                                alt="Post image"
-                                style={{
-                                  width: "100%",
-                                  height: "auto",
-                                  maxHeight: "400px",
-                                  objectFit: "contain",
-                                  borderRadius: 8,
-                                  display: "block",
-                                  marginBottom: 8,
-                                }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  sessionStorage.setItem(
-                                    "dashboard_scroll",
-                                    window.scrollY.toString()
-                                  );
-                                  setSelectedPost(post);
-                                  setReplyToId(post.id);
-                                  setReplyContent("");
-                                }}
-                              />
-                            ) : null;
-                          })()}
-
-                          <div
-                            className="flex items-center justify-between pt-1 text-xs text-muted-foreground"
-                            style={{ paddingBottom: 8 }}
-                          >
-                            <div className="flex items-center gap-4">
-                              <button
-                                type="button"
-                                className={`flex items-center gap-1 transition-colors disabled:opacity-60 ${
-                                  likedPostIds.has(post?.id)
-                                    ? "text-red-400 hover:text-red-300"
-                                    : "hover:text-red-400"
-                                }`}
-                                disabled={likeLoading[post?.id]}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleLike(post);
-                                }}
-                              >
-                                <Heart
-                                  className={`w-3.5 h-3.5 ${
-                                    likeLoading[post?.id]
-                                      ? "animate-pulse"
-                                      : likedPostIds.has(post?.id)
-                                        ? "fill-red-400"
-                                        : ""
-                                  }`}
-                                />
-                                <span>
-                                  {post?.likes_count ?? post?.like_count ?? 0}
-                                </span>
-                              </button>
-                              <button
-                                type="button"
-                                className="flex items-center gap-1 hover:text-primary transition-colors"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (!post?.id || !publicKey) return;
-                                  sessionStorage.setItem(
-                                    "dashboard_scroll",
-                                    window.scrollY.toString()
-                                  );
-                                  setSelectedPost(post);
-                                  setReplyToId(post.id);
-                                  setReplyContent("");
-                                }}
-                              >
-                                <MessageSquare className="w-3.5 h-3.5" />
-                                <span>
-                                  {post?.replies_count ??
-                                    post?.reply_count ??
-                                    0}
-                                </span>
-                              </button>
-                              <div className="relative">
-                                <button
-                                  type="button"
-                                  className={`flex items-center gap-1 transition-colors text-sm ${
-                                    repostedPostIds.has(
-                                      (post as any)?.repost_of ??
-                                        post?.id ??
-                                        0
-                                    )
-                                      ? "text-green-400 hover:text-green-300"
-                                      : "text-muted-foreground hover:text-green-400"
-                                  }`}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (!publicKey) return;
-                                    const targetId =
-                                      isRepost && (post as any)?.repost_of
-                                        ? (post as any).repost_of
-                                        : post?.id ?? null;
-                                    setRepostDropdownId(
-                                      repostDropdownId === (post?.id ?? null)
-                                        ? null
-                                        : post?.id ?? null
-                                    );
-                                    setRepostTargetId(targetId);
-                                  }}
-                                >
-                                  <Repeat2
-                                    className={`w-4 h-4 ${
-                                      repostedPostIds.has(
-                                        (post as any)?.repost_of ??
-                                          post?.id ??
-                                          0
-                                      )
-                                        ? "fill-green-400/20"
-                                        : ""
-                                    }`}
-                                  />
-                                  {post?.repost_count ?? 0}
-                                </button>
-                                {repostDropdownId === post?.id && (
-                                  <div
-                                    className="absolute bottom-full left-0 mb-2 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl py-1 w-44 z-50"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    {repostedPostIds.has(
-                                      repostTargetId ??
-                                        repostDropdownId ??
-                                        0
-                                    ) && (
-                                      <button
-                                        type="button"
-                                        onClick={() => {
-                                          const tid =
-                                            repostTargetId ??
-                                            repostDropdownId;
-                                          if (tid == null) return;
-                                          setRepostedPostIds((prev) => {
-                                            const next = new Set(prev);
-                                            next.delete(tid);
-                                            return next;
-                                          });
-                                          setFeed((prev) =>
-                                            prev.map((p) => {
-                                              const match =
-                                                (p as any).repost_of ===
-                                                  tid || p.id === tid;
-                                              return match
-                                                ? {
-                                                    ...p,
-                                                    repost_count: Math.max(
-                                                      (p.repost_count ?? 0) -
-                                                        1,
-                                                      0
-                                                    ),
-                                                  }
-                                                : p;
-                                            })
-                                          );
-                                          setRepostDropdownId(null);
-                                          setRepostTargetId(null);
-                                        }}
-                                        className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-green-400 hover:bg-zinc-800 transition-colors"
-                                      >
-                                        <Repeat2 className="w-4 h-4" />
-                                        Undo Repost
-                                      </button>
-                                    )}
-                                    <button
-                                      type="button"
-                                      onClick={async () => {
-                                        if (!publicKey) return;
-                                        try {
-                                          const idToRepost =
-                                            repostTargetId ??
-                                            repostDropdownId ??
-                                            null;
-                                          if (idToRepost == null) return;
-                                          await repostPost(
-                                            publicKey.toString(),
-                                            idToRepost
-                                          );
-                                          setRepostedPostIds((prev) => {
-                                            const next = new Set(prev);
-                                            next.add(idToRepost);
-                                            return next;
-                                          });
-                                          setFeed((prev) =>
-                                            prev.map((p) => {
-                                              const match =
-                                                (p as any).repost_of ===
-                                                  idToRepost ||
-                                                p.id === idToRepost;
-                                              return match
-                                                ? {
-                                                    ...p,
-                                                    repost_count:
-                                                      (p.repost_count ?? 0) +
-                                                      1,
-                                                  }
-                                                : p;
-                                            })
-                                          );
-                                          setRepostDropdownId(null);
-                                          setRepostTargetId(null);
-                                          const data =
-                                            activeTab === "following" &&
-                                            publicKey
-                                              ? await getFollowingFeed(
-                                                  publicKey.toString()
-                                                )
-                                              : await getSocialFeed();
-                                          const raw =
-                                            data.posts ?? data ?? [];
-                                          const posts = Array.isArray(raw)
-                                            ? raw
-                                            : [];
-                                          if (activeTab === "explore") {
-                                            setFeed([...posts].reverse());
-                                          } else if (
-                                            activeTab === "newest"
-                                          ) {
-                                            setFeed(
-                                              sortPostsByCreatedAtDesc(posts)
-                                            );
-                                          } else {
-                                            setFeed(posts);
-                                          }
-                                        } catch (e) {
-                                          console.error(e);
-                                        }
-                                      }}
-                                      className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-zinc-100 hover:bg-zinc-800 transition-colors"
-                                    >
-                                      <Repeat2 className="w-4 h-4 text-green-400" />
-                                      Repost
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setQuoteModalPost(post);
-                                        setRepostDropdownId(null);
-                                        setQuoteModalText("");
-                                      }}
-                                      className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-zinc-100 hover:bg-zinc-800 transition-colors"
-                                    >
-                                      <MessageSquareQuote className="w-4 h-4 text-blue-400" />
-                                      Quote
-                                    </button>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div
-                      style={{
-                        height: 1,
-                        background: "rgba(255,255,255,0.06)",
-                        marginLeft: 60,
-                      }}
-                    />
-
-                    <div
-                      style={{
-                        padding: "10px 16px 12px 16px",
-                        cursor: "pointer",
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        sessionStorage.setItem(
-                          "dashboard_scroll",
-                          window.scrollY.toString()
-                        );
-                        const replyAsPost = {
-                          ...post.top_reply!,
-                        } as unknown as SocialPost;
-                        setSelectedPost(replyAsPost);
-                        setReplyToId(post.top_reply!.id);
-                        setReplyContent("");
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: 10,
-                          alignItems: "flex-start",
-                        }}
-                      >
-                        <div
-                          style={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: "50%",
-                            background: "rgba(99,102,241,0.15)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            color: "#818cf8",
-                            fontWeight: "bold",
-                            fontSize: 11,
-                            flexShrink: 0,
-                          }}
-                        >
-                          {(
-                            post.top_reply.handle ??
-                            post.top_reply.wallet ??
-                            "?"
-                          )[0]?.toUpperCase()}
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 6,
-                              marginBottom: 3,
-                            }}
-                          >
-                            <span
-                              style={{
-                                color: "#fff",
-                                fontWeight: 600,
-                                fontSize: 13,
-                              }}
-                            >
-                              {post.top_reply.handle
-                                ? `@${post.top_reply.handle}`
-                                : `${post.top_reply.wallet?.slice(0, 4)}...${post.top_reply.wallet?.slice(-4)}`}
-                            </span>
-                            <span style={{ color: "#555", fontSize: 11 }}>
-                              · {formatRelativeTime(post.top_reply.created_at)}
-                            </span>
-                          </div>
-                          <p
-                            style={
-                              {
-                                color: "#adb5bd",
-                                fontSize: 13,
-                                lineHeight: 1.5,
-                                whiteSpace: "pre-wrap",
-                                overflow: "hidden",
-                                display: "-webkit-box",
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: "vertical",
-                              } as CSSProperties
-                            }
-                          >
-                            {post.top_reply.content}
-                          </p>
-                          <div
-                            style={{
-                              display: "flex",
-                              gap: 14,
-                              marginTop: 6,
-                            }}
-                          >
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (!publicKey) return;
-                                likePost(
-                                  publicKey.toString(),
-                                  post.top_reply!.id
-                                ).catch(console.error);
-                              }}
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 4,
-                                background: "none",
-                                border: "none",
-                                cursor: "pointer",
-                                color: "#555",
-                                fontSize: 12,
-                              }}
-                            >
-                              <Heart className="w-3 h-3 shrink-0" />
-                              {post.top_reply.like_count ?? 0}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (!publicKey) return;
-                                sessionStorage.setItem(
-                                  "dashboard_scroll",
-                                  window.scrollY.toString()
-                                );
-                                setSelectedPost(post);
-                                setReplyToId(post.top_reply!.id);
-                                setReplyContent("");
-                              }}
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 4,
-                                background: "none",
-                                border: "none",
-                                cursor: "pointer",
-                                color: "#555",
-                                fontSize: 12,
-                              }}
-                            >
-                              <MessageSquare className="w-3 h-3 shrink-0" />
-                              {post.top_reply.reply_count ?? 0}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                if (!publicKey) return;
-                                repostPost(
-                                  publicKey.toString(),
-                                  post.top_reply!.id
-                                ).catch(console.error);
-                              }}
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 4,
-                                background: "none",
-                                border: "none",
-                                cursor: "pointer",
-                                color: "#555",
-                                fontSize: 12,
-                              }}
-                            >
-                              <Repeat2 className="w-3 h-3 shrink-0" />
-                              {post.top_reply.repost_count ?? 0}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div
-                  key={post?.id}
-                  style={{ overflow: "visible", position: "relative" }}
-                >
-                  {postHeaderAndCard}
-                </div>
-              );
-            })
+            feed.map((post: SocialPost) => (
+              <PostCard
+                key={post?.id}
+                post={post}
+                profile={profiles[post.wallet] ?? { wallet: post.wallet }}
+                publicKey={publicKey}
+                activeTab={activeTab}
+                likedPostIds={likedPostIds}
+                repostedPostIds={repostedPostIds}
+                bookmarkedIds={bookmarkedIds}
+                bookmarkLoading={bookmarkLoading}
+                followedWallets={followedWallets}
+                likeLoading={likeLoading}
+                menuOpenId={menuOpenId}
+                repostDropdownId={repostDropdownId}
+                repostTargetId={repostTargetId}
+                onPostClick={(p) => {
+                  sessionStorage.setItem(
+                    "dashboard_scroll",
+                    window.scrollY.toString()
+                  );
+                  setSelectedPost(p);
+                  setReplyToId(p.id);
+                  setReplyContent("");
+                }}
+                onLike={handleLike}
+                onReply={(postId) => {
+                  const target = feed.find((x) => x.id === postId);
+                  if (!target || !publicKey) return;
+                  sessionStorage.setItem(
+                    "dashboard_scroll",
+                    window.scrollY.toString()
+                  );
+                  setSelectedPost(target);
+                  setReplyToId(postId);
+                  setReplyContent("");
+                }}
+                onRepost={async (_postId, targetId) => {
+                  if (!publicKey) return;
+                  try {
+                    await repostPost(publicKey.toString(), targetId);
+                    setRepostedPostIds((prev) => {
+                      const n = new Set(prev);
+                      n.add(targetId);
+                      return n;
+                    });
+                    const data =
+                      activeTab === "following" && publicKey
+                        ? await getFollowingFeed(publicKey.toString())
+                        : await getSocialFeed();
+                    const raw = data.posts ?? data ?? [];
+                    const posts = Array.isArray(raw) ? raw : [];
+                    if (activeTab === "explore") setFeed([...posts].reverse());
+                    else if (activeTab === "newest")
+                      setFeed(sortPostsByCreatedAtDesc(posts));
+                    else setFeed(posts);
+                    setRepostDropdownId(null);
+                    setRepostTargetId(null);
+                  } catch (e) {
+                    console.error(e);
+                  }
+                }}
+                onQuote={(p) => {
+                  setQuoteModalPost(p);
+                  setRepostDropdownId(null);
+                  setQuoteModalText("");
+                }}
+                onBookmark={handleBookmark}
+                onReport={(postId) => {
+                  setReportModalId(postId);
+                  setMenuOpenId(null);
+                }}
+                onMenuOpen={setMenuOpenId}
+                onRepostDropdown={(postId, targetId) => {
+                  setRepostDropdownId(postId);
+                  setRepostTargetId(targetId);
+                }}
+                onUndoRepost={(targetId) => {
+                  setRepostedPostIds((prev) => {
+                    const n = new Set(prev);
+                    n.delete(targetId);
+                    return n;
+                  });
+                  setFeed((prev) =>
+                    prev.map((p) => {
+                      const match =
+                        (p as { repost_of?: number }).repost_of ===
+                          targetId || p.id === targetId;
+                      return match
+                        ? {
+                            ...p,
+                            repost_count: Math.max(
+                              (p.repost_count ?? 0) - 1,
+                              0
+                            ),
+                          }
+                        : p;
+                    })
+                  );
+                  setRepostDropdownId(null);
+                  setRepostTargetId(null);
+                }}
+                onTopReplyClick={(reply) => {
+                  if (!reply) return;
+                  sessionStorage.setItem(
+                    "dashboard_scroll",
+                    window.scrollY.toString()
+                  );
+                  setSelectedPost(reply as unknown as SocialPost);
+                  setReplyToId(reply.id);
+                  setReplyContent("");
+                }}
+                onTopReplyLike={(replyId) => {
+                  if (!publicKey) return;
+                  likePost(publicKey.toString(), replyId).catch(console.error);
+                }}
+                onTopReplyRepost={(replyId) => {
+                  if (!publicKey) return;
+                  repostPost(publicKey.toString(), replyId).catch(
+                    console.error
+                  );
+                }}
+                onTopReplyComment={(p, replyId) => {
+                  sessionStorage.setItem(
+                    "dashboard_scroll",
+                    window.scrollY.toString()
+                  );
+                  setSelectedPost(p);
+                  setReplyToId(replyId);
+                  setReplyContent("");
+                }}
+              />
+            ))
           )}
         </div>
       </div>
