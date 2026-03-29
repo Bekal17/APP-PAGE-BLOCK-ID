@@ -1420,25 +1420,25 @@ const Profile = () => {
         </div>
 
         {/* Tab switcher */}
-        <div className="border-b border-border flex flex-wrap gap-6 text-sm mt-4">
+        <div className="flex border-b border-border mt-4">
           <button
             type="button"
-            className={`pb-2 px-1 -mb-px border-b-2 transition-colors ${
+            className={
               activeProfileTab === "posts"
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
+                ? "border-b-2 border-primary text-primary font-semibold px-4 py-2 text-sm"
+                : "text-muted-foreground px-4 py-2 text-sm hover:text-foreground"
+            }
             onClick={() => setActiveProfileTab("posts")}
           >
             Posts
           </button>
           <button
             type="button"
-            className={`pb-2 px-1 -mb-px border-b-2 transition-colors ${
+            className={
               activeProfileTab === "wallet"
-                ? "border-primary text-primary"
-                : "border-transparent text-muted-foreground hover:text-foreground"
-            }`}
+                ? "border-b-2 border-primary text-primary font-semibold px-4 py-2 text-sm"
+                : "text-muted-foreground px-4 py-2 text-sm hover:text-foreground"
+            }
             onClick={() => {
               // If viewing another wallet's Wallet tab and at scan limit
               if (walletParam && address && walletParam !== address) {
@@ -1461,7 +1461,7 @@ const Profile = () => {
               onClick={() => setActiveProfileTab("activity")}
               className={
                 activeProfileTab === "activity"
-                  ? "border-b-2 border-primary text-primary font-semibold px-4 py-2 text-sm -mb-px"
+                  ? "border-b-2 border-primary text-primary font-semibold px-4 py-2 text-sm"
                   : "text-muted-foreground px-4 py-2 text-sm hover:text-foreground"
               }
             >
