@@ -1109,7 +1109,12 @@ const Dashboard = () => {
                     </div>
                   )}
                   <div
-                    className="glass-card p-4 flex flex-col gap-3 animate-slide-up cursor-pointer"
+                    className="glass-card p-4 animate-slide-up cursor-pointer"
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 12,
+                    }}
                     onClick={() => {
                       sessionStorage.setItem(
                         "dashboard_scroll",
@@ -1120,18 +1125,51 @@ const Dashboard = () => {
                       setReplyContent("");
                     }}
                   >
-                    <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3">
-                      <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary">
-                        {(
-                          isRepost && originalPost
-                            ? (originalPost.handle ??
-                                originalPost.wallet ??
-                                "?")
-                            : (displayHandle ?? displayWallet ?? "?")
-                        )[0]?.toUpperCase() ?? "?"}
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: 12,
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          flexShrink: 0,
+                          alignSelf: "stretch",
+                        }}
+                      >
+                        <div
+                          className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary"
+                          style={{ flexShrink: 0 }}
+                        >
+                          {(
+                            isRepost && originalPost
+                              ? (originalPost.handle ??
+                                  originalPost.wallet ??
+                                  "?")
+                              : (displayHandle ?? displayWallet ?? "?")
+                          )[0]?.toUpperCase() ?? "?"}
+                        </div>
+                        {activeTab === "following" && post.top_reply && (
+                          <div
+                            style={{
+                              width: 2,
+                              flex: 1,
+                              marginTop: 4,
+                              background: "rgba(255,255,255,0.15)",
+                              borderRadius: 1,
+                              minHeight: 8,
+                            }}
+                          />
+                        )}
                       </div>
-                      <div>
+
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
                         <div className="flex items-center gap-2">
                           <WalletHoverCard
                             wallet={
@@ -1181,7 +1219,6 @@ const Dashboard = () => {
                           {truncateWallet(displayWallet)}
                         </p>
                       </div>
-                    </div>
                     <div className="flex items-center gap-2">
                       <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
                         <Clock className="w-3 h-3" />
@@ -1511,6 +1548,8 @@ const Dashboard = () => {
 
                   </div>
 
+                      </div>
+                    </div>
                 </div>
                 </div>
               );
@@ -1524,33 +1563,15 @@ const Dashboard = () => {
                   {activeTab === "following" && post.top_reply && (
                     <div
                       style={{
-                        position: "relative",
                         marginTop: 0,
                         paddingTop: 0,
                       }}
                     >
-                      <div
-                        style={{
-                          position: "absolute",
-                          left: 34,
-                          top: 0,
-                          height: 16,
-                          width: 2,
-                          background: "rgba(255,255,255,0.15)",
-                          borderRadius: 1,
-                          zIndex: 2,
-                        }}
-                      />
                     <div
                       className="glass-card"
                       style={{
                         marginTop: 0,
-                        borderTop: "1px solid rgba(255,255,255,0.04)",
-                        borderTopLeftRadius: 0,
-                        borderTopRightRadius: 0,
                         padding: "10px 16px 10px 16px",
-                        position: "relative",
-                        zIndex: 1,
                         cursor: "pointer",
                       }}
                         onClick={() => {
