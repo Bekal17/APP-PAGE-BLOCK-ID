@@ -391,7 +391,7 @@ export default function PostDetailPanel({
                 style={{
                   position: "absolute",
                   left: 15,
-                  top: 0,
+                  top: 40,
                   bottom: 0,
                   width: 2,
                   background: "rgba(255,255,255,0.1)",
