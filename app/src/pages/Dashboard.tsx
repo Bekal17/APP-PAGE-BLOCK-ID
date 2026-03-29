@@ -1522,13 +1522,19 @@ const Dashboard = () => {
                 >
                   {postHeaderAndCard}
                   {activeTab === "following" && post.top_reply && (
-                    <div style={{ position: "relative" }}>
+                    <div
+                      style={{
+                        position: "relative",
+                        marginTop: 0,
+                        paddingTop: 0,
+                      }}
+                    >
                       <div
                         style={{
                           position: "absolute",
                           left: 34,
-                          top: -16,
-                          height: 28,
+                          top: 0,
+                          height: 16,
                           width: 2,
                           background: "rgba(255,255,255,0.15)",
                           borderRadius: 1,
