@@ -28,6 +28,7 @@ import {
   endorseWallet,
   getPrivacySettings,
   repostPost,
+  getPost,
   getWalletNames,
   deletePost,
   incrementScan,
@@ -36,6 +37,7 @@ import {
 } from "@/services/blockidApi";
 import { normalizeGraphResponse } from "@/components/investigation/WalletGraph";
 import DashboardLayout from "@/components/DashboardLayout";
+import PostDetailPanel from "@/components/PostDetailPanel";
 import DashboardOnboarding from "@/components/DashboardOnboarding";
 import ScoreRing from "@/components/blockid/ScoreRing";
 import RiskBadge from "@/components/blockid/RiskBadge";
@@ -278,6 +280,8 @@ const Profile = () => {
   const [quoteModalText, setQuoteModalText] = useState("");
   const [quoteModalLoading, setQuoteModalLoading] = useState(false);
   const [postMenuId, setPostMenuId] = useState<number | null>(null);
+  const [selectedPost, setSelectedPost] = useState<any>(null);
+  const [selectedPostReplies, setSelectedPostReplies] = useState<any[]>([]);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [walletNames, setWalletNames] = useState<any[]>([]);
   const [editForm, setEditForm] = useState({
@@ -311,6 +315,13 @@ const Profile = () => {
   const [mintNFTLoading, setMintNFTLoading] = useState(false);
   const [mintNFTName, setMintNFTName] = useState("BlockID Avatar NFT");
   const [mintNFTSuccess, setMintNFTSuccess] = useState(false);
+
+  useEffect(() => {
+    if (!selectedPost?.id) return;
+    getPost(selectedPost.id)
+      .then((data) => setSelectedPostReplies(data.replies ?? []))
+      .catch(() => {});
+  }, [selectedPost?.id]);
 
   useEffect(() => {
     if (repostDropdownId === null) return;
@@ -1916,12 +1927,11 @@ const Profile = () => {
                       cursor-pointer hover:bg-muted/5
                       transition-colors"
                     onClick={() => {
-                      sessionStorage.setItem("profile_scroll", window.scrollY.toString());
-                      navigate(
-                        `/post/${
-                          isRepost && post.repost_of ? post.repost_of : post.id
-                        }`
+                      sessionStorage.setItem(
+                        "profile_scroll",
+                        window.scrollY.toString()
                       );
+                      setSelectedPost(post);
                     }}
                   >
                     {/* Repost header */}
@@ -2131,12 +2141,25 @@ const Profile = () => {
                         return imgUrl ? (
                           <div
                             className="mt-2 rounded-xl overflow-hidden"
+                            style={{
+                              width: "100%",
+                              maxWidth: "100%",
+                              backgroundColor: "transparent",
+                            }}
                             onClick={(e) => e.stopPropagation()}
                           >
                             <img
                               src={imgUrl}
                               alt="Post image"
-                              className="w-full object-cover rounded-xl max-h-96"
+                              style={{
+                                width: "100%",
+                                height: "auto",
+                                maxHeight: 600,
+                                objectFit: "contain",
+                                borderRadius: 12,
+                                display: "block",
+                                backgroundColor: "transparent",
+                              }}
                               onError={(e) => {
                                 e.currentTarget.style.display = "none";
                               }}
@@ -2181,11 +2204,7 @@ const Profile = () => {
                           className="flex items-center gap-1 hover:text-primary transition-colors"
                           onClick={(e) => {
                             e.stopPropagation();
-                            navigate(
-                              `/post/${
-                                isRepost && post.repost_of ? post.repost_of : post.id
-                              }`
-                            );
+                            setSelectedPost(post);
                           }}
                         >
                           <MessageSquare className="w-3.5 h-3.5" />
@@ -3471,6 +3490,46 @@ const Profile = () => {
         </div>
       )}
       </div>
+
+      {selectedPost && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setSelectedPost(null)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.7)",
+            backdropFilter: "blur(2px)",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth:
+                selectedPost.image_url ||
+                selectedPost.original_post?.image_url
+                  ? 900
+                  : 600,
+              width: "100%",
+              height: "80vh",
+              display: "flex",
+            }}
+          >
+            <PostDetailPanel
+              post={selectedPost}
+              replies={selectedPostReplies}
+              onClose={() => setSelectedPost(null)}
+              onRepliesChange={setSelectedPostReplies}
+            />
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 };
