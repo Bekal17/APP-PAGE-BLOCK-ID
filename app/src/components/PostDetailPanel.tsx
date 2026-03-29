@@ -8,6 +8,7 @@ import {
   createPost,
   getPost,
 } from "@/services/blockidApi";
+import UserAvatar from "@/components/UserAvatar";
 
 type SocialPost = {
   id: number;
@@ -131,8 +132,6 @@ export default function PostDetailPanel({
   const imgUrl =
     isRepost && originalPost ? originalPost.image_url : post.image_url;
 
-  const avatarLetter =
-    (displayHandle ?? displayWallet ?? "?")[0]?.toUpperCase() ?? "?";
   const handleLine = displayHandle
     ? `@${displayHandle}`
     : truncateWallet(displayWallet);
@@ -397,23 +396,14 @@ export default function PostDetailPanel({
                   width: 32,
                 }}
               >
-                <div
-                  style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: "50%",
-                    background: "rgba(99,102,241,0.15)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "#818cf8",
-                    fontWeight: "bold",
-                    fontSize: 11,
-                    flexShrink: 0,
-                  }}
-                >
-                  {(reply.handle ?? reply.wallet ?? "?")[0]?.toUpperCase()}
-                </div>
+                <UserAvatar
+                  avatarUrl={reply.avatar_url}
+                  avatarType={reply.avatar_type}
+                  avatarIsAnimated={reply.avatar_is_animated}
+                  handle={reply.handle}
+                  wallet={reply.wallet}
+                  size={32}
+                />
                 <div
                   style={{
                     width: 2,

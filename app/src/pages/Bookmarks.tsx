@@ -19,6 +19,7 @@ import {
   getPost,
 } from "@/services/blockidApi";
 import SubscriptionBadge from "@/components/blockid/SubscriptionBadge";
+import UserAvatar from "@/components/UserAvatar";
 
 const formatRelativeTime = (dateStr?: string) => {
   if (!dateStr) return "";
@@ -242,13 +243,14 @@ const Bookmarks = () => {
                   {/* Header */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
-                        {(
-                          displayHandle ??
-                          displayWallet ??
-                          "?"
-                        )[0]?.toUpperCase() ?? "?"}
-                      </div>
+                      <UserAvatar
+                        avatarUrl={(post as any).avatar_url}
+                        avatarType={(post as any).avatar_type}
+                        avatarIsAnimated={(post as any).avatar_is_animated}
+                        handle={displayHandle}
+                        wallet={displayWallet}
+                        size={32}
+                      />
                       <div>
                         <p className="text-sm font-semibold text-foreground flex items-center gap-1">
                           {isRepost && originalPost

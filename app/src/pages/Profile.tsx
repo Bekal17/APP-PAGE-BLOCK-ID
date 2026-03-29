@@ -39,6 +39,7 @@ import {
 import { normalizeGraphResponse } from "@/components/investigation/WalletGraph";
 import DashboardLayout from "@/components/DashboardLayout";
 import PostDetailPanel from "@/components/PostDetailPanel";
+import UserAvatar from "@/components/UserAvatar";
 import DashboardOnboarding from "@/components/DashboardOnboarding";
 import ScoreRing from "@/components/blockid/ScoreRing";
 import RiskBadge from "@/components/blockid/RiskBadge";
@@ -2040,6 +2041,10 @@ const Profile = () => {
                 const originalPost = isRepost
                   ? (post as any).original_post ?? null
                   : null;
+                const displayWallet =
+                  isRepost && originalPost
+                    ? originalPost.wallet
+                    : post.wallet ?? wallet;
 
                 return (
                   <div
@@ -2076,19 +2081,18 @@ const Profile = () => {
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-start gap-3">
                           {/* Avatar */}
-                          <div
-                            className="w-9 h-9 rounded-full bg-primary/10 flex items-center
-                              justify-center text-xs font-bold text-primary shrink-0"
-                          >
-                            {isRepost && originalPost
-                              ? (
-                                  originalPost.handle ??
-                                  originalPost.wallet ??
-                                  "?"
-                                )[0].toUpperCase()
-                              : (profile?.handle ?? wallet ?? "?")[0]
-                                  ?.toUpperCase() ?? "?"}
-                          </div>
+                          <UserAvatar
+                            avatarUrl={(post as any).avatar_url}
+                            avatarType={(post as any).avatar_type}
+                            avatarIsAnimated={(post as any).avatar_is_animated}
+                            handle={
+                              isRepost && originalPost
+                                ? originalPost.handle
+                                : profile?.handle ?? null
+                            }
+                            wallet={displayWallet}
+                            size={36}
+                          />
 
                           <div>
                             <div className="flex items-center gap-2">
