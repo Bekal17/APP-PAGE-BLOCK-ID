@@ -24,8 +24,15 @@ export default function WalletIndicator() {
     }
   };
 
-  const handleDisconnect = () => {
-    disconnect();
+  const handleLogOut = async () => {
+    try {
+      await disconnect();
+    } catch {
+      /* ignore */
+    }
+    sessionStorage.clear();
+    localStorage.clear();
+    window.location.href = "/";
   };
 
   if (!connected || !publicKey) {
@@ -66,12 +73,8 @@ export default function WalletIndicator() {
           <Copy className="w-4 h-4" />
           Copy Address
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={handleDisconnect} className="gap-2 cursor-pointer">
-          <LogOut className="w-4 h-4" />
-          Disconnect Wallet
-        </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={handleDisconnect}
+          onClick={() => void handleLogOut()}
           className="gap-2 cursor-pointer text-destructive focus:text-destructive"
         >
           <LogOut className="w-4 h-4" />
