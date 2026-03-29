@@ -7,10 +7,14 @@ import {
   updatePrivacySettings,
 } from "@/services/blockidApi";
 
+type WalletDisplay = "TRUNCATED" | "HIDDEN";
+
 const PrivacySettings = () => {
   const { publicKey } = useWallet();
   const wallet = publicKey?.toString() ?? "";
-  const [settings, setSettings] = useState<any>(null);
+  const [settings, setSettings] = useState<any>({
+    wallet_display: "TRUNCATED" as WalletDisplay,
+  });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -18,8 +22,17 @@ const PrivacySettings = () => {
   useEffect(() => {
     if (!wallet) { setLoading(false); return; }
     getPrivacySettings(wallet)
-      .then(setSettings)
-      .catch(() => setSettings(null))
+      .then((privacy) =>
+        setSettings({
+          ...privacy,
+          wallet_display: privacy?.wallet_display ?? "TRUNCATED",
+        })
+      )
+      .catch(() =>
+        setSettings({
+          wallet_display: "TRUNCATED" as WalletDisplay,
+        })
+      )
       .finally(() => setLoading(false));
   }, [wallet]);
 
@@ -29,6 +42,7 @@ const PrivacySettings = () => {
     try {
       await updatePrivacySettings(wallet, {
         posts_visibility: settings.posts_visibility,
+        wallet_display: settings.wallet_display,
         balance_visibility: settings.balance_visibility,
         score_visibility: settings.score_visibility,
         profile_discoverable: settings.profile_discoverable,
@@ -110,6 +124,31 @@ const PrivacySettings = () => {
               <option value="PUBLIC">Everyone</option>
               <option value="FOLLOWERS_ONLY">Followers Only</option>
               <option value="PRIVATE">Only Me</option>
+            </select>
+          </div>
+
+          {/* Wallet Address */}
+          <div className="flex items-center justify-between py-4 border-b border-border/50">
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                Wallet Address
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Show your wallet address below your handle on your profile
+              </p>
+            </div>
+            <select
+              value={settings.wallet_display}
+              onChange={(e) =>
+                setSettings((prev: any) => ({
+                  ...prev,
+                  wallet_display: e.target.value as WalletDisplay,
+                }))
+              }
+              className="bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground"
+            >
+              <option value="TRUNCATED">Visible (truncated)</option>
+              <option value="HIDDEN">Hidden from public</option>
             </select>
           </div>
 

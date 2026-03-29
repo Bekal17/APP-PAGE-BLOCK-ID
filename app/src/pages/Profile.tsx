@@ -1217,9 +1217,11 @@ const Profile = () => {
                 {profile?.handle ? `@${profile.handle}` : wallet.length > 16 ? `${wallet.slice(0, 8)}...${wallet.slice(-8)}` : wallet}
                 <SubscriptionBadge plan={(profile as any)?.plan ?? "free"} size="md" />
               </p>
-              <p className="text-xs text-muted-foreground font-mono">
-                {wallet.length > 16 ? `${wallet.slice(0, 8)}...${wallet.slice(-8)}` : wallet || "—"}
-              </p>
+              {(isOwnProfile || viewedPrivacy?.wallet_display !== "HIDDEN") && (
+                <p className="text-xs text-muted-foreground font-mono">
+                  {wallet.length > 16 ? `${wallet.slice(0, 8)}...${wallet.slice(-8)}` : wallet || "—"}
+                </p>
+              )}
               <div className="flex items-center gap-3 mt-1">
                 <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${trustBadgeClass}`}>
                   ⬡ {Math.round(profileScore)}
