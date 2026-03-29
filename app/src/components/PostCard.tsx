@@ -12,6 +12,7 @@ import {
   Shield,
 } from "lucide-react";
 import WalletHoverCard from "@/components/WalletHoverCard";
+import UserAvatar from "@/components/UserAvatar";
 import SubscriptionBadge from "@/components/blockid/SubscriptionBadge";
 import { likePost, unlikePost, repostPost } from "@/services/blockidApi";
 
@@ -289,13 +290,6 @@ export default function PostCard({
 
   const trustColor = getTrustColor(displayTrustScore);
 
-  const avatarLetter =
-    (
-      isRepost && originalPost
-        ? (originalPost.handle ?? originalPost.wallet ?? "?")
-        : (displayHandle ?? displayWallet ?? "?")
-    )[0]?.toUpperCase() ?? "?";
-
   const walletPk = pkStr(publicKey);
 
   const normalCard = (
@@ -336,12 +330,26 @@ export default function PostCard({
               alignSelf: "stretch",
             }}
           >
-            <div
-              className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary"
-              style={{ flexShrink: 0 }}
-            >
-              {avatarLetter}
-            </div>
+            <UserAvatar
+              avatarUrl={
+                isRepost && originalPost
+                  ? (originalPost as any).avatar_url
+                  : (post as any).avatar_url
+              }
+              avatarType={
+                isRepost && originalPost
+                  ? (originalPost as any).avatar_type
+                  : (post as any).avatar_type
+              }
+              avatarIsAnimated={
+                isRepost && originalPost
+                  ? (originalPost as any).avatar_is_animated
+                  : (post as any).avatar_is_animated
+              }
+              handle={displayHandle}
+              wallet={displayWallet}
+              size={36}
+            />
           </div>
 
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -617,12 +625,26 @@ export default function PostCard({
                   alignSelf: "stretch",
                 }}
               >
-                <div
-                  className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary"
-                  style={{ flexShrink: 0 }}
-                >
-                  {avatarLetter}
-                </div>
+                <UserAvatar
+                  avatarUrl={
+                    isRepost && originalPost
+                      ? (originalPost as any).avatar_url
+                      : (post as any).avatar_url
+                  }
+                  avatarType={
+                    isRepost && originalPost
+                      ? (originalPost as any).avatar_type
+                      : (post as any).avatar_type
+                  }
+                  avatarIsAnimated={
+                    isRepost && originalPost
+                      ? (originalPost as any).avatar_is_animated
+                      : (post as any).avatar_is_animated
+                  }
+                  handle={displayHandle}
+                  wallet={displayWallet}
+                  size={36}
+                />
                 <div
                   style={{
                     width: 2,
@@ -888,23 +910,14 @@ export default function PostCard({
                 alignItems: "flex-start",
               }}
             >
-              <div
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: "50%",
-                  background: "rgba(99,102,241,0.15)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  color: "#818cf8",
-                  fontWeight: "bold",
-                  fontSize: 11,
-                  flexShrink: 0,
-                }}
-              >
-                {(tr.handle ?? tr.wallet ?? "?")[0]?.toUpperCase()}
-              </div>
+              <UserAvatar
+                avatarUrl={(tr as any).avatar_url}
+                avatarType={(tr as any).avatar_type}
+                avatarIsAnimated={(tr as any).avatar_is_animated}
+                handle={tr.handle}
+                wallet={tr.wallet}
+                size={32}
+              />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div
                   style={{
