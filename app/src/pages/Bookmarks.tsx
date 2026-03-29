@@ -33,6 +33,11 @@ const formatRelativeTime = (dateStr?: string) => {
   return `${Math.floor(diff / 86400)}d ago`;
 };
 
+function isSelectingText(): boolean {
+  const selection = window.getSelection();
+  return Boolean(selection && selection.toString().length > 0);
+}
+
 const Bookmarks = () => {
   const { publicKey } = useWallet();
   const navigate = useNavigate();
@@ -228,6 +233,8 @@ const Bookmarks = () => {
                   key={post.id}
                   className="glass-card p-4 space-y-3 cursor-pointer hover:bg-muted/5 transition-colors"
                   onClick={() => {
+                    // Don't open modal if user is selecting text
+                    if (isSelectingText()) return;
                     setSelectedPost(post);
                     setReplyToId(post.id);
                   }}
@@ -410,6 +417,8 @@ const Bookmarks = () => {
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
+                        // Don't open modal if user is selecting text
+                        if (isSelectingText()) return;
                         setSelectedPost(post);
                         setReplyToId(post.id);
                       }}
