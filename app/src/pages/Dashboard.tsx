@@ -1089,10 +1089,13 @@ const Dashboard = () => {
                   ? originalPost.wallet
                   : post?.wallet ?? "";
 
-              return (
+              const postHeaderAndCard = (
                 <div
-                  key={post?.id}
-                  style={{ overflow: "visible", position: "relative" }}
+                  style={
+                    activeTab === "following" && post.top_reply
+                      ? { marginBottom: 0, paddingBottom: 0 }
+                      : undefined
+                  }
                 >
                   {isRepost && (
                     <div className="flex items-center gap-1.5 px-1 pb-1 text-xs text-muted-foreground">
@@ -1509,26 +1512,35 @@ const Dashboard = () => {
                   </div>
 
                 </div>
+                </div>
+              );
 
-                {activeTab === "following" && post.top_reply && (
-                  <div style={{ position: "relative", marginTop: 0 }}>
+              return (
+                <div
+                  key={post?.id}
+                  style={{ overflow: "visible", position: "relative" }}
+                >
+                  {activeTab === "following" && post.top_reply && (
                     <div
                       style={{
                         position: "absolute",
-                        left: 28,
-                        top: 0,
-                        height: "100%",
+                        left: 43,
+                        top: "auto",
+                        bottom: 52,
+                        height: 40,
                         width: 2,
-                        background: "rgba(255,255,255,0.08)",
-                        zIndex: 0,
+                        background: "rgba(255,255,255,0.12)",
+                        zIndex: 2,
                       }}
                     />
-
+                  )}
+                  {postHeaderAndCard}
+                  {activeTab === "following" && post.top_reply && (
                     <div
                       className="glass-card"
                       style={{
-                        marginTop: 1,
-                        borderTop: "none",
+                        marginTop: 0,
+                        borderTop: "1px solid rgba(255,255,255,0.04)",
                         borderTopLeftRadius: 0,
                         borderTopRightRadius: 0,
                         padding: "10px 16px 10px 16px",
@@ -1536,19 +1548,19 @@ const Dashboard = () => {
                         zIndex: 1,
                         cursor: "pointer",
                       }}
-                      onClick={() => {
-                        sessionStorage.setItem(
-                          "dashboard_scroll",
-                          window.scrollY.toString()
-                        );
-                        setSelectedPost({
-                          ...post.top_reply!,
-                          id: post.top_reply!.id,
-                        } as SocialPost);
-                        setReplyToId(post.top_reply!.id);
-                        setReplyContent("");
-                      }}
-                    >
+                        onClick={() => {
+                          sessionStorage.setItem(
+                            "dashboard_scroll",
+                            window.scrollY.toString()
+                          );
+                          setSelectedPost({
+                            ...post.top_reply!,
+                            id: post.top_reply!.id,
+                          } as SocialPost);
+                          setReplyToId(post.top_reply!.id);
+                          setReplyContent("");
+                        }}
+                      >
                       <div
                         style={{
                           display: "flex",
@@ -1711,9 +1723,8 @@ const Dashboard = () => {
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
               );
             })
           )}
