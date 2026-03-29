@@ -292,28 +292,28 @@ export default function PostCard({
 
   const walletPk = pkStr(publicKey);
 
-  const normalCard = (
-    <>
-      {isRepost && (
-        <div className="flex items-center gap-1.5 px-1 pb-1 text-xs text-muted-foreground">
-          <Repeat2 className="w-3.5 h-3.5 text-green-400" />
-          <span>
-            {post?.handle
-              ? `@${post.handle}`
-              : truncateWallet(post?.wallet ?? "")}{" "}
-            reposted
-          </span>
-        </div>
-      )}
-      <div
-        className="glass-card p-4 animate-slide-up cursor-pointer"
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 12,
-        }}
-        onClick={() => onPostClick(post)}
-      >
+  const repostLabel = isRepost ? (
+    <div className="flex items-center gap-1.5 px-1 pb-1 text-xs text-muted-foreground">
+      <Repeat2 className="w-3.5 h-3.5 text-green-400" />
+      <span>
+        {post?.handle
+          ? `@${post.handle}`
+          : truncateWallet(post?.wallet ?? "")}{" "}
+        reposted
+      </span>
+    </div>
+  ) : null;
+
+  const mainPostCard = (
+    <div
+      className="glass-card p-4 flex flex-col gap-3 animate-slide-up cursor-pointer"
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 12,
+      }}
+      onClick={() => onPostClick(post)}
+    >
         <div
           style={{
             display: "flex",
@@ -579,330 +579,42 @@ export default function PostCard({
           </div>
         </div>
       </div>
+  );
+
+  const normalCard = (
+    <>
+      {repostLabel}
+      {mainPostCard}
     </>
   );
 
   if (activeTab === "following" && post.top_reply) {
     const tr = post.top_reply;
     return (
-      <div style={{ overflow: "visible", position: "relative" }}>
-        {isRepost && (
-          <div className="flex items-center gap-1.5 px-1 pb-1 text-xs text-muted-foreground">
-            <Repeat2 className="w-3.5 h-3.5 text-green-400" />
-            <span>
-              {post?.handle
-                ? `@${post.handle}`
-                : truncateWallet(post?.wallet ?? "")}{" "}
-              reposted
-            </span>
-          </div>
-        )}
-
+      <>
         <div
-          className="glass-card animate-slide-up"
-          style={{ padding: 0, overflow: "hidden" }}
+          style={{ marginBottom: 0, paddingBottom: 0 }}
         >
-          <div
-            style={{
-              padding: "16px 16px 8px 16px",
-              cursor: "pointer",
-            }}
-            onClick={() => onPostClick(post)}
-          >
-            <div
-              style={{
-                display: "flex",
-                gap: 12,
-                alignItems: "flex-start",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  flexShrink: 0,
-                  alignSelf: "stretch",
-                }}
-              >
-                <UserAvatar
-                  avatarUrl={
-                    isRepost && originalPost
-                      ? (originalPost as any).avatar_url
-                      : (post as any).avatar_url
-                  }
-                  avatarType={
-                    isRepost && originalPost
-                      ? (originalPost as any).avatar_type
-                      : (post as any).avatar_type
-                  }
-                  avatarIsAnimated={
-                    isRepost && originalPost
-                      ? (originalPost as any).avatar_is_animated
-                      : (post as any).avatar_is_animated
-                  }
-                  handle={displayHandle}
-                  wallet={displayWallet}
-                  size={36}
-                />
-                <div
-                  style={{
-                    width: 2,
-                    flex: 1,
-                    marginTop: 4,
-                    marginBottom: 4,
-                    background: "rgba(255,255,255,0.15)",
-                    borderRadius: 1,
-                    minHeight: 12,
-                  }}
-                />
-              </div>
-
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div
-                  className="flex items-start justify-between gap-3"
-                  style={{ marginBottom: 6 }}
-                >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <WalletHoverCard
-                        wallet={
-                          isRepost && originalPost
-                            ? originalPost.wallet
-                            : post.wallet ?? ""
-                        }
-                        handle={
-                          isRepost && originalPost
-                            ? (originalPost.handle ?? undefined)
-                            : (profile?.handle ?? post.handle ?? undefined)
-                        }
-                        isFollowing={followedWallets.has(
-                          isRepost && originalPost
-                            ? originalPost.wallet
-                            : post.wallet ?? ""
-                        )}
-                      >
-                        <span className="text-sm font-semibold text-foreground inline-flex items-center gap-1">
-                          {isRepost && originalPost
-                            ? originalPost.handle
-                              ? `@${originalPost.handle}`
-                              : truncateWallet(originalPost.wallet ?? "")
-                            : displayHandle
-                              ? `@${displayHandle}`
-                              : truncateWallet(post?.wallet ?? "")}
-                          <SubscriptionBadge
-                            plan={
-                              (isRepost && originalPost
-                                ? (originalPost as { plan?: string })?.plan
-                                : (post as { plan?: string })?.plan) ?? "free"
-                            }
-                            size="sm"
-                          />
-                        </span>
-                      </WalletHoverCard>
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1 ${trustColor}`}
-                      >
-                        <Shield className="w-3 h-3" />
-                        {displayTrustScore != null
-                          ? Math.round(displayTrustScore)
-                          : "No score"}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-muted-foreground">
-                      {truncateWallet(displayWallet)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                      <Clock className="w-3 h-3" />
-                      <span>{formatRelativeTime(post?.created_at)}</span>
-                    </div>
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onMenuOpen(
-                            menuOpenId === post?.id ? null : (post?.id ?? 0)
-                          );
-                        }}
-                        className="p-1 rounded-md hover:bg-muted/30 text-muted-foreground"
-                      >
-                        <MoreVertical className="w-4 h-4" />
-                      </button>
-                      {menuOpenId === post?.id && (
-                        <div
-                          className="absolute right-0 top-6 z-50 w-44 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl py-1"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <button
-                            type="button"
-                            disabled={!!bookmarkLoading[post?.id ?? 0]}
-                            onClick={() => {
-                              onBookmark(post);
-                              onMenuOpen(null);
-                            }}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-zinc-100 hover:bg-zinc-800 transition-colors disabled:opacity-50"
-                          >
-                            <Bookmark
-                              className={`w-4 h-4 ${
-                                bookmarkedIds.has(post?.id)
-                                  ? "text-yellow-400 fill-yellow-400"
-                                  : "text-zinc-400"
-                              }`}
-                            />
-                            {bookmarkedIds.has(post?.id)
-                              ? "Remove Bookmark"
-                              : "Bookmark"}
-                          </button>
-                          {publicKey && post?.wallet !== walletPk && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                onReport(post?.id ?? 0);
-                                onMenuOpen(null);
-                              }}
-                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-zinc-800 transition-colors"
-                            >
-                              <Flag className="w-4 h-4" />
-                              Report Post
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {isQuoteRepost && (
-                  <div className="mt-1 mb-2 p-3 rounded-xl border border-border bg-muted/20">
-                    <p className="text-xs text-muted-foreground mb-1">Quote</p>
-                    <p className="text-sm text-foreground whitespace-pre-wrap">
-                      {post.quote_content}
-                    </p>
-                  </div>
-                )}
-
-                {isRepost && !originalPost ? (
-                  <div className="h-4 bg-muted/30 rounded animate-pulse w-2/3 mb-2" />
-                ) : (
-                  <p
-                    className="text-sm text-foreground whitespace-pre-wrap"
-                    style={{ marginBottom: 8 }}
-                  >
-                    {displayContent}
-                  </p>
-                )}
-
-                {(() => {
-                  const imgUrl =
-                    isRepost && originalPost
-                      ? originalPost.image_url
-                      : post.image_url;
-                  return imgUrl ? (
-                    <img
-                      src={imgUrl}
-                      alt="Post image"
-                      style={{
-                        width: "100%",
-                        height: "auto",
-                        maxHeight: "400px",
-                        objectFit: "contain",
-                        borderRadius: 8,
-                        display: "block",
-                        marginBottom: 8,
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onPostClick(post);
-                      }}
-                    />
-                  ) : null;
-                })()}
-
-                <div
-                  className="flex items-center justify-between pt-1 text-xs text-muted-foreground"
-                  style={{ paddingBottom: 8 }}
-                >
-                  <div className="flex items-center gap-4">
-                    <button
-                      type="button"
-                      className={`flex items-center gap-1 transition-colors disabled:opacity-60 ${
-                        likedPostIds.has(post?.id)
-                          ? "text-red-400 hover:text-red-300"
-                          : "hover:text-red-400"
-                      }`}
-                      disabled={likeLoading[post?.id]}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onLike(post);
-                      }}
-                    >
-                      <Heart
-                        className={`w-3.5 h-3.5 ${
-                          likeLoading[post?.id]
-                            ? "animate-pulse"
-                            : likedPostIds.has(post?.id)
-                              ? "fill-red-400"
-                              : ""
-                        }`}
-                      />
-                      <span>
-                        {post?.likes_count ?? post?.like_count ?? 0}
-                      </span>
-                    </button>
-                    <button
-                      type="button"
-                      className="flex items-center gap-1 hover:text-primary transition-colors"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (!post?.id || !publicKey) return;
-                        onReply(post.id);
-                      }}
-                    >
-                      <MessageSquare className="w-3.5 h-3.5" />
-                      <span>
-                        {post?.replies_count ?? post?.reply_count ?? 0}
-                      </span>
-                    </button>
-                    <RepostMenu
-                      post={post}
-                      isRepost={isRepost}
-                      originalPost={originalPost}
-                      publicKey={publicKey}
-                      repostedPostIds={repostedPostIds}
-                      repostDropdownId={repostDropdownId}
-                      repostTargetId={repostTargetId}
-                      onRepostDropdown={onRepostDropdown}
-                      onUndoRepost={onUndoRepost}
-                      onRepost={onRepost}
-                      onQuote={onQuote}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div
-            style={{
-              height: 1,
-              background: "rgba(255,255,255,0.06)",
-              marginLeft: 60,
-            }}
-          />
-
-          <div
-            style={{
-              padding: "10px 16px 12px 16px",
-              cursor: "pointer",
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              onTopReplyClick(tr);
-            }}
-          >
+          {repostLabel}
+          {mainPostCard}
+        </div>
+        <div
+          className="glass-card"
+          style={{
+            marginTop: 0,
+            borderTop: "1px solid rgba(255,255,255,0.04)",
+            borderTopLeftRadius: 0,
+            borderTopRightRadius: 0,
+            padding: "10px 16px 10px 16px",
+            position: "relative",
+            zIndex: 1,
+            cursor: "pointer",
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onTopReplyClick(tr);
+          }}
+        >
             <div
               style={{
                 display: "flex",
@@ -962,7 +674,7 @@ export default function PostCard({
                   style={{
                     display: "flex",
                     gap: 14,
-                    marginTop: 6,
+                    marginTop: 8,
                   }}
                 >
                   <button
@@ -1032,14 +744,9 @@ export default function PostCard({
               </div>
             </div>
           </div>
-        </div>
-      </div>
+      </>
     );
   }
 
-  return (
-    <div style={{ overflow: "visible", position: "relative" }}>
-      {normalCard}
-    </div>
-  );
+  return normalCard;
 }
