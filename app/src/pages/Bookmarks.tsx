@@ -9,11 +9,14 @@ import {
   Shield,
 } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
+import PostDetailPanel from "@/components/PostDetailPanel";
 import {
   getBookmarks,
   bookmarkPost,
   likePost,
   unlikePost,
+  repostPost,
+  getPost,
 } from "@/services/blockidApi";
 import SubscriptionBadge from "@/components/blockid/SubscriptionBadge";
 
@@ -38,6 +41,20 @@ const Bookmarks = () => {
   const [loading, setLoading] = useState(true);
   const [likedPostIds, setLikedPostIds] = useState<Set<number>>(new Set());
   const [likeLoading, setLikeLoading] = useState<Record<number, boolean>>({});
+  const [selectedPost, setSelectedPost] = useState<any>(null);
+  const [selectedPostReplies, setSelectedPostReplies] = useState<any[]>([]);
+  const [replyToId, setReplyToId] = useState<number | null>(null);
+  const [repostedPostIds, setRepostedPostIds] = useState<Set<number>>(
+    new Set()
+  );
+
+  useEffect(() => {
+    if (!selectedPost?.id) return;
+    getPost(selectedPost.id)
+      .then((data) => setSelectedPostReplies(data.replies ?? []))
+      .catch(() => {});
+  }, [selectedPost?.id]);
+
   useEffect(() => {
     if (!wallet) {
       setLoading(false);
@@ -206,7 +223,14 @@ const Bookmarks = () => {
                 isRepost && !!(post as any).quote_content;
 
               return (
-                <div key={post.id} className="glass-card p-4 space-y-3">
+                <div
+                  key={post.id}
+                  className="glass-card p-4 space-y-3 cursor-pointer hover:bg-muted/5 transition-colors"
+                  onClick={() => {
+                    setSelectedPost(post);
+                    setReplyToId(post.id);
+                  }}
+                >
                   {/* Repost header */}
                   {isRepost && (
                     <div className="flex items-center gap-2 px-4 pt-3 pb-0 text-xs text-muted-foreground">
@@ -271,7 +295,11 @@ const Bookmarks = () => {
 
                     {/* Remove bookmark */}
                     <button
-                      onClick={() => handleRemoveBookmark(post.id)}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveBookmark(post.id);
+                      }}
                       className="p-1.5 rounded-lg hover:bg-muted/30 transition-colors"
                       title="Remove bookmark"
                     >
@@ -298,11 +326,26 @@ const Bookmarks = () => {
 
                   {/* Post image */}
                   {post.image_url && (
-                    <div className="mt-3 rounded-xl overflow-hidden">
+                    <div
+                      className="mt-3 rounded-xl overflow-hidden"
+                      style={{
+                        width: "100%",
+                        maxWidth: "100%",
+                        backgroundColor: "transparent",
+                      }}
+                    >
                       <img
                         src={post.image_url}
                         alt="Post image"
-                        className="w-full max-h-96 object-cover rounded-xl"
+                        style={{
+                          width: "100%",
+                          height: "auto",
+                          maxHeight: 600,
+                          objectFit: "contain",
+                          borderRadius: 12,
+                          display: "block",
+                          backgroundColor: "transparent",
+                        }}
                         onError={(e) => {
                           e.currentTarget.style.display = "none";
                         }}
@@ -312,11 +355,26 @@ const Bookmarks = () => {
 
                   {/* Repost original image */}
                   {!post.image_url && post.original_post?.image_url && (
-                    <div className="mt-3 rounded-xl overflow-hidden">
+                    <div
+                      className="mt-3 rounded-xl overflow-hidden"
+                      style={{
+                        width: "100%",
+                        maxWidth: "100%",
+                        backgroundColor: "transparent",
+                      }}
+                    >
                       <img
                         src={post.original_post.image_url}
                         alt="Post image"
-                        className="w-full max-h-96 object-cover rounded-xl"
+                        style={{
+                          width: "100%",
+                          height: "auto",
+                          maxHeight: 600,
+                          objectFit: "contain",
+                          borderRadius: 12,
+                          display: "block",
+                          backgroundColor: "transparent",
+                        }}
                         onError={(e) => {
                           e.currentTarget.style.display = "none";
                         }}
@@ -327,7 +385,11 @@ const Bookmarks = () => {
                   {/* Stats */}
                   <div className="flex items-center gap-4 text-xs text-muted-foreground pt-1 border-t border-border/50">
                     <button
-                      onClick={() => handleLike(post)}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleLike(post);
+                      }}
                       disabled={likeLoading[post.id]}
                       className={`flex items-center gap-1 transition-colors disabled:opacity-50 ${
                         likedPostIds.has(post.id)
@@ -342,16 +404,59 @@ const Bookmarks = () => {
                       />
                       {post.like_count ?? 0}
                     </button>
-                    <span className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedPost(post);
+                        setReplyToId(post.id);
+                      }}
+                      className="flex items-center gap-1 hover:text-primary transition-colors"
+                    >
                       <MessageSquare className="w-3.5 h-3.5" />
                       {post.reply_count ?? 0}
-                    </span>
-                    <span className="flex items-center gap-1">
+                    </button>
+                    <button
+                      type="button"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        if (!wallet) return;
+                        try {
+                          await repostPost(wallet, post.id);
+                          setRepostedPostIds((prev) => {
+                            const n = new Set(prev);
+                            n.add(post.id);
+                            return n;
+                          });
+                          setPosts((prev) =>
+                            prev.map((p) =>
+                              p.id === post.id
+                                ? {
+                                    ...p,
+                                    repost_count: (p.repost_count ?? 0) + 1,
+                                  }
+                                : p
+                            )
+                          );
+                        } catch (err) {
+                          console.error(err);
+                        }
+                      }}
+                      className={`flex items-center gap-1 transition-colors ${
+                        repostedPostIds.has(post.id)
+                          ? "text-green-400"
+                          : "hover:text-green-400"
+                      }`}
+                    >
                       <Repeat2 className="w-3.5 h-3.5" />
                       {post.repost_count ?? 0}
-                    </span>
+                    </button>
                     <button
-                      onClick={() => navigate(`/profile/${post.wallet}`)}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/profile/${post.wallet}`);
+                      }}
                       className="ml-auto text-primary hover:underline"
                     >
                       View Profile →
@@ -363,6 +468,52 @@ const Bookmarks = () => {
           </div>
         )}
       </div>
+
+      {selectedPost && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          onClick={() => {
+            setSelectedPost(null);
+            setReplyToId(null);
+          }}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.7)",
+            backdropFilter: "blur(2px)",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth:
+                selectedPost.image_url ||
+                selectedPost.original_post?.image_url
+                  ? 900
+                  : 600,
+              width: "100%",
+              height: "80vh",
+              display: "flex",
+            }}
+          >
+            <PostDetailPanel
+              post={selectedPost}
+              replies={selectedPostReplies}
+              onClose={() => {
+                setSelectedPost(null);
+                setReplyToId(null);
+              }}
+              onRepliesChange={setSelectedPostReplies}
+            />
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 };
