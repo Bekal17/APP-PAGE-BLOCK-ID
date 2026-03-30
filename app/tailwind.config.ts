@@ -17,6 +17,16 @@ export default {
         sans: ['Inter', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
+      fontSize: {
+        // Golden ratio scale: base 16px x 1.618
+        'gr-xs': ['10px', { lineHeight: '16px' }], // 16 / 1.618 / 1.618
+        'gr-sm': ['13px', { lineHeight: '21px' }], // 16 / 1.618 x 1.3
+        'gr-base': ['16px', { lineHeight: '26px' }], // base
+        'gr-md': ['24px', { lineHeight: '39px' }], // 16 x 1.618 = 25.9
+        'gr-lg': ['39px', { lineHeight: '63px' }], // 24 x 1.618 = 38.8
+        'gr-xl': ['63px', { lineHeight: '102px' }], // 39 x 1.618 = 63.1
+        'gr-2xl': ['102px', { lineHeight: '165px' }], // 63 x 1.618 = 101.9
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
