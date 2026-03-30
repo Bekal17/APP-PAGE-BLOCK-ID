@@ -1971,7 +1971,7 @@ const Profile = () => {
                           ? "rgba(248,113,113,0.15)"
                           : item.activity_type === "reposted"
                             ? "rgba(74,222,128,0.15)"
-                            : "rgba(99,102,241,0.15)",
+                            : "hsl(var(--primary) / 0.15)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
