@@ -271,23 +271,14 @@ export default function PostDetailPanel({
             marginBottom: 14,
           }}
         >
-          <div
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: "50%",
-              background: "hsl(var(--primary) / 0.15)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "hsl(var(--primary))",
-              fontWeight: "bold",
-              fontSize: 14,
-              flexShrink: 0,
-            }}
-          >
-            {avatarLetter}
-          </div>
+          <UserAvatar
+            avatarUrl={post.avatar_url ?? null}
+            avatarType={post.avatar_type ?? null}
+            avatarIsAnimated={post.avatar_is_animated ?? false}
+            handle={displayHandle}
+            wallet={displayWallet}
+            size={40}
+          />
           <div>
             <div style={{ fontWeight: "bold", color: "#fff", fontSize: 15 }}>
               {handleLine}
