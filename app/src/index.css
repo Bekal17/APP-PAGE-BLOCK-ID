@@ -30,6 +30,27 @@
 
 @layer base {
   :root {
+    /* Golden Ratio Typography Scale -- base 16px x 1.618 */
+    --gr-xs: 10px; /* captions, badges */
+    --gr-sm: 13px; /* secondary text */
+    --gr-base: 16px; /* body text */
+    --gr-md: 24px; /* subheadings */
+    --gr-lg: 39px; /* section headings */
+    --gr-xl: 63px; /* hero titles */
+
+    /* Golden ratio line heights */
+    --lh-base: 1.618;
+    --lh-tight: 1.0;
+    --lh-loose: 2.618; /* 1.618 x 1.618 */
+
+    /* Golden ratio spacing */
+    --sp-xs: 10px;
+    --sp-sm: 16px;
+    --sp-md: 26px; /* 16 x 1.618 */
+    --sp-lg: 42px; /* 26 x 1.618 */
+    --sp-xl: 68px; /* 42 x 1.618 */
+    --sp-2xl: 110px; /* 68 x 1.618 */
+
     --background: 222 25% 6%;
     --foreground: 210 20% 92%;
 
@@ -121,6 +142,33 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', system-ui, sans-serif;
+    font-size: var(--gr-base);
+    line-height: var(--lh-base);
+  }
+
+  h1 {
+    font-size: var(--gr-xl);
+    line-height: var(--lh-tight);
+  }
+
+  h2 {
+    font-size: var(--gr-lg);
+    line-height: 1.2;
+  }
+
+  h3 {
+    font-size: var(--gr-md);
+    line-height: 1.3;
+  }
+
+  p {
+    font-size: var(--gr-base);
+    line-height: var(--lh-base);
+  }
+
+  small, .text-xs, .text-sm {
+    font-size: var(--gr-sm);
+    line-height: var(--lh-base);
   }
 
   code, .font-mono {
