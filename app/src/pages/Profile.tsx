@@ -2454,7 +2454,7 @@ const Profile = () => {
           <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
             <div className="bg-gray-900 p-8 rounded-xl text-center">
               <div className="animate-pulse text-purple-400 text-lg mb-4">
-                <img src="/blockid_logo.svg" alt="BlockID" className="w-5 h-5 object-contain inline-block mr-1" /> BlockID AI analyzing wallet...
+                <img src="/blockid-logo.svg" alt="BlockID" className="w-5 h-5 object-contain inline-block mr-1" /> BlockID AI analyzing wallet...
               </div>
               <div className="text-gray-400 text-sm space-y-1">
                 <div>Fetching transactions...</div>
