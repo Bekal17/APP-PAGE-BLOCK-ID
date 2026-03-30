@@ -100,6 +100,11 @@
     --glow-accent: 260 60% 60%;
     --glow-success: 160 70% 45%;
 
+    /* 60-30-10 Color System */
+    --color-bg: 220 20% 4%; /* 60% -- near black background */
+    --color-primary: 185 80% 55%; /* 30% -- blue/cyan (trust) */
+    --color-accent: 262 83% 58%; /* 10% -- purple (innovation, CTA only) */
+
     --glass: 222 20% 12%;
     --glass-border: 222 15% 22%;
   }
@@ -111,7 +116,7 @@
     --card-foreground: 224 71% 4%;
     --popover: 0 0% 100%;
     --popover-foreground: 224 71% 4%;
-    --primary: 262 83% 58%;
+    --primary: 199 89% 48%;
     --primary-foreground: 0 0% 100%;
     --secondary: 220 14% 96%;
     --secondary-foreground: 220 9% 46%;
