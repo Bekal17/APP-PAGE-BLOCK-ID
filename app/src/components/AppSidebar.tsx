@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
-import logo from "@/assets/blockid_logo.svg";
+import logo from "/blockid-logo.svg";
 import {
   LayoutDashboard,
   Bell,
@@ -56,18 +56,12 @@ const AppSidebar = () => {
   return (
     <div className="flex flex-col h-full py-4">
       {/* Logo */}
-      <div className="px-4 mb-6 flex items-center gap-3">
+      <div className="px-4 mb-6">
         <img
           src={logo}
           alt="BlockID"
           className="h-8 w-auto shrink-0"
         />
-        <span className="text-lg font-bold tracking-tight">
-          <span className="text-white">Block</span>
-          <span className="bg-gradient-to-r from-blue-400 to-indigo-500 bg-clip-text text-transparent">
-            ID
-          </span>
-        </span>
       </div>
 
       {/* Navigation */}
