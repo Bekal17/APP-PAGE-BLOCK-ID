@@ -665,7 +665,7 @@ export default function PostCard({
               >
                 <span
                   style={{
-                    color: "#fff",
+                    color: "hsl(var(--foreground))",
                     fontWeight: 600,
                     fontSize: 13,
                   }}
@@ -674,14 +674,14 @@ export default function PostCard({
                     ? `@${tr.handle}`
                     : `${tr.wallet?.slice(0, 4)}...${tr.wallet?.slice(-4)}`}
                 </span>
-                <span style={{ color: "#555", fontSize: 11 }}>
+                <span style={{ color: "hsl(var(--muted-foreground))", fontSize: 11 }}>
                   · {formatRelativeTime(tr.created_at)}
                 </span>
               </div>
               <p
                 style={
                   {
-                    color: "#adb5bd",
+                    color: "hsl(var(--muted-foreground))",
                     fontSize: 13,
                     lineHeight: 1.5,
                     whiteSpace: "pre-wrap",
@@ -715,7 +715,7 @@ export default function PostCard({
                     background: "none",
                     border: "none",
                     cursor: "pointer",
-                    color: "#555",
+                    color: "hsl(var(--muted-foreground))",
                     fontSize: 12,
                   }}
                 >
@@ -736,7 +736,7 @@ export default function PostCard({
                     background: "none",
                     border: "none",
                     cursor: "pointer",
-                    color: "#555",
+                    color: "hsl(var(--muted-foreground))",
                     fontSize: 12,
                   }}
                 >
@@ -757,7 +757,7 @@ export default function PostCard({
                     background: "none",
                     border: "none",
                     cursor: "pointer",
-                    color: "#555",
+                    color: "hsl(var(--muted-foreground))",
                     fontSize: 12,
                   }}
                 >
