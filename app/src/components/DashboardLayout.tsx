@@ -1,6 +1,6 @@
 import { ReactNode, useState } from "react";
 import AppSidebar from "@/components/AppSidebar";
-import logo from "@/assets/blockid_logo.svg";
+import logo from "/blockid-logo.svg";
 import MobileNav from "@/components/MobileNav";
 import WalletIndicator from "@/components/WalletIndicator";
 import NotificationBell from "@/components/NotificationBell";
@@ -33,7 +33,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
               <img
                 src={logo}
                 alt="BlockID"
-                className="h-16 w-auto object-contain shrink-0"
+                className="h-8 w-auto object-contain shrink-0"
               />
             </div>
           </div>
