@@ -15,7 +15,11 @@ export default function UserAvatar({
   wallet,
   size = 36,
 }: UserAvatarProps) {
-  const letter = (handle ?? wallet ?? "?")[0]?.toUpperCase() ?? "?";
+  const avatarLetter = handle
+    ? handle.charAt(0).toUpperCase()
+    : wallet
+      ? wallet.charAt(0).toUpperCase()
+      : "?";
   const isNFT = avatarType === "NFT" && !!avatarUrl;
   const isPhoto = avatarType === "PHOTO" && !!avatarUrl;
 
@@ -95,7 +99,7 @@ export default function UserAvatar({
         flexShrink: 0,
       }}
     >
-      {letter}
+      {avatarLetter}
     </div>
   );
 }
