@@ -50,7 +50,7 @@ const MobileNav = ({ open, onClose }: MobileNavProps) => {
             <img
               src={logo}
               alt="BlockID"
-              className="h-16 w-auto object-contain shrink-0"
+              className="h-24 w-auto shrink-0"
             />
           </div>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
