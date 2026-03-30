@@ -13,12 +13,16 @@ export default function PostDetail() {
 
   useEffect(() => {
     if (!postId) return;
+    console.log("PostDetail: postId =", postId);
     getPost(Number(postId))
       .then((data) => {
+        console.log("PostDetail: data =", data);
         setPost(data.post ?? data);
         setReplies(data.replies ?? []);
       })
-      .catch(console.error)
+      .catch((e) => {
+        console.error("PostDetail: error =", e);
+      })
       .finally(() => setLoading(false));
   }, [postId]);
 
