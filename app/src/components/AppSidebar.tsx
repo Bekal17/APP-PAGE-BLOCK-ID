@@ -60,7 +60,7 @@ const AppSidebar = () => {
         <img
           src={logo}
           alt="BlockID"
-          className="h-8 w-auto shrink-0"
+          className="h-24 w-auto shrink-0"
         />
       </div>
 
