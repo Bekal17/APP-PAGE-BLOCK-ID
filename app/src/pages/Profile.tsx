@@ -2731,7 +2731,7 @@ const Profile = () => {
                     You've used all {sub.scansLimit} wallet scans this month
                   </p>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Upgrade to Explorer to get 100 scans/month, or PRO
+                    Upgrade to Explorer to get 250 scans/month, or PRO
                     for unlimited scans. Scans only count when viewing the
                     Wallet tab on other profiles.
                   </p>
@@ -2745,7 +2745,7 @@ const Profile = () => {
                         Explorer
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        100 scans/month · @Handle
+                        250 scans/month · @Handle
                       </p>
                     </div>
                     <span className="text-sm font-bold text-blue-400">$9/mo</span>

@@ -251,7 +251,7 @@ export default function Upgrade() {
         { name: "Unlimited posts & social feed", free: true, explorer: true, pro: true },
         { name: "Follow & followers", free: true, explorer: true, pro: true },
         { name: "Direct messages", free: true, explorer: true, pro: true },
-        { name: "Wallet scans/month", free: "10", explorer: "100", pro: "Unlimited" },
+        { name: "Wallet scans/month", free: "50", explorer: "250", pro: "Unlimited" },
       ],
     },
     {
@@ -338,7 +338,7 @@ export default function Upgrade() {
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
-                10 wallet scans/month
+                50 wallet scans/month
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
@@ -379,7 +379,7 @@ export default function Upgrade() {
             <ul className="space-y-2 text-xs text-zinc-400">
               <li className="flex items-center gap-2">
                 <Check className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
-                100 wallet scans/month
+                250 wallet scans/month
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />

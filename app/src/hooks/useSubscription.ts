@@ -17,8 +17,8 @@ export interface SubscriptionState {
 }
 
 const PLAN_LIMITS: Record<string, number> = {
-  free: 10,
-  explorer: 100,
+  free: 50,
+  explorer: 250,
   pro: Infinity,
 };
 
@@ -27,8 +27,8 @@ export function useSubscription() {
   const [state, setState] = useState<SubscriptionState>({
     plan: "free",
     scansUsed: 0,
-    scansLimit: 10,
-    scansRemaining: 10,
+    scansLimit: 50,
+    scansRemaining: 50,
     isAtLimit: false,
     isNearLimit: false,
     loading: true,
