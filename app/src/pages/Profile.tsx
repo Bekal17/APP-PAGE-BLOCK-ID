@@ -828,6 +828,12 @@ const Profile = () => {
         if (reasonSet.has("CLEAN_HISTORY") || reasonSet.has("NO_SCAM_HISTORY")) {
           patterns.push("No drainer pattern");
         }
+        if (reasonSet.has("VERIFIED_WALLET_LINK")) {
+          patterns.push("Multi-wallet identity verified");
+        }
+        if (reasonSet.has("MULTI_WALLET_IDENTITY")) {
+          patterns.push("Aggregated trust from linked wallets");
+        }
         if (reasonSet.has("DAO_MEMBER")) {
           patterns.push("DAO participant");
         }
