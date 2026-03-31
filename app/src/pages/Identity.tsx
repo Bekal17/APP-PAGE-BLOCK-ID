@@ -6,6 +6,11 @@ import {
   PublicKey,
   LAMPORTS_PER_SOL,
 } from "@solana/web3.js";
+import {
+  createTransferInstruction,
+  getAssociatedTokenAddress,
+  TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
 import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -39,6 +44,10 @@ const FOUNDER_WALLETS = new Set([
   "7WVhw8R7moAHaPJkZh59kRbqyApTFQvjV816qwEjsW6o",
 ]);
 
+const USDC_MINT = new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v");
+const REQUIRED_USDC = 5.0;
+const USDC_DECIMALS = 1_000_000;
+
 const Identity = () => {
   const [handle, setHandle] = useState("");
   const [checking, setChecking] = useState(false);
@@ -54,6 +63,7 @@ const Identity = () => {
   const [step, setStep] = useState<
     "search" | "confirm" | "paying" | "done"
   >("search");
+  const [paymentMethod, setPaymentMethod] = useState<"SOL" | "USDC">("SOL");
 
   const { publicKey, signTransaction, connected } = useWallet();
   const { connection } = useConnection();
@@ -104,21 +114,47 @@ const Identity = () => {
       let txSig = "founder-bypass";
 
       if (!isFounder) {
-        // Step 1: SOL payment to treasury
-        const lamports = Math.ceil(checkResult.price_sol * LAMPORTS_PER_SOL);
-        const transaction = new Transaction().add(
-          SystemProgram.transfer({
-            fromPubkey: publicKey,
-            toPubkey: new PublicKey(BLOCKID_TREASURY),
-            lamports,
-          })
-        );
-        const { blockhash } = await heliusConnection.getLatestBlockhash();
-        transaction.recentBlockhash = blockhash;
-        transaction.feePayer = publicKey;
-        const signed = await signTransaction(transaction);
-        txSig = await heliusConnection.sendRawTransaction(signed.serialize());
-        await heliusConnection.confirmTransaction(txSig, "confirmed");
+        if (paymentMethod === "USDC") {
+          // USDC SPL transfer
+          const fromAta = await getAssociatedTokenAddress(USDC_MINT, publicKey);
+          const toAta = await getAssociatedTokenAddress(
+            USDC_MINT,
+            new PublicKey(BLOCKID_TREASURY)
+          );
+          const amount = Math.ceil(REQUIRED_USDC * USDC_DECIMALS);
+          const transaction = new Transaction().add(
+            createTransferInstruction(
+              fromAta,
+              toAta,
+              publicKey,
+              amount,
+              [],
+              TOKEN_PROGRAM_ID
+            )
+          );
+          const { blockhash } = await heliusConnection.getLatestBlockhash();
+          transaction.recentBlockhash = blockhash;
+          transaction.feePayer = publicKey;
+          const signed = await signTransaction(transaction);
+          txSig = await heliusConnection.sendRawTransaction(signed.serialize());
+          await heliusConnection.confirmTransaction(txSig, "confirmed");
+        } else {
+          // SOL transfer (existing logic)
+          const lamports = Math.ceil(checkResult.price_sol * LAMPORTS_PER_SOL);
+          const transaction = new Transaction().add(
+            SystemProgram.transfer({
+              fromPubkey: publicKey,
+              toPubkey: new PublicKey(BLOCKID_TREASURY),
+              lamports,
+            })
+          );
+          const { blockhash } = await heliusConnection.getLatestBlockhash();
+          transaction.recentBlockhash = blockhash;
+          transaction.feePayer = publicKey;
+          const signed = await signTransaction(transaction);
+          txSig = await heliusConnection.sendRawTransaction(signed.serialize());
+          await heliusConnection.confirmTransaction(txSig, "confirmed");
+        }
       }
 
       // Step 2: Claim handle via API
@@ -130,6 +166,7 @@ const Identity = () => {
           handle: h,
           signed_message: `Claim @${h} on BlockID`,
           tx_signature: txSig,
+          payment_method: paymentMethod,
         }),
       });
       const claimData = await claimRes.json();
@@ -309,6 +346,29 @@ const Identity = () => {
                 </h3>
               </div>
 
+              <div className="flex gap-3 mb-5">
+                <button
+                  onClick={() => setPaymentMethod("SOL")}
+                  className={`flex-1 py-2.5 rounded-lg text-sm font-semibold border transition-all ${
+                    paymentMethod === "SOL"
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-muted/30 text-muted-foreground hover:border-primary/50"
+                  }`}
+                >
+                  SOL
+                </button>
+                <button
+                  onClick={() => setPaymentMethod("USDC")}
+                  className={`flex-1 py-2.5 rounded-lg text-sm font-semibold border transition-all ${
+                    paymentMethod === "USDC"
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border bg-muted/30 text-muted-foreground hover:border-primary/50"
+                  }`}
+                >
+                  USDC
+                </button>
+              </div>
+
               <div className="space-y-3 mb-5">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Handle</span>
@@ -319,7 +379,9 @@ const Identity = () => {
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Price</span>
                   <span className="font-semibold text-foreground">
-                    {checkResult.price_sol} SOL (≈${checkResult.price_usd})
+                    {paymentMethod === "USDC"
+                      ? `$${REQUIRED_USDC} USDC`
+                      : `${checkResult.price_sol} SOL (≈$${checkResult.price_usd})`}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
