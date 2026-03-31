@@ -25,6 +25,9 @@ type SocialPost = {
   is_repost?: boolean;
   repost_of?: number | null;
   quote_content?: string | null;
+  avatar_url?: string | null;
+  avatar_type?: string | null;
+  avatar_is_animated?: boolean;
   original_post?: {
     wallet: string;
     handle?: string | null;
@@ -607,23 +610,14 @@ export default function PostDetailPanel({
             </div>
           )}
           <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-            <div
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: "50%",
-                background: "hsl(var(--primary) / 0.15)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "hsl(var(--primary))",
-                fontWeight: "bold",
-                fontSize: 12,
-                flexShrink: 0,
-              }}
-            >
-              {publicKey?.toString()[0].toUpperCase() ?? "?"}
-            </div>
+            <UserAvatar
+              avatarUrl={post.avatar_url ?? null}
+              avatarType={post.avatar_type ?? null}
+              avatarIsAnimated={post.avatar_is_animated ?? false}
+              handle={post.handle ?? null}
+              wallet={post.wallet ?? null}
+              size={32}
+            />
             <div style={{ flex: 1 }}>
               <textarea
                 value={replyContent}
