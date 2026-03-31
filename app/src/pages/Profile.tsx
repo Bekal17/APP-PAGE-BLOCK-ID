@@ -324,6 +324,8 @@ const Profile = () => {
     website: "",
     location: "",
   });
+  const [walletDomains, setWalletDomains] = useState<Array<{name: string, source: string, display: string}>>([]);
+  const [displayedDomains, setDisplayedDomains] = useState<string[]>([]);
   const [earnedBadges, setEarnedBadges] = useState<string[]>([]);
   const [selectedBadges, setSelectedBadges] = useState<string[]>([]);
   const [editSaving, setEditSaving] = useState(false);
@@ -486,6 +488,13 @@ const Profile = () => {
             website: profileRes?.website ?? "",
             location: profileRes?.location ?? "",
           });
+          fetch(`${SOCIAL_API_BASE}/social/profile/names/${wallet}`)
+            .then((r) => r.json())
+            .then((data) => {
+              const names = (data.names ?? []).filter((n: any) => n.source !== "BLOCKID");
+              setWalletDomains(names);
+            })
+            .catch(() => {});
           const p = postsRes.posts ?? postsRes ?? profileRes.posts ?? [];
           setPosts(Array.isArray(p) ? p : []);
           const savedScroll = sessionStorage.getItem("profile_scroll");
@@ -1247,6 +1256,17 @@ const Profile = () => {
                 {profile?.handle ? `@${profile.handle}` : wallet.length > 16 ? `${wallet.slice(0, 8)}...${wallet.slice(-8)}` : wallet}
                 <SubscriptionBadge plan={(profile as any)?.plan ?? "free"} size="md" />
               </p>
+              {walletDomains.slice(0, 3).map((domain) => (
+                <span
+                  key={domain.name}
+                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-muted/50 text-muted-foreground border border-border/50 mt-1"
+                >
+                  {domain.source === "SNS" && <span className="text-purple-400">◎</span>}
+                  {domain.source === "ANS" && <span className="text-blue-400">◈</span>}
+                  {domain.source === "ENS" && <span className="text-indigo-400">⬡</span>}
+                  {domain.display}
+                </span>
+              ))}
               {(isOwnProfile || viewedPrivacy?.wallet_display !== "HIDDEN") && (
                 <p className="text-xs text-muted-foreground font-mono">
                   {wallet.length > 16 ? `${wallet.slice(0, 8)}...${wallet.slice(-8)}` : wallet || "—"}
@@ -3545,6 +3565,47 @@ const Profile = () => {
                   </p>
                 )}
               </div>
+
+              {/* Domain Tags */}
+              {walletDomains.length > 0 && (
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider block mb-1.5">
+                    Display Domain Tags
+                  </label>
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Show your on-chain domain names on your profile
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {walletDomains.map((domain) => {
+                      const isSelected = displayedDomains.includes(domain.name);
+                      return (
+                        <button
+                          key={domain.name}
+                          type="button"
+                          onClick={() => {
+                            if (isSelected) {
+                              setDisplayedDomains(prev => prev.filter(d => d !== domain.name));
+                            } else if (displayedDomains.length < 3) {
+                              setDisplayedDomains(prev => [...prev, domain.name]);
+                            }
+                          }}
+                          className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                            isSelected
+                              ? "bg-primary/20 border-primary text-primary"
+                              : "bg-zinc-800 border-zinc-700 text-muted-foreground hover:border-primary/50"
+                          }`}
+                        >
+                          {domain.source === "SNS" && "◎ "}
+                          {domain.source === "ANS" && "◈ "}
+                          {domain.source === "ENS" && "⬡ "}
+                          {domain.display}
+                          {isSelected && " ✓"}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
