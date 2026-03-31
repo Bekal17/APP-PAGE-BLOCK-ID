@@ -237,6 +237,27 @@ function isSelectingText(): boolean {
   return Boolean(selection && selection.toString().length > 0);
 }
 
+const BADGE_LABELS: Record<string, string> = {
+  NO_SCAM_HISTORY: "Clean Record",
+  CLEAN_HISTORY: "Clean History",
+  DEX_TRADER: "DEX Trader",
+  DEX_TRADER_10_PLUS: "Active Trader",
+  DEX_TRADER_50_PLUS: "Pro Trader",
+  NFT_COLLECTOR: "NFT Collector",
+  NFT_10_PLUS: "NFT Enthusiast",
+  LONG_HISTORY: "OG Wallet",
+  MULTI_YEAR_ACTIVITY: "Multi-Year Active",
+  AGE_3Y: "3Y Veteran",
+  AGE_5Y: "5Y Legend",
+  LOW_RISK_CLUSTER: "Safe Network",
+  FAR_FROM_SCAM_CLUSTER: "Scam-Free Zone",
+  DAO_MEMBER: "DAO Member",
+  VERIFIED_WALLET_LINK: "Multi-Wallet",
+  MULTI_WALLET_IDENTITY: "Unified Identity",
+  LOW_ACTIVITY: "Early Explorer",
+  NO_RISK_DETECTED: "No Risk Detected",
+};
+
 const Profile = () => {
   const { publicKey, connected } = useWallet();
   const { connection } = useConnection();
@@ -2068,28 +2089,7 @@ const Profile = () => {
                     ? originalPost.wallet
                     : post.wallet ?? wallet;
 
-  const BADGE_LABELS: Record<string, string> = {
-    NO_SCAM_HISTORY: "Clean Record",
-    CLEAN_HISTORY: "Clean History",
-    DEX_TRADER: "DEX Trader",
-    DEX_TRADER_10_PLUS: "Active Trader",
-    DEX_TRADER_50_PLUS: "Pro Trader",
-    NFT_COLLECTOR: "NFT Collector",
-    NFT_10_PLUS: "NFT Enthusiast",
-    LONG_HISTORY: "OG Wallet",
-    MULTI_YEAR_ACTIVITY: "Multi-Year Active",
-    AGE_3Y: "3Y Veteran",
-    AGE_5Y: "5Y Legend",
-    LOW_RISK_CLUSTER: "Safe Network",
-    FAR_FROM_SCAM_CLUSTER: "Scam-Free Zone",
-    DAO_MEMBER: "DAO Member",
-    VERIFIED_WALLET_LINK: "Multi-Wallet",
-    MULTI_WALLET_IDENTITY: "Unified Identity",
-    LOW_ACTIVITY: "Early Explorer",
-    NO_RISK_DETECTED: "No Risk Detected",
-  };
-
-  return (
+                return (
                   <div
                     key={post.id}
                     className="glass-card overflow-hidden
