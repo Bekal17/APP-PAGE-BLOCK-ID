@@ -1,3 +1,6 @@
+import { Buffer } from "buffer";
+window.Buffer = window.Buffer ?? Buffer;
+
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import {
   Connection,
