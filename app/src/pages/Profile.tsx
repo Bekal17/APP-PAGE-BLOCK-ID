@@ -96,6 +96,7 @@ const APP_BASE_URL = "https://app.blockidscore.fun";
 const API_BASE =
   import.meta.env.VITE_EXPLORER_API_URL ||
   "https://blockid-backend-production.up.railway.app";
+const SOCIAL_API_BASE = "https://blockid-backend-production.up.railway.app";
 
 const formatSolanaAddress = (address: string) => {
   if (!address) return "";
@@ -302,6 +303,8 @@ const Profile = () => {
     website: "",
     location: "",
   });
+  const [earnedBadges, setEarnedBadges] = useState<string[]>([]);
+  const [selectedBadges, setSelectedBadges] = useState<string[]>([]);
   const [editSaving, setEditSaving] = useState(false);
   const [modalAvatarMenu, setModalAvatarMenu] = useState(false);
   const [modalBannerMenu, setModalBannerMenu] = useState(false);
@@ -1265,35 +1268,39 @@ const Profile = () => {
                   {followingCount} Following
                 </button>
               </div>
-              {profile?.badges &&
-                (() => {
-                  try {
-                    const list =
-                      typeof profile.badges === "string"
-                        ? JSON.parse(profile.badges)
-                        : profile.badges;
-                    return Array.isArray(list) && list.length > 0 ? (
-                      <div className="flex flex-wrap gap-1.5 mt-2">
-                        {list.map((badge: string) => (
-                          <span
-                            key={badge}
-                            className="px-2 py-0.5 rounded-full text-xs font-medium bg-primary/15 text-primary border border-primary/20"
-                          >
-                            {badge}
-                          </span>
-                        ))}
-                      </div>
-                    ) : null;
-                  } catch {
-                    return null;
-                  }
-                })()}
+              {(() => {
+                const list = (profile?.displayed_badges?.length
+                  ? profile.displayed_badges
+                  : profile?.badges) ?? [];
+                if (!Array.isArray(list) || list.length === 0) return null;
+                return (
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {list.map((badge: string) => (
+                      <span
+                        key={badge}
+                        className="px-2 py-0.5 rounded-full text-xs font-medium bg-primary/15 text-primary border border-primary/20"
+                      >
+                        {BADGE_LABELS[badge] ?? badge}
+                      </span>
+                    ))}
+                  </div>
+                );
+              })()}
               {isOwnProfile && (
                 <Button
                   size="sm"
                   variant="outline"
                   className="h-7 px-3 rounded-full text-xs mt-2"
-                  onClick={() => setEditModalOpen(true)}
+                  onClick={() => {
+                    setEditModalOpen(true);
+                    fetch(`${SOCIAL_API_BASE}/social/badges/${wallet}`)
+                      .then((r) => r.json())
+                      .then((data) => {
+                        setEarnedBadges(data.earned ?? []);
+                        setSelectedBadges(data.displayed ?? []);
+                      })
+                      .catch(() => {});
+                  }}
                 >
                   Edit Profile
                 </Button>
@@ -2061,7 +2068,28 @@ const Profile = () => {
                     ? originalPost.wallet
                     : post.wallet ?? wallet;
 
-                return (
+  const BADGE_LABELS: Record<string, string> = {
+    NO_SCAM_HISTORY: "Clean Record",
+    CLEAN_HISTORY: "Clean History",
+    DEX_TRADER: "DEX Trader",
+    DEX_TRADER_10_PLUS: "Active Trader",
+    DEX_TRADER_50_PLUS: "Pro Trader",
+    NFT_COLLECTOR: "NFT Collector",
+    NFT_10_PLUS: "NFT Enthusiast",
+    LONG_HISTORY: "OG Wallet",
+    MULTI_YEAR_ACTIVITY: "Multi-Year Active",
+    AGE_3Y: "3Y Veteran",
+    AGE_5Y: "5Y Legend",
+    LOW_RISK_CLUSTER: "Safe Network",
+    FAR_FROM_SCAM_CLUSTER: "Scam-Free Zone",
+    DAO_MEMBER: "DAO Member",
+    VERIFIED_WALLET_LINK: "Multi-Wallet",
+    MULTI_WALLET_IDENTITY: "Unified Identity",
+    LOW_ACTIVITY: "Early Explorer",
+    NO_RISK_DETECTED: "No Risk Detected",
+  };
+
+  return (
                   <div
                     key={post.id}
                     className="glass-card overflow-hidden
@@ -3042,9 +3070,15 @@ const Profile = () => {
                       website: normalizedWebsite,
                       location: editForm.location,
                     });
+                    await fetch(`${SOCIAL_API_BASE}/social/badges/display`, {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ wallet, badges: selectedBadges }),
+                    });
                     setProfile((prev: any) => ({
                       ...prev,
                       ...editForm,
+                      displayed_badges: selectedBadges,
                       website: normalizedWebsite,
                     }));
                     setEditModalOpen(false);
@@ -3463,6 +3497,53 @@ const Profile = () => {
                     placeholder:text-muted-foreground text-sm
                     focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
+              </div>
+
+              {/* Badges */}
+              <div>
+                <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider block mb-1.5">
+                  Display Badges <span className="text-muted-foreground/60 normal-case">(max 5)</span>
+                </label>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Choose which earned badges to show on your profile
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {earnedBadges.map((code) => {
+                    const label = BADGE_LABELS[code] ?? code;
+                    const isSelected = selectedBadges.includes(code);
+                    return (
+                      <button
+                        key={code}
+                        type="button"
+                        onClick={() => {
+                          if (isSelected) {
+                            setSelectedBadges((prev) => prev.filter((b) => b !== code));
+                          } else if (selectedBadges.length < 5) {
+                            setSelectedBadges((prev) => [...prev, code]);
+                          }
+                        }}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                          isSelected
+                            ? "bg-primary/20 border-primary text-primary"
+                            : "bg-zinc-800 border-zinc-700 text-muted-foreground hover:border-primary/50"
+                        }`}
+                      >
+                        {label}
+                        {isSelected && " ✓"}
+                      </button>
+                    );
+                  })}
+                  {earnedBadges.length === 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      No badges earned yet. Complete wallet activity to earn badges.
+                    </p>
+                  )}
+                </div>
+                {selectedBadges.length > 0 && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {selectedBadges.length}/5 selected
+                  </p>
+                )}
               </div>
             </div>
           </div>
