@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import {
@@ -15,6 +16,7 @@ const formatAddress = (address: string) => {
 };
 
 export default function WalletIndicator() {
+  const { t } = useTranslation();
   const { publicKey, connected, disconnect } = useWallet();
   const { setVisible } = useWalletModal();
 
@@ -78,7 +80,7 @@ export default function WalletIndicator() {
           className="gap-2 cursor-pointer text-destructive focus:text-destructive"
         >
           <LogOut className="w-4 h-4" />
-          Log Out
+          {t("nav.log_out")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
