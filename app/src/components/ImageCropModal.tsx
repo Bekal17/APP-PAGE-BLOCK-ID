@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import Cropper, { Area } from "react-easy-crop";
 
 interface ImageCropModalProps {
@@ -51,8 +52,10 @@ export default function ImageCropModal({
   cropShape,
   onComplete,
   onCancel,
-  title = "Edit photo",
+  title,
 }: ImageCropModalProps) {
+  const { t } = useTranslation();
+  const heading = title ?? t("common.edit_photo");
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
@@ -76,15 +79,15 @@ export default function ImageCropModal({
             onClick={onCancel}
             className="text-sm text-slate-400 hover:text-white transition-colors"
           >
-            Cancel
+            {t("common.cancel")}
           </button>
-          <span className="text-sm font-semibold text-white">{title}</span>
+          <span className="text-sm font-semibold text-white">{heading}</span>
           <button
             onClick={handleApply}
             disabled={!croppedAreaPixels}
             className="text-sm font-bold text-white bg-gradient-to-r from-purple-600 to-blue-500 px-4 py-1.5 rounded-full hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Apply
+            {t("common.apply")}
           </button>
         </div>
 

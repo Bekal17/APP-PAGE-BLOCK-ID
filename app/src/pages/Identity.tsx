@@ -15,6 +15,7 @@ import {
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useToast } from "@/hooks/use-toast";
 import DashboardLayout from "@/components/DashboardLayout";
 import {
@@ -52,6 +53,7 @@ const REQUIRED_USDC = 5.0;
 const USDC_DECIMALS = 1_000_000;
 
 const Identity = () => {
+  const { t } = useTranslation();
   const [handle, setHandle] = useState("");
   const [checking, setChecking] = useState(false);
   const [checkResult, setCheckResult] = useState<{
@@ -100,7 +102,7 @@ const Identity = () => {
       });
       if (data.available) setStep("confirm");
     } catch {
-      toast({ title: "Failed to check handle", variant: "destructive" });
+      toast({ title: t("identity.toast_check_failed"), variant: "destructive" });
     } finally {
       setChecking(false);
     }
@@ -177,7 +179,7 @@ const Identity = () => {
 
       setCurrentHandle(h);
       setStep("done");
-      toast({ title: `@${h} claimed successfully!` });
+      toast({ title: t("identity.toast_claim_success", { handle: `@${h}` }) });
     } catch (e: unknown) {
       console.error(e);
       const err = e as Error;
@@ -197,15 +199,13 @@ const Identity = () => {
         {/* Header */}
         <div className="text-center mb-2">
           <h1 className="text-2xl font-bold text-foreground">
-            @Handle Identity
+            {t("identity.page_title")}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Your identity on BlockID. One name, one reputation, across every
-            wallet you own.
+            {t("identity.subtitle")}
           </p>
           <p className="text-xs text-muted-foreground/60 mt-2 max-w-md mx-auto leading-relaxed">
-            Your trust score and reputation are yours, they follow your
-            wallet, not your handle.
+            {t("identity.subtitle_trust")}
           </p>
         </div>
 
@@ -216,10 +216,10 @@ const Identity = () => {
               <CheckCircle2 className="w-5 h-5 text-green-400" />
               <div>
                 <p className="text-sm font-semibold text-foreground">
-                  You own @{currentHandle}
+                  {t("identity.you_own", { handle: currentHandle })}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Soul-bound to your wallet · Active
+                  {t("identity.soul_bound_active")}
                 </p>
               </div>
             </div>
@@ -232,7 +232,7 @@ const Identity = () => {
             <div className="flex items-center gap-2 mb-4">
               <AtSign className="w-4 h-4 text-primary" />
               <h3 className="text-sm font-semibold text-foreground">
-                Search Handle
+                {t("identity.search_handle")}
               </h3>
             </div>
 
@@ -253,7 +253,7 @@ const Identity = () => {
                     setStep("search");
                   }}
                   onKeyDown={(e) => e.key === "Enter" && handleCheck()}
-                  placeholder="yourhandle"
+                  placeholder={t("identity.handle_placeholder_input")}
                   className="w-full pl-8 pr-4 py-3 bg-muted/50 border border-border
                     rounded-lg text-foreground placeholder:text-muted-foreground
                     focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm font-mono"
@@ -271,7 +271,7 @@ const Identity = () => {
                 ) : (
                   <Search className="w-4 h-4" />
                 )}
-                Check
+                {t("identity.check")}
               </button>
             </div>
 
@@ -295,14 +295,17 @@ const Identity = () => {
                       checkResult.available ? "text-green-400" : "text-red-400"
                     }`}
                   >
-                    @{handle} is {checkResult.available ? "available!" : "taken"}
+                    @{handle}{" "}
+                    {checkResult.available
+                      ? t("identity.status_available")
+                      : t("identity.status_taken")}
                   </span>
                 </div>
 
                 {!checkResult.available && checkResult.current_owner && (
                   <div className="flex items-center justify-between text-xs mt-2 pt-2 border-t border-red-500/20">
                     <span className="text-muted-foreground">
-                      Current owner
+                      {t("identity.current_owner")}
                     </span>
                     <span className="font-mono text-foreground">
                       {checkResult.current_owner.slice(0, 4)}...
@@ -345,7 +348,7 @@ const Identity = () => {
               <div className="flex items-center gap-2 mb-4">
                 <Wallet className="w-4 h-4 text-primary" />
                 <h3 className="text-sm font-semibold text-foreground">
-                  Confirm & Pay
+                  {t("identity.confirm_pay")}
                 </h3>
               </div>
 
@@ -374,13 +377,17 @@ const Identity = () => {
 
               <div className="space-y-3 mb-5">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Handle</span>
+                  <span className="text-muted-foreground">
+                    {t("identity.label_handle")}
+                  </span>
                   <span className="font-mono font-semibold text-foreground">
                     @{handle}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Price</span>
+                  <span className="text-muted-foreground">
+                    {t("identity.price")}
+                  </span>
                   <span className="font-semibold text-foreground">
                     {paymentMethod === "USDC"
                       ? `$${REQUIRED_USDC} USDC`
@@ -388,14 +395,20 @@ const Identity = () => {
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Type</span>
-                  <span className="text-foreground">Transferable NFT</span>
+                  <span className="text-muted-foreground">
+                    {t("identity.label_type")}
+                  </span>
+                  <span className="text-foreground">
+                    {t("identity.type_transferable_nft")}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">
-                    Challenge period
+                    {t("identity.label_challenge_period")}
                   </span>
-                  <span className="text-foreground">30 days</span>
+                  <span className="text-foreground">
+                    {t("identity.days_30")}
+                  </span>
                 </div>
               </div>
 
@@ -405,10 +418,7 @@ const Identity = () => {
               >
                 <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                 <p className="text-xs text-amber-300">
-                  Handle name can be sold on Magic Eden or Tensor. Your trust
-                  score, reputation, and followers stay with your wallet — not
-                  the handle. New owner starts with fresh reputation. 30-day
-                  challenge period applies.
+                  {t("identity.transfer_warning")}
                 </p>
               </div>
 
@@ -421,11 +431,13 @@ const Identity = () => {
               >
                 {claiming ? (
                   <>
-                    <Loader2 className="w-4 h-4 animate-spin" /> Processing...
+                    <Loader2 className="w-4 h-4 animate-spin" />{" "}
+                    {t("identity.processing")}
                   </>
                 ) : (
                   <>
-                    <Fingerprint className="w-4 h-4" /> Pay & Claim @{handle}
+                    <Fingerprint className="w-4 h-4" />{" "}
+                    {t("identity.pay_claim", { handle })}
                   </>
                 )}
               </button>
@@ -437,10 +449,10 @@ const Identity = () => {
           <div className="glass-card p-8 text-center">
             <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-3" />
             <p className="text-sm font-semibold text-foreground">
-              Processing payment...
+              {t("identity.processing_payment")}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              Please approve the transaction in your wallet
+              {t("identity.approve_in_wallet")}
             </p>
           </div>
         )}
@@ -464,27 +476,57 @@ const Identity = () => {
           <div className="flex items-center gap-2 mb-3">
             <Shield className="w-4 h-4 text-primary" />
             <h3 className="text-sm font-semibold text-foreground">
-              Handle Pricing
+              {t("identity.pricing_title")}
             </h3>
           </div>
           <div className="space-y-2">
-            {[
-              { len: "1-2 chars", price: "$200-500", note: "Ultra premium" },
-              { len: "3 chars", price: "$100", note: "Premium" },
-              { len: "4 chars", price: "$50", note: "Short" },
-              { len: "5-7 chars", price: "$10-30", note: "Standard" },
-              { len: "8+ chars", price: "$5", note: "Basic" },
-              { len: "Transfer", price: "Anytime", note: "Via Magic Eden / Tensor" },
-            ].map((row) => (
+            {(
+              [
+                {
+                  lenKey: "identity.pricing_len_12",
+                  price: "$200-500",
+                  noteKey: "identity.pricing_note_ultra",
+                },
+                {
+                  lenKey: "identity.pricing_len_3",
+                  price: "$100",
+                  noteKey: "identity.pricing_note_premium",
+                },
+                {
+                  lenKey: "identity.pricing_len_4",
+                  price: "$50",
+                  noteKey: "identity.pricing_note_short",
+                },
+                {
+                  lenKey: "identity.pricing_len_57",
+                  price: "$10-30",
+                  noteKey: "identity.pricing_note_standard",
+                },
+                {
+                  lenKey: "identity.pricing_len_8p",
+                  price: "$5",
+                  noteKey: "identity.pricing_note_basic",
+                },
+                {
+                  lenKey: "identity.pricing_len_transfer",
+                  priceKey: "identity.pricing_anytime",
+                  noteKey: "identity.pricing_note_via_market",
+                },
+              ] as const
+            ).map((row) => (
               <div
-                key={row.len}
+                key={row.lenKey}
                 className="flex items-center justify-between text-xs py-1.5
                   border-b border-border/30 last:border-0"
               >
-                <span className="font-mono text-foreground">{row.len}</span>
-                <span className="text-muted-foreground">{row.note}</span>
+                <span className="font-mono text-foreground">
+                  {t(row.lenKey)}
+                </span>
+                <span className="text-muted-foreground">
+                  {t(row.noteKey)}
+                </span>
                 <span className="font-semibold text-foreground">
-                  {row.price}
+                  {"priceKey" in row ? t(row.priceKey) : row.price}
                 </span>
               </div>
             ))}

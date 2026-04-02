@@ -43,7 +43,7 @@ export default function WalletIndicator() {
         onClick={() => setVisible(true)}
         className="bg-primary text-primary-foreground hover:bg-primary/90"
       >
-        Connect Wallet
+        {t("common.connect_wallet")}
       </Button>
     );
   }
@@ -56,7 +56,7 @@ export default function WalletIndicator() {
       <DropdownMenuTrigger asChild>
         <button
           className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50 border border-border hover:bg-muted transition-colors text-sm"
-          title="Wallet"
+          title={t("profile.wallet")}
         >
           <span className="w-2 h-2 rounded-full bg-green-400 shrink-0" />
           <span className="font-mono text-foreground">{shortAddress}</span>
@@ -73,7 +73,7 @@ export default function WalletIndicator() {
       <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuItem onClick={handleCopyAddress} className="gap-2 cursor-pointer">
           <Copy className="w-4 h-4" />
-          Copy Address
+          {t("common.copy_address")}
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => void handleLogOut()}

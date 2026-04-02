@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import logo from "/blockid-logo.svg";
@@ -16,12 +17,12 @@ import {
 import { Button } from "@/components/ui/button";
 
 const navItems = [
-  { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Explore", url: "/explore", icon: Compass },
-  { title: "Identity", url: "/identity", icon: Fingerprint },
-  { title: "Smart Router", url: "/router", icon: Route },
-  { title: "Profile", url: "/profile", icon: Users },
-];
+  { titleKey: "nav.dashboard", url: "/", icon: LayoutDashboard },
+  { titleKey: "nav.explore", url: "/explore", icon: Compass },
+  { titleKey: "nav.identity", url: "/identity", icon: Fingerprint },
+  { titleKey: "nav.smart_router", url: "/router", icon: Route },
+  { titleKey: "nav.profile", url: "/profile", icon: Users },
+] as const;
 
 interface MobileNavProps {
   open: boolean;
@@ -74,7 +75,7 @@ const MobileNav = ({ open, onClose }: MobileNavProps) => {
                 activeClassName=""
               >
                 <item.icon className="w-4 h-4" />
-                <span>{item.title}</span>
+                <span>{t(item.titleKey)}</span>
               </NavLink>
             );
           })}
@@ -95,7 +96,7 @@ const MobileNav = ({ open, onClose }: MobileNavProps) => {
               className="w-full gap-2"
             >
               <Wallet className="w-4 h-4" />
-              Connect Wallet
+              {t("common.connect_wallet")}
             </Button>
           )}
         </div>

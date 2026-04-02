@@ -2849,7 +2849,11 @@ const Profile = () => {
             image={cropImage}
             aspectRatio={cropType === "avatar" ? 1 : 3.2}
             cropShape={cropType === "avatar" ? "round" : "rect"}
-            title={cropType === "avatar" ? "Edit avatar" : "Edit banner"}
+            title={
+              cropType === "avatar"
+                ? t("common.edit_avatar")
+                : t("common.edit_banner")
+            }
             onComplete={(blob) => {
               const previewUrl = URL.createObjectURL(blob);
               if (cropType === "avatar") {

@@ -23,7 +23,13 @@
     "edit": "編集",
     "view_all": "すべて表示",
     "learn_more": "詳しく見る",
-    "powered_by": "提供"
+    "powered_by": "提供",
+    "copy_address": "アドレスをコピー",
+    "apply": "適用",
+    "edit_photo": "写真を編集",
+    "wallet_address_copied": "ウォレットアドレスをクリップボードにコピーしました。",
+    "edit_avatar": "アバターを編集",
+    "edit_banner": "バナーを編集"
   },
   "nav": {
     "dashboard": "ダッシュボード",
@@ -36,7 +42,8 @@
     "trust_analytics": "信頼分析",
     "upgrade": "アップグレード",
     "settings": "設定",
-    "log_out": "ログアウト"
+    "log_out": "ログアウト",
+    "identity": "アイデンティティ"
   },
   "dashboard": {
     "title": "ダッシュボード",
@@ -90,7 +97,9 @@
     "no_posts": "まだ投稿がありません",
     "post_button": "投稿",
     "image_upload": "画像をアップロード",
-    "identity_nft_required": "投稿にはアイデンティティNFTが必要です"
+    "identity_nft_required": "投稿にはアイデンティティNFTが必要です",
+    "placeholder_reply": "返信を入力...",
+    "replying": "送信中..."
   },
   "explore": {
     "title": "探索",
@@ -149,7 +158,8 @@
     "risk_level": "リスクレベル",
     "behavioral_analysis": "行動分析",
     "cyclops_analysis": "Cyclopsリスク分析",
-    "last_updated": "最終更新"
+    "last_updated": "最終更新",
+    "enter_wallet_to_analyze": "上にウォレットを入力して分析"
   },
   "upgrade": {
     "title": "BlockIDをアップグレード",
@@ -216,13 +226,71 @@
     "connect_to_continue": "続行するにはウォレットを接続してください",
     "connecting": "接続中...",
     "login_email": "メールでログイン",
-    "login_google": "Googleでログイン"
+    "login_google": "Googleでログイン",
+    "setting_up_wallet": "ウォレットを設定しています...",
+    "continue_with_email": "メールで続行",
+    "new_to_crypto_hint": "暗号資産が初めて？ Google またはメールで接続 — ウォレット不要。"
+  },
+  "wallet_modal": {
+    "title": "BlockID に接続",
+    "subtitle": "接続方法を選択",
+    "detected": "検出済み",
+    "not_installed": "未インストール"
+  },
+  "identity": {
+    "page_title": "@ハンドル アイデンティティ",
+    "subtitle": "BlockID でのあなたのアイデンティティ。一つの名前、一つの評判、すべてのウォレットで。",
+    "subtitle_trust": "信頼スコアと評判はあなたのもの。ハンドルではなくウォレットに紐づきます。",
+    "you_own": "@{{handle}} を保有中",
+    "soul_bound_active": "ウォレットにソウルバウンド · 有効",
+    "search_handle": "ハンドルを検索",
+    "handle_placeholder_input": "yourhandle",
+    "check": "確認",
+    "status_available": "利用可能！",
+    "status_taken": "取得済み",
+    "current_owner": "現在の所有者",
+    "price": "価格",
+    "tier_premium_short": "プレミアムハンドル（短い）",
+    "tier_standard": "スタンダードハンドル",
+    "tier_basic": "ベーシックハンドル",
+    "confirm_pay": "確認して支払い",
+    "label_handle": "ハンドル",
+    "label_type": "タイプ",
+    "type_transferable_nft": "譲渡可能 NFT",
+    "label_challenge_period": "チャレンジ期間",
+    "days_30": "30 日間",
+    "transfer_warning": "ハンドル名は Magic Eden や Tensor で売却できます。信頼スコア、評判、フォロワーはウォレットに残ります — ハンドルには移りません。新しい所有者は評判をゼロから始めます。30 日間のチャレンジ期間が適用されます。",
+    "processing": "処理中...",
+    "pay_claim": "支払って取得 @{{handle}}",
+    "processing_payment": "支払いを処理中...",
+    "approve_in_wallet": "ウォレットでトランザクションを承認してください",
+    "claim_success_title": "@{{handle}} があなたのものになりました！",
+    "claim_success_sub": "譲渡可能 · Magic Eden / Tensor でいつでも売却可能 · 30 日チャレンジ期間が有効",
+    "pricing_title": "ハンドル料金",
+    "pricing_len_12": "1-2 文字",
+    "pricing_len_3": "3 文字",
+    "pricing_len_4": "4 文字",
+    "pricing_len_57": "5-7 文字",
+    "pricing_len_8p": "8 文字以上",
+    "pricing_len_transfer": "譲渡",
+    "pricing_note_ultra": "ウルトラプレミアム",
+    "pricing_note_premium": "プレミアム",
+    "pricing_note_short": "ショート",
+    "pricing_note_standard": "スタンダード",
+    "pricing_note_basic": "ベーシック",
+    "pricing_note_via_market": "Magic Eden / Tensor 経由",
+    "pricing_anytime": "いつでも",
+    "toast_check_failed": "ハンドルの確認に失敗しました",
+    "toast_claim_failed": "ハンドルの取得に失敗しました",
+    "toast_claim_success": "{{handle}} の取得に成功しました！"
   },
   "errors": {
     "wallet_not_found": "ウォレットが見つかりません",
     "handle_not_found": "ハンドルが見つかりません",
     "network_error": "ネットワークエラー。もう一度お試しください。",
     "insufficient_balance": "残高が不足しています",
-    "transaction_failed": "トランザクションが失敗しました"
+    "transaction_failed": "トランザクションが失敗しました",
+    "page_not_found": "ページが見つかりません",
+    "go_home": "ホームに戻る"
   }
 }

@@ -23,7 +23,13 @@
     "edit": "تعديل",
     "view_all": "عرض الكل",
     "learn_more": "معرفة المزيد",
-    "powered_by": "مدعوم بواسطة"
+    "powered_by": "مدعوم بواسطة",
+    "copy_address": "نسخ العنوان",
+    "apply": "تطبيق",
+    "edit_photo": "تعديل الصورة",
+    "wallet_address_copied": "تم نسخ عنوان المحفظة إلى الحافظة.",
+    "edit_avatar": "تعديل الصورة الرمزية",
+    "edit_banner": "تعديل الغلاف"
   },
   "nav": {
     "dashboard": "لوحة التحكم",
@@ -36,7 +42,8 @@
     "trust_analytics": "تحليل الثقة",
     "upgrade": "ترقية",
     "settings": "الإعدادات",
-    "log_out": "تسجيل الخروج"
+    "log_out": "تسجيل الخروج",
+    "identity": "الهوية"
   },
   "dashboard": {
     "title": "لوحة التحكم",
@@ -90,7 +97,9 @@
     "no_posts": "لا توجد منشورات بعد",
     "post_button": "نشر",
     "image_upload": "رفع صورة",
-    "identity_nft_required": "يلزم NFT الهوية للنشر"
+    "identity_nft_required": "يلزم NFT الهوية للنشر",
+    "placeholder_reply": "اكتب ردك...",
+    "replying": "جاري الإرسال..."
   },
   "explore": {
     "title": "استكشاف",
@@ -216,13 +225,71 @@
     "connect_to_continue": "اربط محفظتك للمتابعة",
     "connecting": "جاري الاتصال...",
     "login_email": "تسجيل بالبريد",
-    "login_google": "تسجيل بـ Google"
+    "login_google": "تسجيل بـ Google",
+    "setting_up_wallet": "جاري إعداد محفظتك...",
+    "continue_with_email": "المتابعة بالبريد",
+    "new_to_crypto_hint": "جديد في العملات المشفرة؟ استخدم Google أو البريد — لا حاجة لمحفظة."
+  },
+  "wallet_modal": {
+    "title": "الاتصال بـ BlockID",
+    "subtitle": "اختر طريقة الاتصال",
+    "detected": "مكتشف",
+    "not_installed": "غير مثبت"
+  },
+  "identity": {
+    "page_title": "@المعرّف الهوية",
+    "subtitle": "هويتك على BlockID. اسم واحد، سمعة واحدة، عبر كل محافظك.",
+    "subtitle_trust": "نقاط الثقة والسمعة ملكك، تتبع محفظتك وليس المعرّف.",
+    "you_own": "أنت تملك @{{handle}}",
+    "soul_bound_active": "مرتبط بالمحفظة · نشط",
+    "search_handle": "بحث عن المعرّف",
+    "handle_placeholder_input": "yourhandle",
+    "check": "تحقق",
+    "status_available": "متاح!",
+    "status_taken": "مأخوذ",
+    "current_owner": "المالك الحالي",
+    "price": "السعر",
+    "tier_premium_short": "معرّف مميز (قصير)",
+    "tier_standard": "معرّف قياسي",
+    "tier_basic": "معرّف أساسي",
+    "confirm_pay": "تأكيد والدفع",
+    "label_handle": "المعرّف",
+    "label_type": "النوع",
+    "type_transferable_nft": "NFT قابل للنقل",
+    "label_challenge_period": "فترة التحدي",
+    "days_30": "30 يومًا",
+    "transfer_warning": "يمكن بيع اسم المعرّف على Magic Eden أو Tensor. نقاط الثقة والسمعة والمتابعون تبقى مع محفظتك — لا مع المعرّف. المالك الجديد يبدأ بسمعة جديدة. تسري فترة تحدي 30 يومًا.",
+    "processing": "جاري المعالجة...",
+    "pay_claim": "ادفع واحصل على @{{handle}}",
+    "processing_payment": "جاري معالجة الدفع...",
+    "approve_in_wallet": "يرجى الموافقة على المعاملة في محفظتك",
+    "claim_success_title": "@{{handle}} أصبح لك!",
+    "claim_success_sub": "قابل للنقل · بيع في أي وقت على Magic Eden أو Tensor · فترة تحدي 30 يومًا نشطة",
+    "pricing_title": "تسعير المعرّف",
+    "pricing_len_12": "1-2 أحرف",
+    "pricing_len_3": "3 أحرف",
+    "pricing_len_4": "4 أحرف",
+    "pricing_len_57": "5-7 أحرف",
+    "pricing_len_8p": "8+ أحرف",
+    "pricing_len_transfer": "نقل",
+    "pricing_note_ultra": "فائق التميز",
+    "pricing_note_premium": "مميز",
+    "pricing_note_short": "قصير",
+    "pricing_note_standard": "قياسي",
+    "pricing_note_basic": "أساسي",
+    "pricing_note_via_market": "عبر Magic Eden / Tensor",
+    "pricing_anytime": "في أي وقت",
+    "toast_check_failed": "فشل التحقق من المعرّف",
+    "toast_claim_failed": "فشل المطالبة بالمعرّف",
+    "toast_claim_success": "تم الحصول على {{handle}} بنجاح!"
   },
   "errors": {
     "wallet_not_found": "المحفظة غير موجودة",
     "handle_not_found": "المعرّف غير موجود",
     "network_error": "خطأ في الشبكة. حاول مرة أخرى.",
     "insufficient_balance": "رصيد غير كافٍ",
-    "transaction_failed": "فشلت المعاملة"
+    "transaction_failed": "فشلت المعاملة",
+    "page_not_found": "الصفحة غير موجودة",
+    "go_home": "العودة للرئيسية"
   }
 }

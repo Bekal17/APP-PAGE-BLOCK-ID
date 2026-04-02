@@ -23,7 +23,13 @@
     "edit": "Ubah",
     "view_all": "Lihat Semua",
     "learn_more": "Pelajari Lebih",
-    "powered_by": "Didukung oleh"
+    "powered_by": "Didukung oleh",
+    "copy_address": "Salin Alamat",
+    "apply": "Terapkan",
+    "edit_photo": "Edit foto",
+    "wallet_address_copied": "Alamat wallet disalin ke clipboard.",
+    "edit_avatar": "Edit avatar",
+    "edit_banner": "Edit banner"
   },
   "nav": {
     "dashboard": "Dasbor",
@@ -36,7 +42,8 @@
     "trust_analytics": "Analitik Kepercayaan",
     "upgrade": "Tingkatkan",
     "settings": "Pengaturan",
-    "log_out": "Keluar"
+    "log_out": "Keluar",
+    "identity": "Identitas"
   },
   "dashboard": {
     "title": "Dasbor",
@@ -90,7 +97,9 @@
     "no_posts": "Belum ada postingan",
     "post_button": "Posting",
     "image_upload": "Unggah Gambar",
-    "identity_nft_required": "NFT Identitas diperlukan untuk posting"
+    "identity_nft_required": "NFT Identitas diperlukan untuk posting",
+    "placeholder_reply": "Tulis balasan kamu...",
+    "replying": "Mengirim balasan..."
   },
   "explore": {
     "title": "Jelajahi",
@@ -149,7 +158,8 @@
     "risk_level": "Tingkat Risiko",
     "behavioral_analysis": "Analisis Perilaku",
     "cyclops_analysis": "Analisis Risiko Cyclops",
-    "last_updated": "Terakhir Diperbarui"
+    "last_updated": "Terakhir Diperbarui",
+    "enter_wallet_to_analyze": "Masukkan wallet di atas untuk dianalisis"
   },
   "upgrade": {
     "title": "Tingkatkan BlockID",
@@ -216,13 +226,71 @@
     "connect_to_continue": "Hubungkan wallet untuk melanjutkan",
     "connecting": "Menghubungkan...",
     "login_email": "Masuk dengan Email",
-    "login_google": "Masuk dengan Google"
+    "login_google": "Masuk dengan Google",
+    "setting_up_wallet": "Menyiapkan wallet Anda...",
+    "continue_with_email": "Lanjutkan dengan Email",
+    "new_to_crypto_hint": "Baru di crypto? Gunakan Google atau Email — tidak perlu wallet."
+  },
+  "wallet_modal": {
+    "title": "Hubungkan ke BlockID",
+    "subtitle": "Pilih cara Anda ingin terhubung",
+    "detected": "Terdeteksi",
+    "not_installed": "Belum terpasang"
+  },
+  "identity": {
+    "page_title": "@Handle Identitas",
+    "subtitle": "Identitas Anda di BlockID. Satu nama, satu reputasi, di semua wallet yang Anda miliki.",
+    "subtitle_trust": "Skor kepercayaan dan reputasi Anda milik Anda, mengikuti wallet Anda, bukan handle Anda.",
+    "you_own": "Anda memiliki @{{handle}}",
+    "soul_bound_active": "Terikat ke wallet Anda · Aktif",
+    "search_handle": "Cari Handle",
+    "handle_placeholder_input": "handleanda",
+    "check": "Periksa",
+    "status_available": "tersedia!",
+    "status_taken": "sudah dipakai",
+    "current_owner": "Pemilik saat ini",
+    "price": "Harga",
+    "tier_premium_short": "Handle premium (pendek)",
+    "tier_standard": "Handle standar",
+    "tier_basic": "Handle dasar",
+    "confirm_pay": "Konfirmasi & Bayar",
+    "label_handle": "Handle",
+    "label_type": "Tipe",
+    "type_transferable_nft": "NFT dapat dipindahkan",
+    "label_challenge_period": "Periode tantangan",
+    "days_30": "30 hari",
+    "transfer_warning": "Nama handle dapat dijual di Magic Eden atau Tensor. Skor kepercayaan, reputasi, dan pengikut tetap di wallet Anda — bukan di handle. Pemilik baru memulai reputasi segar. Periode tantangan 30 hari berlaku.",
+    "processing": "Memproses...",
+    "pay_claim": "Bayar & Klaim @{{handle}}",
+    "processing_payment": "Memproses pembayaran...",
+    "approve_in_wallet": "Setujui transaksi di wallet Anda",
+    "claim_success_title": "@{{handle}} jadi milik Anda!",
+    "claim_success_sub": "Dapat dipindahkan · Jual kapan saja di Magic Eden atau Tensor · Periode tantangan 30 hari aktif",
+    "pricing_title": "Harga Handle",
+    "pricing_len_12": "1-2 karakter",
+    "pricing_len_3": "3 karakter",
+    "pricing_len_4": "4 karakter",
+    "pricing_len_57": "5-7 karakter",
+    "pricing_len_8p": "8+ karakter",
+    "pricing_len_transfer": "Transfer",
+    "pricing_note_ultra": "Ultra premium",
+    "pricing_note_premium": "Premium",
+    "pricing_note_short": "Pendek",
+    "pricing_note_standard": "Standar",
+    "pricing_note_basic": "Dasar",
+    "pricing_note_via_market": "Via Magic Eden / Tensor",
+    "pricing_anytime": "Kapan saja",
+    "toast_check_failed": "Gagal memeriksa handle",
+    "toast_claim_failed": "Gagal mengklaim handle",
+    "toast_claim_success": "{{handle}} berhasil diklaim!"
   },
   "errors": {
     "wallet_not_found": "Wallet tidak ditemukan",
     "handle_not_found": "Handle tidak ditemukan",
     "network_error": "Kesalahan jaringan. Silakan coba lagi.",
     "insufficient_balance": "Saldo tidak mencukupi",
-    "transaction_failed": "Transaksi gagal"
+    "transaction_failed": "Transaksi gagal",
+    "page_not_found": "Halaman tidak ditemukan",
+    "go_home": "Kembali ke Beranda"
   }
 }

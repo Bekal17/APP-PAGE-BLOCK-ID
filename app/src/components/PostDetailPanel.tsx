@@ -625,7 +625,7 @@ export default function PostDetailPanel({
               <textarea
                 value={replyContent}
                 onChange={(e) => setReplyContent(e.target.value)}
-                placeholder="Post your reply..."
+                placeholder={t("post.placeholder_reply")}
                 maxLength={280}
                 rows={2}
                 style={{
@@ -674,7 +674,7 @@ export default function PostDetailPanel({
                         : 1,
                   }}
                 >
-                  {replyLoading ? "Replying..." : t("post.reply")}
+                  {replyLoading ? t("post.replying") : t("post.reply")}
                 </button>
               </div>
             </div>
