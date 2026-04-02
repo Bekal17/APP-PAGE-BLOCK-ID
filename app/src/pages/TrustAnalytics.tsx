@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { getWalletOverview, getTimeline, getGraph, getGraphCache, setGraphCache, getCounterparties } from "@/services/blockidApi";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -22,6 +23,7 @@ interface ReasonCode {
 }
 
 export default function TrustAnalytics() {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const sub = useSubscription();
@@ -198,7 +200,7 @@ export default function TrustAnalytics() {
         {/* Header */}
         <div className="space-y-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Trust Analytics</h1>
+            <h1 className="text-3xl font-bold text-foreground">{t("nav.trust_analytics")}</h1>
             <p className="text-muted-foreground mt-2">
               AI-powered wallet risk evaluation.
           </p>
@@ -246,7 +248,7 @@ export default function TrustAnalytics() {
               title={sub.isAtLimit ? "Upgrade to scan more wallets this month" : undefined}
               className={sub.isAtLimit ? "opacity-50 cursor-not-allowed" : ""}
             >
-              {loading ? "Loading..." : sub.isAtLimit ? "Limit Reached" : "Get Score"}
+              {loading ? t("common.loading") : sub.isAtLimit ? "Limit Reached" : "Get Score"}
             </Button>
             {score !== null && !error && (
               <Button
@@ -279,7 +281,7 @@ export default function TrustAnalytics() {
 
         {loading && (
           <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-12 flex items-center justify-center">
-            <p className="text-muted-foreground">Loading wallet data...</p>
+            <p className="text-muted-foreground">{t("common.loading")}</p>
           </div>
         )}
 

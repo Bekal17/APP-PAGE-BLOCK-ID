@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { openfortClient } from "@/providers/OpenfortProvider";
 
 export default function LoginEmail() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [mode, setMode] = useState<"login" | "signup">("login");
@@ -113,7 +115,7 @@ export default function LoginEmail() {
           onClick={() => navigate(-1)}
           className="w-full text-xs text-zinc-600 hover:text-zinc-400 transition-colors text-center"
         >
-          ← Back
+          ← {t("common.back")}
         </button>
       </div>
     </div>

@@ -10,7 +10,8 @@ import {
   Repeat2,
   Shield,
 } from "lucide-react";
-import { getNotifications } from "@/services/blockidApi";
+import { useTranslation } from "react-i18next";
+import { getNotifications, markNotificationRead } from "@/services/blockidApi";
 import { createPortal } from "react-dom";
 
 const getNotifIcon = (type: string) => {
@@ -45,6 +46,7 @@ const formatTimeAgo = (iso?: string) => {
 };
 
 const NotificationBell = () => {
+  const { t } = useTranslation();
   const { publicKey } = useWallet();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -111,7 +113,7 @@ const NotificationBell = () => {
         ref={bellRef}
         onClick={handleOpen}
         className="relative p-2 rounded-lg hover:bg-zinc-800/50 text-zinc-400 hover:text-zinc-100 transition-colors"
-        title="Notifications"
+        title={t("notifications.title")}
       >
         <Bell className="w-4 h-4" />
         {unreadCount > 0 && (
@@ -133,25 +135,43 @@ const NotificationBell = () => {
             }}
             className="bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl overflow-hidden"
           >
-            <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
-              <h3 className="text-sm font-bold text-zinc-100">
-                Notifications
+            <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800 gap-2">
+              <h3 className="text-sm font-bold text-zinc-100 shrink-0">
+                {t("notifications.title")}
               </h3>
-              <button
-                onClick={() => {
-                  setOpen(false);
-                  navigate("/notifications");
-                }}
-                className="text-xs text-primary hover:text-primary/80 transition-colors"
-              >
-                See all
-              </button>
+              <div className="flex items-center gap-2 shrink min-w-0 justify-end">
+                {unreadCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      for (const n of notifications) {
+                        if (!n.is_read && n.id != null) {
+                          await markNotificationRead(Number(n.id), wallet);
+                        }
+                      }
+                      await fetchNotifs();
+                    }}
+                    className="text-xs text-zinc-400 hover:text-zinc-200 transition-colors whitespace-nowrap"
+                  >
+                    {t("notifications.mark_all_read")}
+                  </button>
+                )}
+                <button
+                  onClick={() => {
+                    setOpen(false);
+                    navigate("/notifications");
+                  }}
+                  className="text-xs text-primary hover:text-primary/80 transition-colors shrink-0"
+                >
+                  {t("common.view_all")}
+                </button>
+              </div>
             </div>
 
             <div className="max-h-80 overflow-y-auto">
               {notifications.length === 0 ? (
                 <div className="py-8 text-center text-sm text-zinc-500">
-                  No notifications yet
+                  {t("notifications.no_notifications")}
                 </div>
               ) : (
                 notifications.slice(0, 10).map((notif: any) => (
