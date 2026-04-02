@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams, useNavigate } from "react-router-dom";
 import { getPost } from "@/services/blockidApi";
 import PostDetailPanel from "@/components/PostDetailPanel";
 import DashboardLayout from "@/components/DashboardLayout";
 
 export default function PostDetail() {
+  const { t } = useTranslation();
   const { postId } = useParams<{ postId: string }>();
   const navigate = useNavigate();
   const [post, setPost] = useState<any>(null);
@@ -39,7 +41,7 @@ export default function PostDetail() {
             fontSize: 14,
           }}
         >
-          Loading post...
+          {t("common.loading")}
         </div>
       </DashboardLayout>
     );

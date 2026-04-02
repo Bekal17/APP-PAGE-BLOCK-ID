@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Heart, MessageSquare, Repeat2 } from "lucide-react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import {
@@ -76,6 +77,7 @@ export default function PostDetailPanel({
   onClose,
   onRepliesChange,
 }: Props) {
+  const { t } = useTranslation();
   const { publicKey } = useWallet();
   const [likedIds, setLikedIds] = useState<Set<number>>(new Set());
   const [localLikeCounts, setLocalLikeCounts] = useState<
@@ -347,7 +349,8 @@ export default function PostDetailPanel({
             {post.likes_count ?? post.like_count ?? 0} Likes
           </span>
           <span style={{ color: "#888", fontSize: 13 }}>
-            {post.replies_count ?? post.reply_count ?? 0} Replies
+            {post.replies_count ?? post.reply_count ?? 0}{" "}
+            {t("post.replies")}
           </span>
           <span style={{ color: "#888", fontSize: 13 }}>
             {post.repost_count ?? 0} Reposts
@@ -605,7 +608,7 @@ export default function PostDetailPanel({
                   textDecoration: "underline",
                 }}
               >
-                cancel
+                {t("common.cancel")}
               </button>
             </div>
           )}
@@ -671,7 +674,7 @@ export default function PostDetailPanel({
                         : 1,
                   }}
                 >
-                  {replyLoading ? "Replying..." : "Reply"}
+                  {replyLoading ? "Replying..." : t("post.reply")}
                 </button>
               </div>
             </div>

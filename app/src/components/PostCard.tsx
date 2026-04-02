@@ -1,4 +1,5 @@
 import { type CSSProperties } from "react";
+import { useTranslation } from "react-i18next";
 import { type PublicKey } from "@solana/web3.js";
 import {
   Heart,
@@ -222,7 +223,7 @@ function RepostMenu({
             className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-zinc-100 hover:bg-zinc-800 transition-colors"
           >
             <Repeat2 className="w-4 h-4 text-green-400" />
-            Repost
+            {t("post.repost")}
           </button>
 
           <button
