@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Shield } from "lucide-react";
 import SettingsLayout from "@/components/SettingsLayout";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import {
   getPrivacySettings,
   updatePrivacySettings,
@@ -64,6 +65,7 @@ const PrivacySettings = () => {
         title="Privacy & Safety"
         description="Control who can see your content"
       >
+        <LanguageSwitcher />
         <div className="flex flex-col items-center
           justify-center py-12 text-muted-foreground">
           <Shield className="w-12 h-12 mb-4 opacity-30" />
@@ -79,6 +81,7 @@ const PrivacySettings = () => {
       description="Control who can see your content and 
         how others can interact with you."
     >
+      <LanguageSwitcher />
       {loading ? (
         <div className="space-y-4 animate-pulse">
           {[1,2,3,4].map(i => (
