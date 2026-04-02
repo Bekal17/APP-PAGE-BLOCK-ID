@@ -52,7 +52,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
       group"
                 >
                   <Zap className="w-3 h-3 group-hover:fill-amber-400 transition-all" />
-                  Upgrade
+                  {t("nav.upgrade")}
                 </button>
               )}
               <NotificationBell />
