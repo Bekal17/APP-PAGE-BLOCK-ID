@@ -6,6 +6,7 @@ import {
   Transaction,
 } from "@solana/web3.js";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   getGraph,
@@ -259,6 +260,7 @@ const BADGE_LABELS: Record<string, string> = {
 };
 
 const Profile = () => {
+  const { t } = useTranslation();
   const { publicKey, connected } = useWallet();
   const { connection } = useConnection();
   const sub = useSubscription();
@@ -1290,7 +1292,7 @@ const Profile = () => {
                   }}
                   className="text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  {followerCount} Followers
+                  {followerCount} {t("profile.followers")}
                 </button>
                 <button
                   onClick={async () => {
@@ -1306,7 +1308,7 @@ const Profile = () => {
                   }}
                   className="text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  {followingCount} Following
+                  {followingCount} {t("profile.following")}
                 </button>
               </div>
               {(() => {
@@ -1343,7 +1345,7 @@ const Profile = () => {
                       .catch(() => {});
                   }}
                 >
-                  Edit Profile
+                  {t("profile.edit_profile")}
                 </Button>
               )}
               {!isOwnProfile && (
@@ -1406,9 +1408,9 @@ const Profile = () => {
                   >
                     {isFollowing
                       ? isHoveringFollow
-                        ? "Unfollow"
-                        : "Following"
-                      : "Follow"}
+                        ? t("profile.unfollow")
+                        : t("profile.following")
+                      : t("profile.follow")}
                   </Button>
                   <Button
                     size="sm"
@@ -1492,7 +1494,7 @@ const Profile = () => {
             }
             onClick={() => setActiveProfileTab("posts")}
           >
-            Posts
+            {t("profile.posts")}
           </button>
           <button
             type="button"
@@ -1515,7 +1517,7 @@ const Profile = () => {
               setActiveProfileTab("wallet");
             }}
           >
-            Wallet
+            {t("profile.wallet")}
           </button>
           {isOwnProfile && (
             <button
@@ -1527,7 +1529,7 @@ const Profile = () => {
                   : "text-muted-foreground px-4 py-2 text-sm hover:text-foreground"
               }
             >
-              Activity
+              {t("profile.activity")}
             </button>
           )}
         </div>
@@ -2293,7 +2295,8 @@ const Profile = () => {
                                       text-zinc-100 hover:bg-zinc-800 transition-colors"
                                   >
                                     <UserPlus className="w-4 h-4 text-primary" />
-                                    Follow {isRepost && originalPost
+                                    {t("profile.follow")}{" "}
+                                    {isRepost && originalPost
                                       ? (originalPost.handle ? `@${originalPost.handle}` : "User")
                                       : (post.handle ? `@${post.handle}` : "User")}
                                   </button>
@@ -2632,7 +2635,9 @@ const Profile = () => {
                                   : "bg-zinc-700 text-zinc-100 hover:bg-zinc-600"
                               }`}
                             >
-                              {isFollowBack ? "Follow Back" : "Follow"}
+                              {isFollowBack
+                                ? t("profile.follow_back")
+                                : t("profile.follow")}
                             </button>
                           );
                         })()}
@@ -3025,7 +3030,7 @@ const Profile = () => {
                 <X className="w-5 h-5 text-foreground" />
               </button>
               <span className="text-sm font-bold text-foreground">
-                Edit Profile
+                {t("profile.edit_profile")}
               </span>
               <button
                 onClick={async () => {
@@ -3118,7 +3123,7 @@ const Profile = () => {
                   text-sm font-bold disabled:opacity-40
                   hover:bg-zinc-200 transition-colors"
               >
-                {editSaving ? "Saving..." : "Save"}
+                {editSaving ? "Saving..." : t("common.save")}
               </button>
             </div>
 
@@ -3412,7 +3417,7 @@ const Profile = () => {
               <div>
                 <label className="text-xs font-medium text-muted-foreground
                   uppercase tracking-wider block mb-1.5">
-                  Display Name
+                  {t("profile.display_name")}
                 </label>
                 <select
                   value={editForm.display_name}
@@ -3450,7 +3455,7 @@ const Profile = () => {
               <div>
                 <label className="text-xs font-medium text-muted-foreground
                   uppercase tracking-wider block mb-1.5">
-                  Bio
+                  {t("profile.bio")}
                 </label>
                 <textarea
                   rows={3}
@@ -3475,7 +3480,7 @@ const Profile = () => {
               <div>
                 <label className="text-xs font-medium text-muted-foreground
                   uppercase tracking-wider block mb-1.5">
-                  Location
+                  {t("profile.location")}
                 </label>
                 <input
                   type="text"
@@ -3499,7 +3504,7 @@ const Profile = () => {
               <div>
                 <label className="text-xs font-medium text-muted-foreground
                   uppercase tracking-wider block mb-1.5">
-                  Website
+                  {t("profile.website")}
                 </label>
                 <input
                   type="url"
@@ -3522,7 +3527,10 @@ const Profile = () => {
               {/* Badges */}
               <div>
                 <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider block mb-1.5">
-                  Display Badges <span className="text-muted-foreground/60 normal-case">(max 5)</span>
+                  {t("profile.display_badges")}{" "}
+                  <span className="text-muted-foreground/60 normal-case">
+                    ({t("profile.max_badges")})
+                  </span>
                 </label>
                 <p className="text-xs text-muted-foreground mb-3">
                   Choose which earned badges to show on your profile
@@ -3555,7 +3563,7 @@ const Profile = () => {
                   })}
                   {earnedBadges.length === 0 && (
                     <p className="text-xs text-muted-foreground">
-                      No badges earned yet. Complete wallet activity to earn badges.
+                      {t("profile.no_badges")}
                     </p>
                   )}
                 </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useWallet } from "@solana/wallet-adapter-react";
 import {
@@ -177,6 +178,9 @@ const Bookmarks = () => {
         {/* Posts */}
         {loading ? (
           <div className="space-y-3">
+            <p className="text-sm text-muted-foreground text-center">
+              {t("common.loading")}
+            </p>
             {[1, 2, 3].map((i) => (
               <div key={i} className="glass-card p-4 animate-pulse space-y-3">
                 <div className="h-3 bg-muted/50 rounded w-1/4" />
@@ -198,7 +202,7 @@ const Bookmarks = () => {
             >
               <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
             </svg>
-            <p className="text-sm">No bookmarks yet</p>
+            <p className="text-sm">{t("common.no_results")}</p>
           </div>
         ) : (
           <div className="space-y-3">

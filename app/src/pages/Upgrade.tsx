@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import {
   PublicKey,
@@ -47,6 +48,7 @@ const PLANS: Record<
 };
 
 export default function Upgrade() {
+  const { t } = useTranslation();
   const { publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
   const sub = useSubscription();
@@ -270,6 +272,20 @@ export default function Upgrade() {
       return <Check className="w-4 h-4 text-green-400 mx-auto" />;
     if (val === false)
       return <X className="w-4 h-4 text-zinc-600 mx-auto" />;
+    if (val === "Unlimited") {
+      return (
+        <span className="text-xs text-zinc-300 font-medium">
+          {t("upgrade.unlimited")}
+        </span>
+      );
+    }
+    if (typeof val === "string" && val.includes("/month")) {
+      return (
+        <span className="text-xs text-zinc-300 font-medium">
+          {val.replace("/month", t("upgrade.per_month"))}
+        </span>
+      );
+    }
     return <span className="text-xs text-zinc-300 font-medium">{val}</span>;
   };
 
@@ -278,7 +294,9 @@ export default function Upgrade() {
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-10">
         {/* Header */}
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Upgrade BlockID</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {t("upgrade.title")}
+          </h1>
           <p className="text-sm text-muted-foreground">
             Get more scans, claim your @handle, and unlock exclusive features.
           </p>
@@ -291,7 +309,7 @@ export default function Upgrade() {
             className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors
               ${billing === "monthly" ? "bg-zinc-700 text-white" : "text-zinc-400 hover:text-white"}`}
           >
-            Monthly
+            {t("upgrade.monthly")}
           </button>
           <button
             onClick={() => setBilling("annual")}
@@ -349,7 +367,9 @@ export default function Upgrade() {
               disabled
               className="w-full py-2.5 rounded-xl border border-zinc-700 text-zinc-500 text-sm font-semibold cursor-not-allowed"
             >
-              {currentPlan === "free" ? "Current Plan" : "Free"}
+              {currentPlan === "free"
+                ? t("upgrade.current_plan")
+                : t("upgrade.free")}
             </button>
           </div>
 
@@ -363,7 +383,7 @@ export default function Upgrade() {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <p className="text-xs font-bold text-blue-400 uppercase tracking-widest">
-                  Explorer
+                  {t("upgrade.explorer")}
                 </p>
                 <span className="text-blue-400 text-sm">✓</span>
               </div>
@@ -379,7 +399,7 @@ export default function Upgrade() {
             <ul className="space-y-2 text-xs text-zinc-400">
               <li className="flex items-center gap-2">
                 <Check className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
-                250 wallet scans/month
+                250 wallet scans{t("upgrade.per_month")}
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
@@ -387,7 +407,7 @@ export default function Upgrade() {
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
-                Make Your Own NFT avatar (3x/month · 0.01 SOL)
+                Make Your Own NFT avatar (3x{t("upgrade.per_month")} · 0.01 SOL)
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
@@ -406,7 +426,7 @@ export default function Upgrade() {
               {paying === "explorer"
                 ? "Processing..."
                 : currentPlan === "explorer"
-                  ? "Current Plan"
+                  ? t("upgrade.current_plan")
                   : currentPlan === "pro"
                     ? "Downgrade"
                     : `Upgrade · ${
@@ -422,7 +442,7 @@ export default function Upgrade() {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <p className="text-xs font-bold text-purple-400 uppercase tracking-widest">
-                  PRO
+                  {t("upgrade.pro")}
                 </p>
                 <Crown className="w-3.5 h-3.5 text-purple-400" />
               </div>
@@ -438,7 +458,7 @@ export default function Upgrade() {
             <ul className="space-y-2 text-xs text-zinc-400">
               <li className="flex items-center gap-2">
                 <Check className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
-                Unlimited wallet scans
+                {t("upgrade.unlimited")} wallet scans
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
@@ -446,7 +466,7 @@ export default function Upgrade() {
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
-                Make Your Own NFT avatar (unlimited · 0.01 SOL)
+                Make Your Own NFT avatar ({t("upgrade.unlimited")} · 0.01 SOL)
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
@@ -465,7 +485,7 @@ export default function Upgrade() {
               {paying === "pro"
                 ? "Processing..."
                 : currentPlan === "pro"
-                  ? "Current Plan"
+                  ? t("upgrade.current_plan")
                   : `Upgrade · ${
                       payToken === "USDC"
                         ? `$${billing === "monthly" ? 29 : 278.4} USDC`
@@ -490,13 +510,13 @@ export default function Upgrade() {
                   {section.category}
                 </p>
                 <p className="text-xs font-bold text-zinc-400 text-center">
-                  Free
+                  {t("upgrade.free")}
                 </p>
                 <p className="text-xs font-bold text-blue-400 text-center">
-                  Explorer
+                  {t("upgrade.explorer")}
                 </p>
                 <p className="text-xs font-bold text-purple-400 text-center">
-                  PRO
+                  {t("upgrade.pro")}
                 </p>
               </div>
               {section.items.map((item, i) => (
