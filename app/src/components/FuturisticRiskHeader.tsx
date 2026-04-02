@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -22,12 +23,16 @@ const getScoreGlow = (s: number) => {
 };
 
 const FuturisticRiskHeader = ({ wallet, score, className }: FuturisticRiskHeaderProps) => {
+  const { t } = useTranslation();
   const { toast } = useToast();
 
   const handleCopyWallet = () => {
     if (!wallet) return;
     navigator.clipboard.writeText(wallet);
-    toast({ title: "Copied", description: "Wallet address copied to clipboard." });
+    toast({
+      title: t("common.copied"),
+      description: t("common.wallet_address_copied"),
+    });
   };
 
   return (
@@ -59,7 +64,7 @@ const FuturisticRiskHeader = ({ wallet, score, className }: FuturisticRiskHeader
               size="icon"
               className="h-7 w-7 shrink-0 text-muted-foreground hover:text-foreground"
               onClick={handleCopyWallet}
-              aria-label="Copy wallet address"
+              aria-label={t("common.copy_address")}
             >
               <Copy className="h-3.5 w-3.5" />
             </Button>
@@ -81,7 +86,7 @@ const FuturisticRiskHeader = ({ wallet, score, className }: FuturisticRiskHeader
           {score}
         </span>
         <span className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground mt-2">
-          Trust Score
+          {t("trust_score.score")}
         </span>
       </div>
 

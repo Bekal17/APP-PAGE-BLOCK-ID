@@ -23,7 +23,13 @@
     "edit": "编辑",
     "view_all": "查看全部",
     "learn_more": "了解更多",
-    "powered_by": "技术支持"
+    "powered_by": "技术支持",
+    "copy_address": "复制地址",
+    "apply": "应用",
+    "edit_photo": "编辑照片",
+    "wallet_address_copied": "钱包地址已复制到剪贴板。",
+    "edit_avatar": "编辑头像",
+    "edit_banner": "编辑横幅"
   },
   "nav": {
     "dashboard": "仪表盘",
@@ -36,7 +42,8 @@
     "trust_analytics": "信任分析",
     "upgrade": "升级",
     "settings": "设置",
-    "log_out": "退出登录"
+    "log_out": "退出登录",
+    "identity": "身份"
   },
   "dashboard": {
     "title": "仪表盘",
@@ -90,7 +97,9 @@
     "no_posts": "暂无帖子",
     "post_button": "发布",
     "image_upload": "上传图片",
-    "identity_nft_required": "发布需要身份NFT"
+    "identity_nft_required": "发布需要身份NFT",
+    "placeholder_reply": "发表你的回复...",
+    "replying": "发送中..."
   },
   "explore": {
     "title": "探索",
@@ -149,7 +158,8 @@
     "risk_level": "风险等级",
     "behavioral_analysis": "行为分析",
     "cyclops_analysis": "Cyclops风险分析",
-    "last_updated": "最后更新"
+    "last_updated": "最后更新",
+    "enter_wallet_to_analyze": "在上方输入钱包以分析"
   },
   "upgrade": {
     "title": "升级BlockID",
@@ -216,13 +226,71 @@
     "connect_to_continue": "请连接钱包以继续",
     "connecting": "连接中...",
     "login_email": "邮箱登录",
-    "login_google": "Google登录"
+    "login_google": "Google登录",
+    "setting_up_wallet": "正在设置您的钱包...",
+    "continue_with_email": "使用邮箱继续",
+    "new_to_crypto_hint": "刚接触加密？使用 Google 或邮箱 — 无需钱包。"
+  },
+  "wallet_modal": {
+    "title": "连接 BlockID",
+    "subtitle": "选择连接方式",
+    "detected": "已检测到",
+    "not_installed": "未安装"
+  },
+  "identity": {
+    "page_title": "@用户名 身份",
+    "subtitle": "您在 BlockID 的身份。一个名字，一份声誉，贯穿您拥有的每个钱包。",
+    "subtitle_trust": "信任评分和声誉属于您，它们跟随您的钱包，而非用户名。",
+    "you_own": "您拥有 @{{handle}}",
+    "soul_bound_active": "与钱包灵魂绑定 · 已激活",
+    "search_handle": "搜索用户名",
+    "handle_placeholder_input": "yourhandle",
+    "check": "检查",
+    "status_available": "可用！",
+    "status_taken": "已被占用",
+    "current_owner": "当前所有者",
+    "price": "价格",
+    "tier_premium_short": "高级用户名（短）",
+    "tier_standard": "标准用户名",
+    "tier_basic": "基础用户名",
+    "confirm_pay": "确认并支付",
+    "label_handle": "用户名",
+    "label_type": "类型",
+    "type_transferable_nft": "可转让 NFT",
+    "label_challenge_period": "挑战期",
+    "days_30": "30 天",
+    "transfer_warning": "用户名可在 Magic Eden 或 Tensor 上出售。信任评分、声誉和粉丝留在您的钱包 — 不会随用户名转移。新所有者从零开始建立声誉。适用 30 天挑战期。",
+    "processing": "处理中...",
+    "pay_claim": "支付并领取 @{{handle}}",
+    "processing_payment": "正在处理付款...",
+    "approve_in_wallet": "请在钱包中批准交易",
+    "claim_success_title": "@{{handle}} 归您所有！",
+    "claim_success_sub": "可转让 · 随时在 Magic Eden 或 Tensor 出售 · 30 天挑战期生效",
+    "pricing_title": "用户名定价",
+    "pricing_len_12": "1-2 个字符",
+    "pricing_len_3": "3 个字符",
+    "pricing_len_4": "4 个字符",
+    "pricing_len_57": "5-7 个字符",
+    "pricing_len_8p": "8 个字符以上",
+    "pricing_len_transfer": "转让",
+    "pricing_note_ultra": "超高级",
+    "pricing_note_premium": "高级",
+    "pricing_note_short": "短",
+    "pricing_note_standard": "标准",
+    "pricing_note_basic": "基础",
+    "pricing_note_via_market": "通过 Magic Eden / Tensor",
+    "pricing_anytime": "随时",
+    "toast_check_failed": "检查用户名失败",
+    "toast_claim_failed": "领取用户名失败",
+    "toast_claim_success": "{{handle}} 领取成功！"
   },
   "errors": {
     "wallet_not_found": "未找到钱包",
     "handle_not_found": "未找到用户名",
     "network_error": "网络错误，请重试。",
     "insufficient_balance": "余额不足",
-    "transaction_failed": "交易失败"
+    "transaction_failed": "交易失败",
+    "page_not_found": "页面未找到",
+    "go_home": "返回首页"
   }
 }

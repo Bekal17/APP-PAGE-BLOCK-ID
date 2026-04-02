@@ -1,9 +1,11 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { openfortClient } from "@/providers/OpenfortProvider";
 import { RecoveryMethod } from "@openfort/openfort-js";
 
 export default function AuthCallback() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -107,7 +109,7 @@ export default function AuthCallback() {
     <div className="min-h-screen flex items-center justify-center bg-zinc-950">
       <div className="text-center space-y-3">
         <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin mx-auto" />
-        <p className="text-sm text-zinc-400">Setting up your wallet...</p>
+        <p className="text-sm text-zinc-400">{t("auth.setting_up_wallet")}</p>
       </div>
     </div>
   );

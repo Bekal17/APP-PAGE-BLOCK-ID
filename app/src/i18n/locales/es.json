@@ -23,7 +23,13 @@
     "edit": "Editar",
     "view_all": "Ver Todo",
     "learn_more": "Más Información",
-    "powered_by": "Impulsado por"
+    "powered_by": "Impulsado por",
+    "copy_address": "Copiar dirección",
+    "apply": "Aplicar",
+    "edit_photo": "Editar foto",
+    "wallet_address_copied": "Dirección de billetera copiada al portapapeles.",
+    "edit_avatar": "Editar avatar",
+    "edit_banner": "Editar banner"
   },
   "nav": {
     "dashboard": "Panel",
@@ -36,7 +42,8 @@
     "trust_analytics": "Análisis de Confianza",
     "upgrade": "Mejorar Plan",
     "settings": "Configuración",
-    "log_out": "Cerrar Sesión"
+    "log_out": "Cerrar Sesión",
+    "identity": "Identidad"
   },
   "dashboard": {
     "title": "Panel",
@@ -149,7 +156,8 @@
     "risk_level": "Nivel de Riesgo",
     "behavioral_analysis": "Análisis de Comportamiento",
     "cyclops_analysis": "Análisis de Riesgo Cyclops",
-    "last_updated": "Última Actualización"
+    "last_updated": "Última Actualización",
+    "enter_wallet_to_analyze": "Introduce la billetera arriba para analizar"
   },
   "upgrade": {
     "title": "Mejorar BlockID",
@@ -216,13 +224,71 @@
     "connect_to_continue": "Conecta tu billetera para continuar",
     "connecting": "Conectando...",
     "login_email": "Iniciar con Email",
-    "login_google": "Iniciar con Google"
+    "login_google": "Iniciar con Google",
+    "setting_up_wallet": "Configurando tu billetera...",
+    "continue_with_email": "Continuar con Email",
+    "new_to_crypto_hint": "¿Nuevo en crypto? Usa Google o Email — no necesitas billetera."
+  },
+  "wallet_modal": {
+    "title": "Conectar a BlockID",
+    "subtitle": "Elige cómo quieres conectarte",
+    "detected": "Detectada",
+    "not_installed": "No instalada"
+  },
+  "identity": {
+    "page_title": "@Handle Identidad",
+    "subtitle": "Tu identidad en BlockID. Un nombre, una reputación, en todas tus billeteras.",
+    "subtitle_trust": "Tu puntuación de confianza y reputación son tuyas: siguen tu billetera, no tu handle.",
+    "you_own": "Eres dueño de @{{handle}}",
+    "soul_bound_active": "Ligado a tu billetera · Activo",
+    "search_handle": "Buscar handle",
+    "handle_placeholder_input": "tuhandle",
+    "check": "Comprobar",
+    "status_available": "¡disponible!",
+    "status_taken": "ocupado",
+    "current_owner": "Propietario actual",
+    "price": "Precio",
+    "tier_premium_short": "Handle premium (corto)",
+    "tier_standard": "Handle estándar",
+    "tier_basic": "Handle básico",
+    "confirm_pay": "Confirmar y pagar",
+    "label_handle": "Handle",
+    "label_type": "Tipo",
+    "type_transferable_nft": "NFT transferible",
+    "label_challenge_period": "Periodo de desafío",
+    "days_30": "30 días",
+    "transfer_warning": "El nombre del handle se puede vender en Magic Eden o Tensor. Tu puntuación de confianza, reputación y seguidores permanecen en tu billetera — no en el handle. El nuevo dueño empieza con reputación nueva. Aplica periodo de desafío de 30 días.",
+    "processing": "Procesando...",
+    "pay_claim": "Pagar y reclamar @{{handle}}",
+    "processing_payment": "Procesando pago...",
+    "approve_in_wallet": "Aprueba la transacción en tu billetera",
+    "claim_success_title": "¡@{{handle}} es tuyo!",
+    "claim_success_sub": "Transferible · Vende cuando quieras en Magic Eden o Tensor · Periodo de desafío de 30 días activo",
+    "pricing_title": "Precios de handle",
+    "pricing_len_12": "1-2 caracteres",
+    "pricing_len_3": "3 caracteres",
+    "pricing_len_4": "4 caracteres",
+    "pricing_len_57": "5-7 caracteres",
+    "pricing_len_8p": "8+ caracteres",
+    "pricing_len_transfer": "Transferir",
+    "pricing_note_ultra": "Ultra premium",
+    "pricing_note_premium": "Premium",
+    "pricing_note_short": "Corto",
+    "pricing_note_standard": "Estándar",
+    "pricing_note_basic": "Básico",
+    "pricing_note_via_market": "Vía Magic Eden / Tensor",
+    "pricing_anytime": "En cualquier momento",
+    "toast_check_failed": "Error al comprobar el handle",
+    "toast_claim_failed": "Error al reclamar el handle",
+    "toast_claim_success": "¡{{handle}} reclamado con éxito!"
   },
   "errors": {
     "wallet_not_found": "Billetera no encontrada",
     "handle_not_found": "Handle no encontrado",
     "network_error": "Error de red. Intenta de nuevo.",
     "insufficient_balance": "Saldo insuficiente",
-    "transaction_failed": "Transacción fallida"
+    "transaction_failed": "Transacción fallida",
+    "page_not_found": "Página no encontrada",
+    "go_home": "Ir al Inicio"
   }
 }

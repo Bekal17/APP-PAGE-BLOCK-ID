@@ -23,7 +23,13 @@
     "edit": "Edit",
     "view_all": "View All",
     "learn_more": "Learn More",
-    "powered_by": "Powered by"
+    "powered_by": "Powered by",
+    "copy_address": "Copy Address",
+    "apply": "Apply",
+    "edit_photo": "Edit photo",
+    "wallet_address_copied": "Wallet address copied to clipboard.",
+    "edit_avatar": "Edit avatar",
+    "edit_banner": "Edit banner"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -36,7 +42,8 @@
     "trust_analytics": "Trust Analytics",
     "upgrade": "Upgrade",
     "settings": "Settings",
-    "log_out": "Log Out"
+    "log_out": "Log Out",
+    "identity": "Identity"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -90,7 +97,9 @@
     "no_posts": "No posts yet",
     "post_button": "Post",
     "image_upload": "Upload Image",
-    "identity_nft_required": "Identity NFT required to post"
+    "identity_nft_required": "Identity NFT required to post",
+    "placeholder_reply": "Post your reply...",
+    "replying": "Replying..."
   },
   "explore": {
     "title": "Explore",
@@ -149,7 +158,8 @@
     "risk_level": "Risk Level",
     "behavioral_analysis": "Behavioral Analysis",
     "cyclops_analysis": "Cyclops Risk Analysis",
-    "last_updated": "Last Updated"
+    "last_updated": "Last Updated",
+    "enter_wallet_to_analyze": "Enter wallet above to analyze"
   },
   "upgrade": {
     "title": "Upgrade BlockID",
@@ -216,13 +226,71 @@
     "connect_to_continue": "Connect wallet to continue",
     "connecting": "Connecting...",
     "login_email": "Login with Email",
-    "login_google": "Login with Google"
+    "login_google": "Login with Google",
+    "setting_up_wallet": "Setting up your wallet...",
+    "continue_with_email": "Continue with Email",
+    "new_to_crypto_hint": "New to crypto? Use Google or Email — no wallet needed."
+  },
+  "wallet_modal": {
+    "title": "Connect to BlockID",
+    "subtitle": "Choose how you want to connect",
+    "detected": "Detected",
+    "not_installed": "Not installed"
+  },
+  "identity": {
+    "page_title": "@Handle Identity",
+    "subtitle": "Your identity on BlockID. One name, one reputation, across every wallet you own.",
+    "subtitle_trust": "Your trust score and reputation are yours, they follow your wallet, not your handle.",
+    "you_own": "You own @{{handle}}",
+    "soul_bound_active": "Soul-bound to your wallet · Active",
+    "search_handle": "Search Handle",
+    "handle_placeholder_input": "yourhandle",
+    "check": "Check",
+    "status_available": "available!",
+    "status_taken": "taken",
+    "current_owner": "Current owner",
+    "price": "Price",
+    "tier_premium_short": "Premium handle (short)",
+    "tier_standard": "Standard handle",
+    "tier_basic": "Basic handle",
+    "confirm_pay": "Confirm & Pay",
+    "label_handle": "Handle",
+    "label_type": "Type",
+    "type_transferable_nft": "Transferable NFT",
+    "label_challenge_period": "Challenge period",
+    "days_30": "30 days",
+    "transfer_warning": "Handle name can be sold on Magic Eden or Tensor. Your trust score, reputation, and followers stay with your wallet — not the handle. New owner starts with fresh reputation. 30-day challenge period applies.",
+    "processing": "Processing...",
+    "pay_claim": "Pay & Claim @{{handle}}",
+    "processing_payment": "Processing payment...",
+    "approve_in_wallet": "Please approve the transaction in your wallet",
+    "claim_success_title": "@{{handle}} is yours!",
+    "claim_success_sub": "Transferable · Sell anytime on Magic Eden or Tensor · 30-day challenge period active",
+    "pricing_title": "Handle Pricing",
+    "pricing_len_12": "1-2 chars",
+    "pricing_len_3": "3 chars",
+    "pricing_len_4": "4 chars",
+    "pricing_len_57": "5-7 chars",
+    "pricing_len_8p": "8+ chars",
+    "pricing_len_transfer": "Transfer",
+    "pricing_note_ultra": "Ultra premium",
+    "pricing_note_premium": "Premium",
+    "pricing_note_short": "Short",
+    "pricing_note_standard": "Standard",
+    "pricing_note_basic": "Basic",
+    "pricing_note_via_market": "Via Magic Eden / Tensor",
+    "pricing_anytime": "Anytime",
+    "toast_check_failed": "Failed to check handle",
+    "toast_claim_failed": "Failed to claim handle",
+    "toast_claim_success": "{{handle}} claimed successfully!"
   },
   "errors": {
     "wallet_not_found": "Wallet not found",
     "handle_not_found": "Handle not found",
     "network_error": "Network error. Please try again.",
     "insufficient_balance": "Insufficient balance",
-    "transaction_failed": "Transaction failed"
+    "transaction_failed": "Transaction failed",
+    "page_not_found": "Page not found",
+    "go_home": "Go Home"
   }
 }
