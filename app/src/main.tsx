@@ -1,3 +1,4 @@
+import './i18n';
 import { createRoot } from "react-dom/client";
 import { OpenfortProvider } from "@/providers/OpenfortProvider";
 import SolanaWalletProvider from "@/components/SolanaWalletProvider";
