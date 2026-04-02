@@ -1,4 +1,6 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
+import { translateRiskTier } from "@/i18n/translateRiskTier";
 
 interface Props {
   score: number;
@@ -60,7 +62,7 @@ export default function ScoreRing({ score, riskColor, riskTier }: Props) {
           className="mt-2 text-xs font-semibold px-3 py-1 rounded-full"
           style={{ backgroundColor: `${activeColor}20`, color: activeColor }}
         >
-          {riskTier}
+          {translateRiskTier(t, riskTier)}
         </span>
       )}
     </div>

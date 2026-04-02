@@ -1,4 +1,6 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
+import { translateRiskTier } from "@/i18n/translateRiskTier";
 
 interface Props {
   riskTier: string;
@@ -13,6 +15,7 @@ const colorMap: Record<string, string> = {
 };
 
 export default function RiskBadge({ riskTier, riskColor }: Props) {
+  const { t } = useTranslation();
   const color = colorMap[riskColor] ?? "#22c55e";
 
   return (
@@ -23,7 +26,7 @@ export default function RiskBadge({ riskTier, riskColor }: Props) {
         color,
       }}
     >
-      {riskTier}
+      {translateRiskTier(t, riskTier)}
     </span>
   );
 }

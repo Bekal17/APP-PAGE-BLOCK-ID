@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Search, Sparkles, Shield, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -17,6 +18,7 @@ const getScoreColor = (s: number) => {
 };
 
 const GlobalSearch = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [focused, setFocused] = useState(false);
@@ -30,7 +32,7 @@ const GlobalSearch = () => {
       )
     : [];
 
-  const showDropdown = focused && query.length > 0 && filtered.length > 0;
+  const showDropdown = focused && query.length > 0;
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -67,7 +69,7 @@ const GlobalSearch = () => {
               setFocused(false);
             }
           }}
-          placeholder="Search wallet or ID"
+          placeholder={t("common.search")}
           className="flex-1 bg-transparent py-3 px-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
         />
         {query && (
@@ -81,7 +83,7 @@ const GlobalSearch = () => {
       </div>
 
       {/* Dropdown results */}
-      {showDropdown && (
+      {showDropdown && filtered.length > 0 && (
         <div className="absolute top-full left-0 right-0 mt-2 rounded-xl border border-glass-border bg-card shadow-[0_8px_32px_-8px_hsl(222_25%_4%/0.8)] z-50 overflow-hidden animate-slide-up">
           <div className="px-3 py-2 border-b border-border">
             <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-medium">
@@ -115,6 +117,11 @@ const GlobalSearch = () => {
               </button>
             ))}
           </div>
+        </div>
+      )}
+      {focused && query.length > 0 && filtered.length === 0 && (
+        <div className="absolute top-full left-0 right-0 mt-2 rounded-xl border border-glass-border bg-card shadow-[0_8px_32px_-8px_hsl(222_25%_4%/0.8)] z-50 px-3 py-6 text-center text-sm text-muted-foreground animate-slide-up">
+          {t("common.no_results")}
         </div>
       )}
     </div>

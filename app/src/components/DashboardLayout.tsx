@@ -8,8 +8,10 @@ import { Menu, Sun, Moon, Zap } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
+  const { t } = useTranslation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const sub = useSubscription();
@@ -59,8 +61,8 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                 className="p-2 rounded-lg border border-border hover:bg-muted/30 text-muted-foreground hover:text-foreground transition-colors"
                 title={
                   theme === "dark"
-                    ? "Switch to Light Mode"
-                    : "Switch to Dark Mode"
+                    ? t("settings.switch_to_light")
+                    : t("settings.switch_to_dark")
                 }
               >
                 {theme === "dark" ? (
