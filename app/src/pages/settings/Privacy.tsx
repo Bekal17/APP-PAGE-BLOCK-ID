@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Shield } from "lucide-react";
 import SettingsLayout from "@/components/SettingsLayout";
-import LanguageSwitcher from "@/components/LanguageSwitcher";
+import LanguageSwitcher, {
+  applyPendingLanguage,
+} from "@/components/LanguageSwitcher";
 import {
   getPrivacySettings,
   updatePrivacySettings,
@@ -11,6 +14,7 @@ import {
 type WalletDisplay = "TRUNCATED" | "HIDDEN";
 
 const PrivacySettings = () => {
+  const { i18n } = useTranslation();
   const { publicKey } = useWallet();
   const wallet = publicKey?.toString() ?? "";
   const [settings, setSettings] = useState<any>({
@@ -39,6 +43,7 @@ const PrivacySettings = () => {
 
   const handleSave = async () => {
     if (!wallet || !settings) return;
+    applyPendingLanguage(i18n);
     setSaving(true);
     try {
       await updatePrivacySettings(wallet, {
