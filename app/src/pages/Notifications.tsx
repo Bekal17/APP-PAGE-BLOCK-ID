@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useWallet } from "@solana/wallet-adapter-react";
 import {
@@ -31,23 +32,6 @@ const getNotifIcon = (type: string) => {
   }
 };
 
-const getNotifLabel = (type: string) => {
-  switch (type) {
-    case "FOLLOW":
-      return "New Follower";
-    case "LIKE":
-      return "Liked your post";
-    case "REPLY":
-      return "Replied to your post";
-    case "ENDORSE":
-      return "Endorsed you";
-    case "REPOST":
-      return "Reposted your post";
-    default:
-      return "Notification";
-  }
-};
-
 const formatTimeAgo = (iso?: string) => {
   if (!iso) return "";
   // Handle both "Z" and "+00:00" timezone formats
@@ -66,9 +50,27 @@ const formatTimeAgo = (iso?: string) => {
 };
 
 const Notifications = () => {
+  const { t } = useTranslation();
   const { publicKey } = useWallet();
   const navigate = useNavigate();
   const wallet = publicKey?.toString() ?? "";
+
+  const getNotifLabel = (type: string) => {
+    switch (type) {
+      case "FOLLOW":
+        return t("notifications.followed_you");
+      case "LIKE":
+        return t("notifications.liked_post");
+      case "REPLY":
+        return t("notifications.replied_post");
+      case "ENDORSE":
+        return t("notifications.endorsed_you");
+      case "REPOST":
+        return t("notifications.reposted");
+      default:
+        return "Notification";
+    }
+  };
 
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -128,7 +130,7 @@ const Notifications = () => {
           </button>
           <div className="flex-1">
             <h1 className="text-xl font-bold text-foreground">
-              Notifications
+              {t("notifications.title")}
             </h1>
           </div>
           {unreadCount > 0 && (

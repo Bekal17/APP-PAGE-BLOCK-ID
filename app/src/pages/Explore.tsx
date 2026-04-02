@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
 import {
@@ -15,6 +16,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import SubscriptionBadge from "@/components/blockid/SubscriptionBadge";
 
 const Explore = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { publicKey } = useWallet();
   const sub = useSubscription();
@@ -87,7 +89,7 @@ const Explore = () => {
         {/* Header */}
         <div className="animate-slide-up">
           <h1 className="text-2xl font-bold text-foreground tracking-tight">
-            Explore
+            {t("explore.title")}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             Search wallets, handles, and discover trusted users
@@ -104,7 +106,7 @@ const Explore = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && !sub.isAtLimit && handleSearch()}
-            placeholder="Search wallet address or @handle..."
+            placeholder={t("explore.search_placeholder")}
             className="w-full pl-12 pr-32 py-3.5 bg-zinc-900 border border-zinc-700 rounded-xl text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50"
           />
           <button
