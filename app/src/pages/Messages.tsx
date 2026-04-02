@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, KeyboardEvent } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams, useNavigate } from "react-router-dom";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { ArrowLeft, Send, MessageCircle, Search } from "lucide-react";
@@ -28,6 +29,7 @@ const truncate = (w: string) =>
   w ? `${w.slice(0, 4)}...${w.slice(-4)}` : "";
 
 const Messages = () => {
+  const { t } = useTranslation();
   const { walletParam } = useParams<{ walletParam?: string }>();
   const navigate = useNavigate();
   const { publicKey } = useWallet();
@@ -168,7 +170,7 @@ const Messages = () => {
         >
           <div className="p-4 border-b border-border">
             <h2 className="text-lg font-bold text-foreground mb-3">
-              Messages
+              {t("messages.title")}
             </h2>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -231,7 +233,7 @@ const Messages = () => {
                       </span>
                     </div>
                     <p className="text-xs text-muted-foreground truncate mt-0.5">
-                      {convo.last_message ?? "No messages"}
+                      {convo.last_message ?? t("messages.no_messages")}
                     </p>
                   </div>
 
@@ -321,7 +323,7 @@ const Messages = () => {
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Type a message... (Enter to send)"
+                  placeholder={t("messages.type_message")}
                   className="flex-1 bg-muted/30 border border-border rounded-xl px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none max-h-32"
                   rows={1}
                   maxLength={1000}
@@ -329,6 +331,7 @@ const Messages = () => {
                 <button
                   onClick={handleSend}
                   disabled={!newMessage.trim() || sending}
+                  title={t("messages.send")}
                   className="p-2.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50 shrink-0"
                 >
                   <Send className="w-4 h-4" />

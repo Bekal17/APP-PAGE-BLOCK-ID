@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useTranslation } from "react-i18next";
 import ReactCrop, {
   type Crop,
   type PixelCrop,
@@ -114,6 +115,7 @@ const sortPostsByCreatedAtDesc = (posts: SocialPost[]) =>
   );
 
 const Dashboard = () => {
+  const { t } = useTranslation();
   const { publicKey } = useWallet();
   const { toast } = useToast();
   const address = publicKey?.toBase58() ?? publicKey?.toString();
@@ -771,6 +773,7 @@ const Dashboard = () => {
   return (
     <DashboardLayout>
       <div className="max-w-6xl mx-auto space-y-6">
+        <h1 className="sr-only">{t("dashboard.title")}</h1>
         <QuotaBanner />
         <div
           className="flex gap-2 border-b border-border pb-1 animate-slide-up"
