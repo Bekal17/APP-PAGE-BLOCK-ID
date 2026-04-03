@@ -23,6 +23,7 @@ export function applyPendingLanguage(i18n: {
 }) {
   if (pendingLanguage) {
     i18n.changeLanguage(pendingLanguage);
+    localStorage.setItem("i18nextLng", pendingLanguage);
     pendingLanguage = null;
   }
 }
