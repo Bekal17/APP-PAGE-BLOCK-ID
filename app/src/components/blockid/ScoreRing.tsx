@@ -16,6 +16,7 @@ const colorMap: Record<string, string> = {
 };
 
 export default function ScoreRing({ score, riskColor, riskTier }: Props) {
+  const { t } = useTranslation();
   const activeColor = colorMap[riskColor] ?? "#22c55e";
   const glowStrength = riskColor === "RED" ? 18 : 12;
   const radius = 70;
