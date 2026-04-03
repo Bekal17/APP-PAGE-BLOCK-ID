@@ -36,7 +36,7 @@ const AppSidebar = () => {
   const location = useLocation();
   const { publicKey } = useWallet();
   const [dmUnread, setDmUnread] = useState(0);
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const wallet = publicKey?.toString();
@@ -55,27 +55,6 @@ const AppSidebar = () => {
     const interval = setInterval(fetch, 30000);
     return () => clearInterval(interval);
   }, [publicKey]);
-
-  const langs = ["en", "id", "ja", "ko", "zh", "es", "ar"];
-  const currentLang = i18n.language?.slice(0, 2) || "en";
-  const flagByCode: Record<string, string> = {
-    en: "🇬🇧",
-    id: "🇮🇩",
-    ja: "🇯🇵",
-    ko: "🇰🇷",
-    zh: "🇨🇳",
-    es: "🇪🇸",
-    ar: "🇸🇦",
-  };
-  const labelByCode: Record<string, string> = {
-    en: "EN",
-    id: "ID",
-    ja: "JA",
-    ko: "KO",
-    zh: "ZH",
-    es: "ES",
-    ar: "AR",
-  };
 
   return (
     <div className="flex flex-col h-full py-4">
@@ -123,20 +102,6 @@ const AppSidebar = () => {
       <div className="mt-auto shrink-0 flex flex-col">
         <QuotaIndicator />
         <div className="px-4 py-4 border-t border-white/5">
-          <button
-            onClick={() => {
-              const currentIndex = langs.indexOf(currentLang);
-              const nextIndex = (currentIndex + 1) % langs.length;
-              i18n.changeLanguage(langs[nextIndex]);
-            }}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs text-muted-foreground hover:text-foreground hover:bg-zinc-800/50 transition-all"
-            title="Change language"
-            type="button"
-          >
-            <span className="text-sm">{flagByCode[currentLang] ?? "🇬🇧"}</span>
-            <span>{labelByCode[currentLang] ?? "EN"}</span>
-          </button>
-
           <div className="flex flex-wrap gap-x-3 gap-y-1">
           <a
             href="https://blockidscore.fun/terms.html"
