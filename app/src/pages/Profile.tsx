@@ -938,11 +938,12 @@ const Profile = () => {
   };
 
   const handleRecalculate = async () => {
-    if (!address) return;
+    const targetWallet = walletParam ?? address;
+    if (!targetWallet) return;
     try {
       setAnalyzing(true);
       const res = await fetch(
-        `${API_BASE}/wallet/recalculate/${encodeURIComponent(address)}`,
+        `${API_BASE}/wallet/recalculate/${encodeURIComponent(targetWallet)}`,
         {
           method: "POST",
         }
