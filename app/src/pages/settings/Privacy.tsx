@@ -14,7 +14,7 @@ import {
 type WalletDisplay = "TRUNCATED" | "HIDDEN";
 
 const PrivacySettings = () => {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { publicKey } = useWallet();
   const wallet = publicKey?.toString() ?? "";
   const [settings, setSettings] = useState<any>({
@@ -67,14 +67,14 @@ const PrivacySettings = () => {
   if (!wallet) {
     return (
       <SettingsLayout
-        title="Privacy & Safety"
-        description="Control who can see your content"
+        title={t("settings.privacy_safety")}
+        description={t("settings.privacy_desc_short")}
       >
         <LanguageSwitcher />
         <div className="flex flex-col items-center
           justify-center py-12 text-muted-foreground">
           <Shield className="w-12 h-12 mb-4 opacity-30" />
-          <p>Connect your wallet to manage settings</p>
+          <p>{t("settings.connect_wallet_manage")}</p>
         </div>
       </SettingsLayout>
     );
@@ -82,9 +82,8 @@ const PrivacySettings = () => {
 
   return (
     <SettingsLayout
-      title="Privacy & Safety"
-      description="Control who can see your content and 
-        how others can interact with you."
+      title={t("settings.privacy_safety")}
+      description={t("settings.privacy_desc")}
     >
       <LanguageSwitcher />
       {loading ? (
@@ -106,17 +105,17 @@ const PrivacySettings = () => {
           <p className="text-xs font-semibold
             text-muted-foreground uppercase
             tracking-wider mb-3">
-            Content
+            {t("settings.content")}
           </p>
 
           <div className="flex items-center justify-between
             py-4 border-b border-zinc-800/50">
             <div>
               <p className="text-sm font-medium text-foreground">
-                Post Visibility
+                {t("settings.post_visibility")}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Who can see your posts
+                {t("settings.post_visibility_desc")}
               </p>
             </div>
             <select
@@ -129,9 +128,9 @@ const PrivacySettings = () => {
                 focus:outline-none focus:ring-2
                 focus:ring-primary/50"
             >
-              <option value="PUBLIC">Everyone</option>
-              <option value="FOLLOWERS_ONLY">Followers Only</option>
-              <option value="PRIVATE">Only Me</option>
+              <option value="PUBLIC">{t("settings.everyone")}</option>
+              <option value="FOLLOWERS_ONLY">{t("settings.followers_only")}</option>
+              <option value="PRIVATE">{t("settings.only_me")}</option>
             </select>
           </div>
 
@@ -139,10 +138,10 @@ const PrivacySettings = () => {
           <div className="flex items-center justify-between py-4 border-b border-border/50">
             <div>
               <p className="text-sm font-medium text-foreground">
-                Wallet Address
+                {t("settings.wallet_address")}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Show your wallet address below your handle on your profile
+                {t("settings.wallet_address_desc")}
               </p>
             </div>
             <select
@@ -155,8 +154,8 @@ const PrivacySettings = () => {
               }
               className="bg-background border border-border rounded-lg px-3 py-2 text-sm text-foreground"
             >
-              <option value="TRUNCATED">Visible (truncated)</option>
-              <option value="HIDDEN">Hidden from public</option>
+              <option value="TRUNCATED">{t("settings.visible_truncated")}</option>
+              <option value="HIDDEN">{t("settings.hidden_from_public")}</option>
             </select>
           </div>
 
@@ -164,10 +163,10 @@ const PrivacySettings = () => {
             py-4 border-b border-zinc-800/50">
             <div>
               <p className="text-sm font-medium text-foreground">
-                Activity Feed
+                {t("settings.activity_feed")}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Show your likes and reposts to others
+                {t("settings.activity_feed_desc")}
               </p>
             </div>
             <div className="flex items-center shrink-0">
@@ -193,17 +192,17 @@ const PrivacySettings = () => {
           <p className="text-xs font-semibold
             text-muted-foreground uppercase
             tracking-wider mb-3 mt-6">
-            Discoverability
+            {t("settings.discoverability")}
           </p>
 
           <div className="flex items-center justify-between
             py-4 border-b border-zinc-800/50">
             <div>
               <p className="text-sm font-medium text-foreground">
-                Profile Discoverable
+                {t("settings.profile_discoverable")}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Allow others to find you in search
+                {t("settings.profile_discoverable_desc")}
               </p>
             </div>
             <div className="flex items-center shrink-0">
@@ -231,10 +230,10 @@ const PrivacySettings = () => {
             py-4 border-b border-zinc-800/50">
             <div>
               <p className="text-sm font-medium text-foreground">
-                Allow Follows
+                {t("settings.allow_follows")}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Allow other wallets to follow you
+                {t("settings.allow_follows_desc")}
               </p>
             </div>
             <div className="flex items-center shrink-0">
@@ -262,17 +261,17 @@ const PrivacySettings = () => {
           <p className="text-xs font-semibold
             text-muted-foreground uppercase
             tracking-wider mb-3 mt-6">
-            Financial Privacy
+            {t("settings.financial_privacy")}
           </p>
 
           <div className="flex items-center justify-between
             py-4 border-b border-zinc-800/50">
             <div>
               <p className="text-sm font-medium text-foreground">
-                Portfolio Balance
+                {t("settings.portfolio_balance")}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Who can see your wallet balance
+                {t("settings.portfolio_balance_desc")}
               </p>
             </div>
             <select
@@ -285,9 +284,9 @@ const PrivacySettings = () => {
                 focus:outline-none focus:ring-2
                 focus:ring-primary/50"
             >
-              <option value="PUBLIC">Everyone</option>
-              <option value="FOLLOWERS">Followers Only</option>
-              <option value="HIDDEN">Hidden</option>
+              <option value="PUBLIC">{t("settings.everyone")}</option>
+              <option value="FOLLOWERS">{t("settings.followers_only")}</option>
+              <option value="HIDDEN">{t("settings.hidden")}</option>
             </select>
           </div>
 
@@ -295,10 +294,10 @@ const PrivacySettings = () => {
             py-4 border-b border-zinc-800/50">
             <div>
               <p className="text-sm font-medium text-foreground">
-                Trust Score
+                {t("settings.trust_score_visibility")}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Who can see your BlockID trust score
+                {t("settings.trust_score_visibility_desc")}
               </p>
             </div>
             <select
@@ -311,26 +310,26 @@ const PrivacySettings = () => {
                 focus:outline-none focus:ring-2
                 focus:ring-primary/50"
             >
-              <option value="PUBLIC">Everyone</option>
-              <option value="FOLLOWERS">Followers Only</option>
-              <option value="HIDDEN">Hidden</option>
+              <option value="PUBLIC">{t("settings.everyone")}</option>
+              <option value="FOLLOWERS">{t("settings.followers_only")}</option>
+              <option value="HIDDEN">{t("settings.hidden")}</option>
             </select>
           </div>
 
           <p className="text-xs font-semibold
             text-muted-foreground uppercase
             tracking-wider mb-3 mt-6">
-            Interactions
+            {t("settings.interactions")}
           </p>
 
           <div className="flex items-center justify-between
             py-4 border-b border-zinc-800/50">
             <div>
               <p className="text-sm font-medium text-foreground">
-                Mentions
+                {t("settings.mentions")}
               </p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Who can mention you in posts
+                {t("settings.mentions_desc")}
               </p>
             </div>
             <select
@@ -343,9 +342,9 @@ const PrivacySettings = () => {
                 focus:outline-none focus:ring-2
                 focus:ring-primary/50"
             >
-              <option value="ALL">Everyone</option>
-              <option value="FOLLOWERS">Followers Only</option>
-              <option value="NONE">No One</option>
+              <option value="ALL">{t("settings.everyone")}</option>
+              <option value="FOLLOWERS">{t("settings.followers_only")}</option>
+              <option value="NONE">{t("settings.no_one")}</option>
             </select>
           </div>
 
@@ -358,11 +357,11 @@ const PrivacySettings = () => {
                 font-medium hover:bg-primary/90
                 disabled:opacity-50 transition-colors"
             >
-              {saving ? "Saving..." : "Save Changes"}
+              {saving ? t("settings.saving") : t("settings.save_changes")}
             </button>
             {saved && (
               <span className="text-sm text-green-400">
-                ✓ Saved successfully
+                ✓ {t("settings.saved_success")}
               </span>
             )}
           </div>
