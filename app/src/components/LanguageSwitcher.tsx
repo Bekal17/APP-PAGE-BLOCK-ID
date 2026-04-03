@@ -45,7 +45,7 @@ export default function LanguageSwitcher() {
     languages.find((l) => l.code === selectedLang)?.flag || "🇬🇧";
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 mb-6">
       <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
         {t("settings.language")}
       </label>

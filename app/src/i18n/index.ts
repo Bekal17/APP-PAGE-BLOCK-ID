@@ -23,12 +23,13 @@ i18n
       es: { translation: es },
       ar: { translation: ar },
     },
+    lng: "id",
     fallbackLng: "en",
     interpolation: {
       escapeValue: false,
     },
     detection: {
-      order: ["localStorage", "navigator"],
+      order: ["localStorage"],
       caches: ["localStorage"],
     },
   });
