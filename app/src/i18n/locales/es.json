@@ -137,7 +137,14 @@
     "trending": "Tendencias",
     "latest": "Más Reciente",
     "people": "Personas",
-    "search_placeholder": "Buscar billeteras, handles o publicaciones..."
+    "search_placeholder": "Buscar billeteras, handles o publicaciones...",
+    "subtitle": "Buscar wallets, handles y descubrir usuarios confiables",
+    "search_button": "Buscar",
+    "searching": "Buscando...",
+    "limit_reached": "Límite alcanzado",
+    "search_limit_tooltip": "Mejora tu plan para escanear más wallets este mes",
+    "latest_posts": "Últimas Publicaciones",
+    "no_results": "No se encontraron resultados"
   },
   "messages": {
     "title": "Mensajes",
@@ -145,7 +152,13 @@
     "no_messages": "Aún no hay mensajes",
     "type_message": "Escribe un mensaje...",
     "send": "Enviar",
-    "to": "Para"
+    "to": "Para",
+    "search_placeholder": "Buscar conversaciones...",
+    "no_conversations": "Aún no hay conversaciones",
+    "select_conversation": "Selecciona una conversación para comenzar a enviar mensajes",
+    "connect_wallet_prompt": "Conecta tu wallet para usar mensajes",
+    "loading_messages": "Cargando mensajes...",
+    "say_hello": "¡Saluda!"
   },
   "notifications": {
     "title": "Notificaciones",

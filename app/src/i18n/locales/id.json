@@ -139,7 +139,14 @@
     "trending": "Tren",
     "latest": "Terbaru",
     "people": "Orang",
-    "search_placeholder": "Cari wallet, handle, atau postingan..."
+    "search_placeholder": "Cari wallet, handle, atau postingan...",
+    "subtitle": "Cari wallet, handle, dan temukan pengguna terpercaya",
+    "search_button": "Cari",
+    "searching": "Mencari...",
+    "limit_reached": "Batas tercapai",
+    "search_limit_tooltip": "Tingkatkan untuk memindai lebih banyak wallet bulan ini",
+    "latest_posts": "Postingan Terbaru",
+    "no_results": "Tidak ada hasil"
   },
   "messages": {
     "title": "Pesan",
@@ -147,7 +154,13 @@
     "no_messages": "Belum ada pesan",
     "type_message": "Ketik pesan...",
     "send": "Kirim",
-    "to": "Kepada"
+    "to": "Kepada",
+    "search_placeholder": "Cari percakapan...",
+    "no_conversations": "Belum ada percakapan",
+    "select_conversation": "Pilih percakapan untuk mulai berkirim pesan",
+    "connect_wallet_prompt": "Hubungkan wallet untuk menggunakan pesan",
+    "loading_messages": "Memuat pesan...",
+    "say_hello": "Sapa dulu!"
   },
   "notifications": {
     "title": "Notifikasi",

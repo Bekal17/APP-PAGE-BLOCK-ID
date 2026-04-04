@@ -139,7 +139,14 @@
     "trending": "Trending",
     "latest": "Latest",
     "people": "People",
-    "search_placeholder": "Search wallets, handles, or posts..."
+    "search_placeholder": "Search wallets, handles, or posts...",
+    "subtitle": "Search wallets, handles, and discover trusted users",
+    "search_button": "Search",
+    "searching": "Searching...",
+    "limit_reached": "Limit Reached",
+    "search_limit_tooltip": "Upgrade to scan more wallets this month",
+    "latest_posts": "Latest Posts",
+    "no_results": "No results found"
   },
   "messages": {
     "title": "Messages",
@@ -147,7 +154,13 @@
     "no_messages": "No messages yet",
     "type_message": "Type a message...",
     "send": "Send",
-    "to": "To"
+    "to": "To",
+    "search_placeholder": "Search conversations...",
+    "no_conversations": "No conversations yet",
+    "select_conversation": "Select a conversation to start messaging",
+    "connect_wallet_prompt": "Connect your wallet to use messages",
+    "loading_messages": "Loading messages...",
+    "say_hello": "Say hello!"
   },
   "notifications": {
     "title": "Notifications",

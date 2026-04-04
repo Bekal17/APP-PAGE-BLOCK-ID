@@ -139,7 +139,14 @@
     "trending": "الرائج",
     "latest": "الأحدث",
     "people": "الأشخاص",
-    "search_placeholder": "البحث عن محافظ أو معرّفات أو منشورات..."
+    "search_placeholder": "البحث عن محافظ أو معرّفات أو منشورات...",
+    "subtitle": "البحث عن المحافظ والمعرفات واكتشاف المستخدمين الموثوقين",
+    "search_button": "بحث",
+    "searching": "جاري البحث...",
+    "limit_reached": "تم بلوغ الحد",
+    "search_limit_tooltip": "قم بالترقية لمسح المزيد من المحافظ هذا الشهر",
+    "latest_posts": "أحدث المنشورات",
+    "no_results": "لم يتم العثور على نتائج"
   },
   "messages": {
     "title": "الرسائل",
@@ -147,7 +154,13 @@
     "no_messages": "لا توجد رسائل بعد",
     "type_message": "اكتب رسالة...",
     "send": "إرسال",
-    "to": "إلى"
+    "to": "إلى",
+    "search_placeholder": "البحث في المحادثات...",
+    "no_conversations": "لا توجد محادثات بعد",
+    "select_conversation": "اختر محادثة لبدء المراسلة",
+    "connect_wallet_prompt": "اربط محفظتك لاستخدام الرسائل",
+    "loading_messages": "جاري تحميل الرسائل...",
+    "say_hello": "قل مرحباً!"
   },
   "notifications": {
     "title": "الإشعارات",
