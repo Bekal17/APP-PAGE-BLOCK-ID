@@ -64,7 +64,7 @@ const GlobalSearch = () => {
           onFocus={() => setFocused(true)}
           onKeyDown={(e) => {
             if (e.key === "Enter" && query.trim() !== "") {
-              navigate(`/analytics?wallet=${encodeURIComponent(query.trim())}`);
+              navigate(`/identity?wallet=${encodeURIComponent(query.trim())}`);
               setQuery("");
               setFocused(false);
             }

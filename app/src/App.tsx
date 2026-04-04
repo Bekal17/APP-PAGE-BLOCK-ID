@@ -3,10 +3,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, useLocation, useSearchParams } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AutoLogin from "@/components/AutoLogin";
 import Dashboard from "./pages/Dashboard";
-import TrustAnalytics from "./pages/TrustAnalytics";
 import Identity from "./pages/Identity";
 import Explore from "./pages/Explore";
 import SmartRouter from "./pages/SmartRouter";
@@ -24,13 +23,6 @@ import LoginEmail from "@/pages/LoginEmail";
 const queryClient = new QueryClient();
 
 function DashboardBackground() {
-  const location = useLocation();
-  const [searchParams] = useSearchParams();
-  const isAnalytics = location.pathname === "/analytics";
-
-  if (isAnalytics) {
-    return null;
-  }
   return <InteractiveWalletGraph />;
 }
 
@@ -46,7 +38,6 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/analytics" element={<TrustAnalytics />} />
             <Route path="/explore" element={<Explore />} />
             <Route path="/identity" element={<Identity />} />
             <Route path="/router" element={<SmartRouter />} />
