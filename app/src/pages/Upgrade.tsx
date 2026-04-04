@@ -13,7 +13,7 @@ import {
   getAssociatedTokenAddress,
   TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
-import { Check, X, Zap, Star, Crown } from "lucide-react";
+import { Check, X, Crown } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useToast } from "@/hooks/use-toast";
@@ -235,47 +235,128 @@ export default function Upgrade() {
 
   const currentPlan = sub.plan ?? "free";
 
-  // Feature comparison data
+  const unlimitedLabel = t("upgrade.unlimited");
+
   const features = [
     {
-      category: "Identity",
+      category: t("upgrade.cat_identity"),
       items: [
-        { name: "Public BlockID profile", free: true, explorer: true, pro: true },
-        { name: "Trust score (realtime)", free: true, explorer: true, pro: true },
-        { name: "NFT identity (auto-mint)", free: true, explorer: true, pro: true },
-        { name: "@Handle claim", free: false, explorer: "1 handle", pro: "3 handles" },
-        { name: "Make Your Own NFT avatar", free: false, explorer: "3x/month", pro: "Unlimited" },
+        {
+          name: t("upgrade.ft_public_profile"),
+          free: true,
+          explorer: true,
+          pro: true,
+        },
+        {
+          name: t("upgrade.ft_trust_score"),
+          free: true,
+          explorer: true,
+          pro: true,
+        },
+        {
+          name: t("upgrade.ft_nft_identity"),
+          free: true,
+          explorer: true,
+          pro: true,
+        },
+        {
+          name: t("upgrade.ft_handle_claim"),
+          free: false,
+          explorer: t("upgrade.one_handle"),
+          pro: t("upgrade.three_handles"),
+        },
+        {
+          name: t("upgrade.ft_nft_avatar"),
+          free: false,
+          explorer: t("upgrade.three_per_month"),
+          pro: unlimitedLabel,
+        },
       ],
     },
     {
-      category: "Social",
+      category: t("upgrade.cat_social"),
       items: [
-        { name: "Unlimited posts & social feed", free: true, explorer: true, pro: true },
-        { name: "Follow & followers", free: true, explorer: true, pro: true },
-        { name: "Direct messages", free: true, explorer: true, pro: true },
-        { name: "Wallet scans/month", free: "50", explorer: "250", pro: "Unlimited" },
+        {
+          name: t("upgrade.ft_unlimited_posts"),
+          free: true,
+          explorer: true,
+          pro: true,
+        },
+        {
+          name: t("upgrade.ft_follow"),
+          free: true,
+          explorer: true,
+          pro: true,
+        },
+        {
+          name: t("upgrade.ft_dm"),
+          free: true,
+          explorer: true,
+          pro: true,
+        },
+        {
+          name: t("upgrade.ft_wallet_scans"),
+          free: "50",
+          explorer: "250",
+          pro: unlimitedLabel,
+        },
       ],
     },
     {
-      category: "Access",
+      category: t("upgrade.cat_access"),
       items: [
-        { name: "Early access to new features", free: false, explorer: false, pro: true },
-        { name: "Priority support", free: false, explorer: false, pro: true },
-        { name: "Blue tick badge ✓", free: false, explorer: true, pro: false },
-        { name: "Gold tick badge ✓", free: false, explorer: false, pro: true },
+        {
+          name: t("upgrade.ft_early_access"),
+          free: false,
+          explorer: false,
+          pro: true,
+        },
+        {
+          name: t("upgrade.ft_priority_support"),
+          free: false,
+          explorer: false,
+          pro: true,
+        },
+        {
+          name: t("upgrade.ft_blue_tick"),
+          free: false,
+          explorer: true,
+          pro: false,
+        },
+        {
+          name: t("upgrade.ft_gold_tick"),
+          free: false,
+          explorer: false,
+          pro: true,
+        },
       ],
     },
   ];
+
+  const upgradeCtaLabel = (plan: "explorer" | "pro") => {
+    if (payToken === "SOL") return t("upgrade.pay_sol");
+    const amount =
+      plan === "explorer"
+        ? `$${billing === "monthly" ? 9 : 86.4}`
+        : `$${billing === "monthly" ? 29 : 278.4}`;
+    return t("upgrade.upgrade_with", { amount, token: payToken });
+  };
 
   const renderCell = (val: boolean | string) => {
     if (val === true)
       return <Check className="w-4 h-4 text-green-400 mx-auto" />;
     if (val === false)
       return <X className="w-4 h-4 text-zinc-600 mx-auto" />;
-    if (val === "Unlimited") {
+    if (typeof val === "string" && val === unlimitedLabel) {
+      return (
+        <span className="text-xs text-zinc-300 font-medium">{val}</span>
+      );
+    }
+    if (typeof val === "string" && /^\d+$/.test(val)) {
       return (
         <span className="text-xs text-zinc-300 font-medium">
-          {t("upgrade.unlimited")}
+          {val}
+          {t("upgrade.per_month")}
         </span>
       );
     }
@@ -298,7 +379,7 @@ export default function Upgrade() {
             {t("upgrade.title")}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Get more scans, claim your @handle, and unlock exclusive features.
+            {t("upgrade.subtitle")}
           </p>
         </div>
 
@@ -325,7 +406,7 @@ export default function Upgrade() {
 
         {/* Pay with toggle */}
         <div className="flex items-center justify-center gap-2">
-          <span className="text-xs text-zinc-500">Pay with:</span>
+          <span className="text-xs text-zinc-500">{t("upgrade.pay_with")}</span>
           {(["USDC", "SOL"] as const).map((token) => (
             <button
               key={token}
@@ -344,23 +425,23 @@ export default function Upgrade() {
           <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 space-y-4">
             <div>
               <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">
-                Free
+                {t("upgrade.free")}
               </p>
               <p className="text-4xl font-bold">$0</p>
-              <p className="text-xs text-zinc-500 mt-1">forever</p>
+              <p className="text-xs text-zinc-500 mt-1">{t("upgrade.forever")}</p>
             </div>
             <ul className="space-y-2 text-xs text-zinc-400">
               <li className="flex items-center gap-2">
                 <Check className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
-                Public profile & NFT identity
+                {t("upgrade.feat_public_profile")}
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
-                50 wallet scans/month
+                {t("upgrade.feat_50_scans")}
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
-                Full social access
+                {t("upgrade.feat_social_access")}
               </li>
             </ul>
             <button
@@ -377,7 +458,7 @@ export default function Upgrade() {
           <div className="rounded-2xl border border-blue-500/40 bg-zinc-900/80 p-6 space-y-4 shadow-lg shadow-blue-500/10 relative">
             <div className="absolute -top-3 left-1/2 -translate-x-1/2">
               <span className="px-3 py-1 rounded-full bg-blue-500 text-white text-xs font-bold shadow-lg shadow-blue-500/30">
-                Most Popular
+                {t("upgrade.most_popular")}
               </span>
             </div>
             <div>
@@ -392,26 +473,26 @@ export default function Upgrade() {
               </p>
               <p className="text-xs text-zinc-500 mt-1">
                 {billing === "monthly"
-                  ? "per month"
-                  : `$86.40/year · billed annually`}
+                  ? t("upgrade.per_month_label")
+                  : t("upgrade.billed_annually", { amount: "86.40" })}
               </p>
             </div>
             <ul className="space-y-2 text-xs text-zinc-400">
               <li className="flex items-center gap-2">
                 <Check className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
-                250 wallet scans{t("upgrade.per_month")}
+                {t("upgrade.feat_250_scans")}
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
-                @Handle claim (1 handle)
+                {t("upgrade.feat_handle_1")}
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
-                Make Your Own NFT avatar (3x{t("upgrade.per_month")} · 0.01 SOL)
+                {t("upgrade.feat_nft_avatar_3x")}
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
-                Blue tick badge ✓
+                {t("upgrade.feat_blue_tick")}
               </li>
             </ul>
             <button
@@ -424,16 +505,12 @@ export default function Upgrade() {
               className="w-full py-2.5 rounded-xl bg-blue-500 hover:bg-blue-400 text-white text-sm font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {paying === "explorer"
-                ? "Processing..."
+                ? t("upgrade.processing")
                 : currentPlan === "explorer"
                   ? t("upgrade.current_plan")
                   : currentPlan === "pro"
-                    ? "Downgrade"
-                    : `Upgrade · ${
-                        payToken === "USDC"
-                          ? `$${billing === "monthly" ? 9 : 86.4} USDC`
-                          : "Pay SOL"
-                      }`}
+                    ? t("upgrade.downgrade")
+                    : upgradeCtaLabel("explorer")}
             </button>
           </div>
 
@@ -451,30 +528,30 @@ export default function Upgrade() {
               </p>
               <p className="text-xs text-zinc-500 mt-1">
                 {billing === "monthly"
-                  ? "per month"
-                  : `$278.40/year · billed annually`}
+                  ? t("upgrade.per_month_label")
+                  : t("upgrade.billed_annually", { amount: "278.40" })}
               </p>
             </div>
             <ul className="space-y-2 text-xs text-zinc-400">
               <li className="flex items-center gap-2">
                 <Check className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
-                {t("upgrade.unlimited")} wallet scans
+                {t("upgrade.feat_unlimited_scans")}
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
-                3 @Handle claims
+                {t("upgrade.feat_handle_3")}
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
-                Make Your Own NFT avatar ({t("upgrade.unlimited")} · 0.01 SOL)
+                {t("upgrade.feat_nft_avatar_unlimited")}
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
-                Gold tick badge 
+                {t("upgrade.feat_gold_tick")}
               </li>
               <li className="flex items-center gap-2">
                 <Check className="w-3.5 h-3.5 text-purple-400 flex-shrink-0" />
-                Priority support
+                {t("upgrade.feat_priority_support")}
               </li>
             </ul>
             <button
@@ -483,14 +560,10 @@ export default function Upgrade() {
               className="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-blue-500 hover:opacity-90 text-white text-sm font-bold transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {paying === "pro"
-                ? "Processing..."
+                ? t("upgrade.processing")
                 : currentPlan === "pro"
                   ? t("upgrade.current_plan")
-                  : `Upgrade · ${
-                      payToken === "USDC"
-                        ? `$${billing === "monthly" ? 29 : 278.4} USDC`
-                        : "Pay SOL"
-                    }`}
+                  : upgradeCtaLabel("pro")}
             </button>
           </div>
         </div>
@@ -498,11 +571,11 @@ export default function Upgrade() {
         {/* Feature comparison table */}
         <div className="space-y-6">
           <h2 className="text-lg font-bold text-center">
-            Compare tiers & features
+            {t("upgrade.compare_title")}
           </h2>
-          {features.map((section) => (
+          {features.map((section, sIdx) => (
             <div
-              key={section.category}
+              key={sIdx}
               className="rounded-2xl border border-zinc-800 overflow-hidden"
             >
               <div className="grid grid-cols-4 bg-zinc-800/50 px-4 py-3">
@@ -521,7 +594,7 @@ export default function Upgrade() {
               </div>
               {section.items.map((item, i) => (
                 <div
-                  key={item.name}
+                  key={`${sIdx}-${i}`}
                   className={`grid grid-cols-4 px-4 py-3 items-center ${
                     i % 2 === 0 ? "bg-zinc-900/30" : "bg-transparent"
                   }`}
@@ -544,8 +617,7 @@ export default function Upgrade() {
 
         {/* Note */}
         <p className="text-center text-xs text-zinc-600">
-          Payments are processed on Solana mainnet. USDC mint: EPjFWdd5...
-          t1v · No refunds after plan activation.
+          {t("upgrade.payment_note")}
         </p>
       </div>
     </DashboardLayout>
