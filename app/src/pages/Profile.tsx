@@ -911,6 +911,15 @@ const Profile = () => {
           uniqueCounterparties,
           volume30d: volumeStr,
           behaviorPatterns,
+          avatarUrl: profile?.avatar_url ?? null,
+          bannerUrl: profile?.banner_url ?? null,
+          handle: profile?.handle ?? null,
+          badges: (
+            (profile?.displayed_badges?.length
+              ? profile.displayed_badges
+              : walletDashboard?.badges ?? []) as string[]
+          ).map((b: string) => BADGE_LABELS[b] ?? b),
+          plan: (profile as { plan?: string })?.plan ?? "free",
         }
       : null;
 
