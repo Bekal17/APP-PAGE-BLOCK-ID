@@ -223,7 +223,13 @@
     "dark": "深色",
     "light": "浅色",
     "switch_to_light": "切换到浅色模式",
-    "switch_to_dark": "切换到深色模式"
+    "switch_to_dark": "切换到深色模式",
+    "your_account": "您的账户",
+    "danger_zone": "危险区域",
+    "edit_profile": "编辑资料",
+    "notifications_label": "通知",
+    "delete_account": "删除账户",
+    "coming_soon": "即将推出"
   },
   "onboarding": {
     "wallet_safety_title": "钱包安全",

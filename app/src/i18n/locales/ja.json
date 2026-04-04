@@ -223,7 +223,13 @@
     "dark": "ダーク",
     "light": "ライト",
     "switch_to_light": "ライトモードに切り替え",
-    "switch_to_dark": "ダークモードに切り替え"
+    "switch_to_dark": "ダークモードに切り替え",
+    "your_account": "アカウント",
+    "danger_zone": "危険ゾーン",
+    "edit_profile": "プロフィール編集",
+    "notifications_label": "通知",
+    "delete_account": "アカウント削除",
+    "coming_soon": "近日公開"
   },
   "onboarding": {
     "wallet_safety_title": "ウォレットの安全性",

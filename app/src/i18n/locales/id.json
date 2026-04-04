@@ -223,7 +223,13 @@
     "dark": "Gelap",
     "light": "Terang",
     "switch_to_light": "Beralih ke mode terang",
-    "switch_to_dark": "Beralih ke mode gelap"
+    "switch_to_dark": "Beralih ke mode gelap",
+    "your_account": "AKUN ANDA",
+    "danger_zone": "ZONA BAHAYA",
+    "edit_profile": "Edit Profil",
+    "notifications_label": "Notifikasi",
+    "delete_account": "Hapus Akun",
+    "coming_soon": "Segera hadir"
   },
   "onboarding": {
     "wallet_safety_title": "Keamanan Wallet",

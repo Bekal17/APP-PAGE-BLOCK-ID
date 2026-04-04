@@ -223,7 +223,13 @@
     "dark": "Dark",
     "light": "Light",
     "switch_to_light": "Switch to Light Mode",
-    "switch_to_dark": "Switch to Dark Mode"
+    "switch_to_dark": "Switch to Dark Mode",
+    "your_account": "YOUR ACCOUNT",
+    "danger_zone": "DANGER ZONE",
+    "edit_profile": "Edit Profile",
+    "notifications_label": "Notifications",
+    "delete_account": "Delete Account",
+    "coming_soon": "Coming soon"
   },
   "onboarding": {
     "wallet_safety_title": "Wallet Safety",

@@ -1,4 +1,5 @@
 import { useNavigate, useLocation } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import DashboardLayout from "@/components/DashboardLayout";
 import {
   ChevronLeft,
@@ -6,6 +7,7 @@ import {
   User,
   Bell,
   AlertTriangle,
+  type LucideIcon,
 } from "lucide-react";
 
 interface SettingsLayoutProps {
@@ -14,24 +16,37 @@ interface SettingsLayoutProps {
   description?: string;
 }
 
-const settingsNav = [
+type SettingsNavItem = {
+  labelKey: string;
+  href: string;
+  icon: LucideIcon;
+  comingSoon?: boolean;
+  danger?: boolean;
+};
+
+type SettingsNavGroup = {
+  groupKey: string;
+  items: SettingsNavItem[];
+};
+
+const settingsNav: SettingsNavGroup[] = [
   {
-    group: "Your Account",
+    groupKey: "settings.your_account",
     items: [
       {
-        label: "Privacy & Safety",
+        labelKey: "settings.privacy_safety",
         href: "/settings/privacy",
         icon: Shield,
         comingSoon: false,
       },
       {
-        label: "Edit Profile",
+        labelKey: "settings.edit_profile",
         href: "/settings/profile",
         icon: User,
         comingSoon: true,
       },
       {
-        label: "Notifications",
+        labelKey: "settings.notifications_label",
         href: "/settings/notifications",
         icon: Bell,
         comingSoon: true,
@@ -39,10 +54,10 @@ const settingsNav = [
     ],
   },
   {
-    group: "Danger Zone",
+    groupKey: "settings.danger_zone",
     items: [
       {
-        label: "Delete Account",
+        labelKey: "settings.delete_account",
         href: "/settings/delete",
         icon: AlertTriangle,
         danger: true,
@@ -57,6 +72,7 @@ const SettingsLayout = ({
   title,
   description,
 }: SettingsLayoutProps) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -74,7 +90,7 @@ const SettingsLayout = ({
             <ChevronLeft className="w-5 h-5" />
           </button>
           <h1 className="text-xl font-bold text-foreground">
-            Settings
+            {t("nav.settings")}
           </h1>
         </div>
 
@@ -82,11 +98,11 @@ const SettingsLayout = ({
           {/* Left sidebar */}
           <div className="w-60 shrink-0 space-y-6">
             {settingsNav.map((group) => (
-              <div key={group.group}>
+              <div key={group.groupKey}>
                 <p className="text-xs font-semibold
                   text-muted-foreground uppercase
                   tracking-wider mb-2 px-3">
-                  {group.group}
+                  {t(group.groupKey)}
                 </p>
                 <div className="space-y-0.5">
                   {group.items.map((item) => {
@@ -106,7 +122,7 @@ const SettingsLayout = ({
                           text-left transition-colors
                           ${isActive
                             ? "bg-primary/15 text-primary"
-                            : (item as any).danger
+                            : item.danger
                             ? "text-red-400 hover:bg-red-500/10"
                             : "text-foreground hover:bg-muted/30"
                           }
@@ -118,11 +134,11 @@ const SettingsLayout = ({
                         <Icon className="w-4 h-4 shrink-0" />
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium truncate">
-                            {item.label}
+                            {t(item.labelKey)}
                           </p>
                           {item.comingSoon && (
                             <p className="text-xs text-muted-foreground">
-                              Coming soon
+                              {t("settings.coming_soon")}
                             </p>
                           )}
                         </div>
@@ -157,4 +173,3 @@ const SettingsLayout = ({
 };
 
 export default SettingsLayout;
-
