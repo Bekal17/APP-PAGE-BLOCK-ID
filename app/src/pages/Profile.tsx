@@ -181,7 +181,12 @@ interface DashboardData {
   unique_counterparties?: number;
 }
 
-const formatWalletAge = (firstSeen?: string, months?: number, days?: number): string => {
+const formatWalletAge = (
+  firstSeen?: string,
+  months?: number,
+  days?: number,
+  unknownLabel = "Unknown"
+): string => {
   if (days != null && days > 0) {
     if (days < 30) return `${days} days`;
     if (days < 365) return `${Math.round(days / 30)} mo`;
@@ -190,22 +195,22 @@ const formatWalletAge = (firstSeen?: string, months?: number, days?: number): st
   if (firstSeen) {
     try {
       const date = new Date(firstSeen);
-      if (Number.isNaN(date.getTime())) return "Unknown";
+      if (Number.isNaN(date.getTime())) return unknownLabel;
       const now = new Date();
       const diffMs = now.getTime() - date.getTime();
       const years = diffMs / (1000 * 60 * 60 * 24 * 365.25);
-      if (years < 0) return "Unknown";
+      if (years < 0) return unknownLabel;
       if (years < 1) return `${Math.round(years * 12)} mo`;
       return `${years.toFixed(1)} years`;
     } catch {
-      return "Unknown";
+      return unknownLabel;
     }
   }
   if (months != null && months > 0) {
     if (months < 12) return `${months} mo`;
     return `${(months / 12).toFixed(1)} years`;
   }
-  return "Unknown";
+  return unknownLabel;
 };
 
 const formatVolume = (val?: number) => {
@@ -1690,7 +1695,7 @@ const Profile = () => {
             >
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-foreground">
-                  Wallet Health
+                  {t("profile.wallet_health")}
                 </h2>
                 <div className="flex items-center gap-2">
                   <Button
@@ -1701,7 +1706,7 @@ const Profile = () => {
                     onClick={() => setShareInvestigationOpen(true)}
                   >
                     <FileText className="w-4 h-4" />
-                    Share Your Score
+                    {t("profile.share_score")}
                   </Button>
                   <Button
                     size="sm"
@@ -1709,7 +1714,7 @@ const Profile = () => {
                     onClick={handleRecalculate}
                     className="rounded-lg bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white px-4 py-2 transition"
                   >
-                    {analyzing ? "Analyzing..." : "Recalculate Score"}
+                    {analyzing ? "Analyzing..." : t("profile.recalculate_score")}
                   </Button>
                   <a
                     href="https://daemonprotocol.com"
@@ -1718,7 +1723,7 @@ const Profile = () => {
                     className="flex items-center gap-1.5 px-3 py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 text-xs font-medium text-muted-foreground hover:text-foreground rounded-lg transition-colors"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
-                    Investigate on Daemon
+                    {t("profile.investigate_daemon")}
                   </a>
                 </div>
               </div>
@@ -1745,7 +1750,7 @@ const Profile = () => {
                       <Clock className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
                       <div>
                         <p className="text-sm text-muted-foreground">
-                          Wallet Age
+                          {t("profile.wallet_age")}
                         </p>
                         <p className="font-medium text-foreground">
                           {walletLoading
@@ -1753,7 +1758,8 @@ const Profile = () => {
                             : formatWalletAge(
                                 data?.wallet_first_seen,
                                 data?.wallet_age_months,
-                                data?.wallet_age_days
+                                data?.wallet_age_days,
+                                t("profile.unknown")
                               )}
                         </p>
                       </div>
@@ -1761,13 +1767,13 @@ const Profile = () => {
 
                     <div>
                       <p className="text-sm text-muted-foreground mb-3">
-                        Activity Profile
+                        {t("profile.activity_profile")}
                       </p>
                       <div className="space-y-2">
                         <div className="flex items-center gap-2 text-sm">
                           <ArrowLeftRight className="w-4 h-4 text-muted-foreground shrink-0" />
                           <span className="text-muted-foreground">
-                            Transactions:
+                            {t("profile.transactions")}:
                           </span>
                           <span className="font-medium text-foreground">
                             {walletLoading ? "0" : totalTx}
@@ -1776,7 +1782,7 @@ const Profile = () => {
                         <div className="flex items-center gap-2 text-sm">
                           <Users className="w-4 h-4 text-muted-foreground shrink-0" />
                           <span className="text-muted-foreground">
-                            Unique Counterparties:
+                            {t("profile.unique_counterparties")}:
                           </span>
                           <span className="font-medium text-foreground">
                             {walletLoading ? "0" : uniqueCounterparties}
@@ -1785,7 +1791,7 @@ const Profile = () => {
                         <div className="flex items-center gap-2 text-sm">
                           <DollarSign className="w-4 h-4 text-muted-foreground shrink-0" />
                           <span className="text-muted-foreground">
-                            30D Volume:
+                            {t("profile.volume_30d")}:
                           </span>
                           <span className="font-medium text-foreground">
                             {walletLoading ? "$0" : formatVolume(data?.volume_30d)}
@@ -1799,7 +1805,7 @@ const Profile = () => {
                   <div className="space-y-6 min-w-0 md:col-span-2 lg:col-span-1">
                     <div>
                       <p className="text-sm text-muted-foreground mb-2">
-                        Behavioral Pattern
+                        {t("profile.behavioral_pattern")}
                       </p>
                       <ul className="space-y-1.5">
                         {(walletLoading
@@ -1818,7 +1824,7 @@ const Profile = () => {
                     </div>
 
                     <div>
-                      <p className="text-sm text-muted-foreground">Summary</p>
+                      <p className="text-sm text-muted-foreground">{t("profile.summary")}</p>
                       <p className="text-foreground text-sm mt-1">
                         {walletLoading
                           ? "—"
@@ -1827,14 +1833,18 @@ const Profile = () => {
                     </div>
                     {cyclops && !walletLoading && (
                       <div className="mt-4 pt-4 border-t border-border/30">
-                        <p className="text-sm text-muted-foreground mb-2">Risk Intelligence</p>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          {t("profile.risk_intelligence")}
+                        </p>
                         <div className="space-y-1.5">
                           <div className="flex items-center gap-2">
                             <span className={`w-2 h-2 rounded-full shrink-0 ${
                               cyclops.is_sanctioned ? "bg-red-500" : "bg-green-500"
                             }`} />
                             <span className="text-xs text-foreground">
-                              {cyclops.is_sanctioned ? "SANCTIONED" : "Sanctions: Clean"}
+                              {cyclops.is_sanctioned
+                                ? "SANCTIONED"
+                                : `${t("profile.sanctions")}: Clean`}
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
@@ -1867,13 +1877,13 @@ const Profile = () => {
               className={`${cardClass} col-span-1 md:col-span-2 lg:col-span-6`}
             >
               <h2 className="text-lg font-semibold text-foreground mb-4">
-                Risk Alerts
+                {t("profile.risk_alerts")}
               </h2>
               {walletLoading ? (
                 <p className="text-sm text-muted-foreground">Loading...</p>
               ) : riskAlerts.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  No active risk alerts detected.
+                  {t("profile.no_risk_alerts")}
                 </p>
               ) : (
                 <ul className="space-y-2">
@@ -1895,13 +1905,13 @@ const Profile = () => {
               className={`${cardClass} col-span-1 md:col-span-2 lg:col-span-6`}
             >
               <h2 className="text-lg font-semibold text-foreground mb-4">
-                Suspicious Interactions
+                {t("profile.suspicious_interactions")}
               </h2>
               {walletLoading ? (
                 <p className="text-sm text-muted-foreground">Loading...</p>
               ) : suspiciousItems.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  No suspicious interactions detected.
+                  {t("profile.no_suspicious")}
                 </p>
               ) : (
                 <ul className="space-y-3">
@@ -1960,11 +1970,11 @@ const Profile = () => {
                 className={`${cardClass} col-span-1 md:col-span-2 lg:col-span-6`}
               >
                 <h2 className="text-sm font-semibold text-foreground mb-4">
-                  Activity Overview
+                  {t("profile.activity_overview")}
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div>
-                    <p className="stat-label">Total Transactions</p>
+                    <p className="stat-label">{t("profile.total_transactions")}</p>
                     <p className="stat-value mt-1">
                       {walletLoading ? "—" : totalTx}
                     </p>
@@ -1976,7 +1986,7 @@ const Profile = () => {
                     </p>
                   </div>
                   <div>
-                    <p className="stat-label">30D Volume</p>
+                    <p className="stat-label">{t("profile.volume_30d_label")}</p>
                     <p className="stat-value mt-1">
                       {walletLoading ? "—" : "—"}
                     </p>
