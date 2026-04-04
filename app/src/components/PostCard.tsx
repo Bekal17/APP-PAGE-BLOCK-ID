@@ -411,9 +411,11 @@ export default function PostCard({
                       : "No score"}
                   </span>
                 </div>
-                <p className="text-[11px] text-muted-foreground">
-                  {truncateWallet(displayWallet)}
-                </p>
+                {!displayHandle && (
+                  <p className="text-[11px] text-muted-foreground">
+                    {truncateWallet(displayWallet)}
+                  </p>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-2 text-[11px] text-muted-foreground">

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import DashboardLayout from "@/components/DashboardLayout";
 import {
   Route,
@@ -26,9 +27,23 @@ const routes = [
 ];
 
 const SmartRouter = () => {
+  const { t } = useTranslation();
+
   return (
     <DashboardLayout>
-      <div className="max-w-5xl mx-auto space-y-6">
+      <div className="relative max-w-5xl mx-auto">
+        {/* Coming Soon overlay */}
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-background/60 backdrop-blur-md rounded-2xl min-h-[60vh]">
+          <div className="text-center space-y-3">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
+              <Zap className="w-8 h-8 text-primary" />
+            </div>
+            <h2 className="text-2xl font-bold text-foreground">{t('smart_router.coming_soon_title')}</h2>
+            <p className="text-sm text-muted-foreground max-w-sm">{t('smart_router.coming_soon_desc')}</p>
+          </div>
+        </div>
+        {/* Blurred content behind */}
+        <div className="pointer-events-none select-none filter blur-[3px] opacity-60 space-y-6">
         <div className="animate-slide-up">
           <h1 className="text-2xl font-bold text-foreground tracking-tight">Smart Router</h1>
           <p className="text-sm text-muted-foreground mt-1">AI-optimized cross-chain asset routing</p>
@@ -137,6 +152,7 @@ const SmartRouter = () => {
               ))}
             </div>
           </div>
+        </div>
         </div>
       </div>
     </DashboardLayout>

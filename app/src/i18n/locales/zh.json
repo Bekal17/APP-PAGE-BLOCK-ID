@@ -202,7 +202,9 @@
     "transaction_success": "交易发送成功！",
     "transaction_failed": "交易失败",
     "powered_by_jupiter": "由 Jupiter Metis v1 提供",
-    "supported_languages": "支持100+种语言"
+    "supported_languages": "支持100+种语言",
+    "coming_soon_title": "即将推出",
+    "coming_soon_desc": "AI优化的跨链路由正在开发中。敬请期待下一次更新。"
   },
   "trust_score": {
     "safe": "安全",

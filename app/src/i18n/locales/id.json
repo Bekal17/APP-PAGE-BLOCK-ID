@@ -202,7 +202,9 @@
     "transaction_success": "Transaksi berhasil dikirim!",
     "transaction_failed": "Transaksi gagal",
     "powered_by_jupiter": "Didukung oleh Jupiter Metis v1",
-    "supported_languages": "Mendukung 100+ bahasa"
+    "supported_languages": "Mendukung 100+ bahasa",
+    "coming_soon_title": "Segera Hadir",
+    "coming_soon_desc": "Routing lintas-chain berbasis AI sedang dalam pengembangan. Nantikan pembaruan selanjutnya."
   },
   "trust_score": {
     "safe": "Aman",

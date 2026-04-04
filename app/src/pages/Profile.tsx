@@ -1276,7 +1276,7 @@ const Profile = () => {
                   {domain.display}
                 </span>
               ))}
-              {(isOwnProfile || viewedPrivacy?.wallet_display !== "HIDDEN") && (
+              {isOwnProfile && (
                 <p className="text-xs text-muted-foreground font-mono">
                   {wallet.length > 16 ? `${wallet.slice(0, 8)}...${wallet.slice(-8)}` : wallet || "—"}
                 </p>
