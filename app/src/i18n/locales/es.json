@@ -200,7 +200,9 @@
     "transaction_success": "¡Transacción enviada con éxito!",
     "transaction_failed": "Transacción fallida",
     "powered_by_jupiter": "Impulsado por Jupiter Metis v1",
-    "supported_languages": "Soporta más de 100 idiomas"
+    "supported_languages": "Soporta más de 100 idiomas",
+    "coming_soon_title": "Próximamente",
+    "coming_soon_desc": "El enrutamiento cross-chain optimizado por IA está en desarrollo. Mantente atento a la próxima actualización."
   },
   "trust_score": {
     "safe": "Seguro",

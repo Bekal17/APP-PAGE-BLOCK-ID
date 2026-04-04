@@ -202,7 +202,9 @@
     "transaction_success": "Transaction sent successfully!",
     "transaction_failed": "Transaction failed",
     "powered_by_jupiter": "Powered by Jupiter Metis v1",
-    "supported_languages": "Supports 100+ languages"
+    "supported_languages": "Supports 100+ languages",
+    "coming_soon_title": "Coming Soon",
+    "coming_soon_desc": "AI-optimized cross-chain routing is under development. Stay tuned for the next update."
   },
   "trust_score": {
     "safe": "Safe",

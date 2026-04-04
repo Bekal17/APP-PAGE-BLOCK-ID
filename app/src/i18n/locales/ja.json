@@ -202,7 +202,9 @@
     "transaction_success": "トランザクションが正常に送信されました！",
     "transaction_failed": "トランザクションが失敗しました",
     "powered_by_jupiter": "Jupiter Metis v1 提供",
-    "supported_languages": "100以上の言語に対応"
+    "supported_languages": "100以上の言語に対応",
+    "coming_soon_title": "近日公開",
+    "coming_soon_desc": "AI最適化クロスチェーンルーティングは開発中です。次のアップデートをお楽しみに。"
   },
   "trust_score": {
     "safe": "安全",

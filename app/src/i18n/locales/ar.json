@@ -202,7 +202,9 @@
     "transaction_success": "تم إرسال المعاملة بنجاح!",
     "transaction_failed": "فشلت المعاملة",
     "powered_by_jupiter": "مدعوم بواسطة Jupiter Metis v1",
-    "supported_languages": "يدعم أكثر من 100 لغة"
+    "supported_languages": "يدعم أكثر من 100 لغة",
+    "coming_soon_title": "قريبًا",
+    "coming_soon_desc": "التوجيه عبر السلاسل المُحسّن بالذكاء الاصطناعي قيد التطوير. ترقبوا التحديث القادم."
   },
   "trust_score": {
     "safe": "آمن",

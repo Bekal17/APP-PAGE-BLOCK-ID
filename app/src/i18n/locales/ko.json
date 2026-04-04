@@ -200,7 +200,9 @@
     "transaction_success": "트랜잭션이 성공적으로 전송되었습니다!",
     "transaction_failed": "트랜잭션 실패",
     "powered_by_jupiter": "Jupiter Metis v1 제공",
-    "supported_languages": "100개 이상 언어 지원"
+    "supported_languages": "100개 이상 언어 지원",
+    "coming_soon_title": "출시 예정",
+    "coming_soon_desc": "AI 최적화 크로스체인 라우팅이 개발 중입니다. 다음 업데이트를 기대해 주세요."
   },
   "trust_score": {
     "safe": "안전",
