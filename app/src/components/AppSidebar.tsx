@@ -25,7 +25,7 @@ const navItems = [
   { titleKey: "nav.messages", url: "/messages", icon: MessageCircle },
   { titleKey: "nav.bookmarks", url: "/bookmarks", icon: Bookmark },
   { titleKey: "nav.explore", url: "/explore", icon: Compass },
-  { titleKey: "nav.trust_analytics", url: "/identity", icon: Fingerprint },
+  { titleKey: "nav.identity", url: "/identity", icon: Fingerprint },
   { titleKey: "nav.smart_router", url: "/router", icon: Route },
   { titleKey: "nav.profile", url: "/profile", icon: Users },
   { titleKey: "nav.upgrade", url: "/upgrade", icon: Zap, highlight: true },
