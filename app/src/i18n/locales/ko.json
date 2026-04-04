@@ -221,7 +221,13 @@
     "dark": "다크",
     "light": "라이트",
     "switch_to_light": "라이트 모드로 전환",
-    "switch_to_dark": "다크 모드로 전환"
+    "switch_to_dark": "다크 모드로 전환",
+    "your_account": "내 계정",
+    "danger_zone": "위험 구역",
+    "edit_profile": "프로필 편집",
+    "notifications_label": "알림",
+    "delete_account": "계정 삭제",
+    "coming_soon": "준비 중"
   },
   "onboarding": {
     "wallet_safety_title": "지갑 안전",

@@ -222,7 +222,13 @@
     "dark": "داكن",
     "light": "فاتح",
     "switch_to_light": "التبديل إلى الوضع الفاتح",
-    "switch_to_dark": "التبديل إلى الوضع الداكن"
+    "switch_to_dark": "التبديل إلى الوضع الداكن",
+    "your_account": "حسابك",
+    "danger_zone": "منطقة الخطر",
+    "edit_profile": "تعديل الملف الشخصي",
+    "notifications_label": "الإشعارات",
+    "delete_account": "حذف الحساب",
+    "coming_soon": "قريبًا"
   },
   "onboarding": {
     "wallet_safety_title": "أمان المحفظة",

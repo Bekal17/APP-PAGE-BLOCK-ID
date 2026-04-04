@@ -221,7 +221,13 @@
     "dark": "Oscuro",
     "light": "Claro",
     "switch_to_light": "Cambiar a modo claro",
-    "switch_to_dark": "Cambiar a modo oscuro"
+    "switch_to_dark": "Cambiar a modo oscuro",
+    "your_account": "TU CUENTA",
+    "danger_zone": "ZONA DE PELIGRO",
+    "edit_profile": "Editar Perfil",
+    "notifications_label": "Notificaciones",
+    "delete_account": "Eliminar Cuenta",
+    "coming_soon": "Próximamente"
   },
   "onboarding": {
     "wallet_safety_title": "Seguridad de la billetera",
