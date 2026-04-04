@@ -171,7 +171,7 @@ const NotificationBell = () => {
             <div className="max-h-80 overflow-y-auto">
               {notifications.length === 0 ? (
                 <div className="py-8 text-center text-sm text-zinc-500">
-                  {t("notifications.no_notifications")}
+                  {t("notifications.empty")}
                 </div>
               ) : (
                 notifications.slice(0, 10).map((notif: any) => (
@@ -195,7 +195,9 @@ const NotificationBell = () => {
                       <p className="text-sm text-zinc-200 leading-snug">
                         {notif.message ??
                           notif.content ??
-                          `${notif.type} notification`}
+                          t("notifications.type_notification", {
+                            type: notif.type ?? "",
+                          })}
                       </p>
                       <p className="text-xs text-zinc-500 mt-0.5">
                         {formatTimeAgo(notif.created_at ?? notif.timestamp)}
