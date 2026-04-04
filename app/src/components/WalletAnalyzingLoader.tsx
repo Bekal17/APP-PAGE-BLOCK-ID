@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const DURATION_MS = 12000;
+/** Time to animate progress from 0% to 90%; then hold at 90% until parent unmounts */
+const DURATION_TO_90_MS = 10000;
+const MAX_PROGRESS = 90;
 const RING_SIZE = 160;
 const STROKE_WIDTH = 6;
 const ICON_SIZE = 64;
@@ -17,7 +19,7 @@ function messageForProgress(p: number): string {
   if (p < 50) return "Analyzing wallet behavior...";
   if (p < 70) return "Running AI risk model...";
   if (p < 85) return "Computing trust score...";
-  return "Finalizing analysis...";
+  return "Waiting for AI response...";
 }
 
 const WalletAnalyzingLoader = () => {
@@ -27,16 +29,19 @@ const WalletAnalyzingLoader = () => {
     const start = Date.now();
     const id = window.setInterval(() => {
       const elapsed = Date.now() - start;
-      const next = Math.min(100, (elapsed / DURATION_MS) * 100);
+      const next = Math.min(
+        MAX_PROGRESS,
+        (elapsed / DURATION_TO_90_MS) * MAX_PROGRESS
+      );
       setProgress(next);
-      if (next >= 100) clearInterval(id);
+      if (next >= MAX_PROGRESS) clearInterval(id);
     }, 50);
     return () => clearInterval(id);
   }, []);
 
   const dashOffset = CIRC * (1 - progress / 100);
   const msg = messageForProgress(progress);
-  const pct = Math.min(100, Math.round(progress));
+  const pct = Math.round(progress);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-sm px-4">
