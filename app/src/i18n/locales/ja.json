@@ -57,7 +57,13 @@
     "no_alerts": "リスクアラートは検出されていません",
     "scan_wallet": "ウォレットをスキャン",
     "scans_remaining": "スキャン残り",
-    "scans_used": "今月のスキャン数"
+    "scans_used": "今月のスキャン数",
+    "tab_explore": "探索",
+    "tab_newest": "最新",
+    "tab_following": "フォロー中",
+    "post_placeholder": "オンチェーンで何が起きている？",
+    "post_button": "投稿",
+    "content_warning": "ヘイトスピーチ、ハラスメント、不適切な言葉の投稿は信頼スコアを下げる可能性があります。BlockIDの評判を維持するためにクリーンに保ちましょう。"
   },
   "profile": {
     "title": "プロフィール",

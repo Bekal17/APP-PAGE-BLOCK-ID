@@ -788,7 +788,7 @@ const Dashboard = () => {
             onClick={() => setActiveTab("explore")}
           >
             <Users className="w-3 h-3 sm:w-4 sm:h-4" />
-            Explore
+            {t("dashboard.tab_explore")}
           </button>
           <button
             className={`px-3 py-1.5 text-xs sm:text-sm rounded-full flex items-center gap-1 ${
@@ -799,7 +799,7 @@ const Dashboard = () => {
             onClick={() => setActiveTab("newest")}
           >
             <Clock className="w-3 h-3 sm:w-4 sm:h-4" />
-            Newest
+            {t("dashboard.tab_newest")}
           </button>
           <button
             className={`px-3 py-1.5 text-xs sm:text-sm rounded-full flex items-center gap-1 ${
@@ -810,7 +810,7 @@ const Dashboard = () => {
             onClick={() => setActiveTab("following")}
           >
             <Star className="w-3 h-3 sm:w-4 sm:h-4" />
-            Following
+            {t("dashboard.tab_following")}
           </button>
         </div>
 
@@ -823,7 +823,7 @@ const Dashboard = () => {
               <textarea
                 value={postContent}
                 onChange={(e) => setPostContent(e.target.value)}
-                placeholder="What's happening on-chain?"
+                placeholder={t("dashboard.post_placeholder")}
                 className="w-full bg-transparent border-none outline-none text-sm text-foreground placeholder:text-muted-foreground resize-none min-h-[60px]"
                 rows={2}
                 maxLength={280}
@@ -849,10 +849,7 @@ const Dashboard = () => {
               )}
               <div className="flex items-start gap-1.5 py-2 text-xs text-amber-500/70">
                 <AlertTriangle className="w-3 h-3 mt-0.5 shrink-0" />
-                <span>
-                  Posting hate speech, harassment, or profanity may reduce your trust score. Keep it clean to
-                  maintain your BlockID reputation.
-                </span>
+                <span>{t("dashboard.content_warning")}</span>
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-border/50">
                 <div className="flex items-center gap-2">
@@ -923,10 +920,10 @@ const Dashboard = () => {
                       >
                         <path d="M21 12a9 9 0 1 1-6.219-8.56" />
                       </svg>
-                      Posting...
+                      {t("common.loading")}
                     </span>
                   ) : (
-                    "Post"
+                    t("dashboard.post_button")
                   )}
                 </button>
               </div>
@@ -985,14 +982,14 @@ const Dashboard = () => {
                   onClick={handleCropCancel}
                   className="px-4 py-2 rounded-full text-sm font-medium bg-muted/40 text-foreground hover:bg-muted/60 transition-colors"
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </button>
                 <button
                   type="button"
                   onClick={() => void handleCropApply()}
                   className="px-4 py-2 rounded-full text-sm font-semibold bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
                 >
-                  Apply Crop
+                  {t("common.apply")}
                 </button>
               </div>
             </div>
@@ -1036,7 +1033,7 @@ const Dashboard = () => {
             </>
           ) : feed.length === 0 ? (
             <div className="glass-card p-6 text-center text-sm text-muted-foreground">
-              No posts yet. Be the first to post!
+              {t("post.no_posts")}
             </div>
           ) : (
             feed.map((post: SocialPost) => (
@@ -1293,7 +1290,7 @@ const Dashboard = () => {
                     {originalPost.content}
                   </p>
                   <p className="text-xs text-zinc-500 pl-10 mt-1">
-                    Replying to{" "}
+                    {t("post.reply_to")}{" "}
                     <span className="text-primary">
                       @{originalProfile?.handle ?? originalPost.wallet?.slice(0, 8)}
                     </span>
@@ -1317,7 +1314,7 @@ const Dashboard = () => {
                       handleReply(replyToId!);
                     }
                   }}
-                  placeholder="Post your reply"
+                  placeholder={t("post.placeholder_reply")}
                   className="w-full bg-transparent border-none outline-none text-sm text-zinc-100 placeholder:text-zinc-500 resize-none min-h-[80px]"
                   rows={3}
                   maxLength={280}
@@ -1335,14 +1332,14 @@ const Dashboard = () => {
                       }}
                       className="px-3 py-1.5 rounded-full text-sm text-zinc-400 hover:text-zinc-100 transition-colors"
                     >
-                      Cancel
+                      {t("common.cancel")}
                     </button>
                     <button
                       onClick={() => handleReply(replyToId!)}
                       disabled={!replyContent.trim() || replyLoading}
                       className="px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50"
                     >
-                      {replyLoading ? "Replying..." : "Reply"}
+                      {replyLoading ? t("post.replying") : t("post.reply")}
                     </button>
                   </div>
                 </div>
@@ -1390,7 +1387,9 @@ const Dashboard = () => {
                   text-sm font-bold disabled:opacity-40
                   hover:bg-zinc-200 transition-colors"
               >
-                {quoteModalLoading ? "Posting..." : "Post"}
+                {quoteModalLoading
+                  ? t("common.loading")
+                  : t("dashboard.post_button")}
               </button>
             </div>
 

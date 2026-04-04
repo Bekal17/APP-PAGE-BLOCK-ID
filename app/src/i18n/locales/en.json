@@ -57,7 +57,13 @@
     "no_alerts": "No risk alerts detected",
     "scan_wallet": "Scan Wallet",
     "scans_remaining": "scans remaining",
-    "scans_used": "scans used this month"
+    "scans_used": "scans used this month",
+    "tab_explore": "Explore",
+    "tab_newest": "Newest",
+    "tab_following": "Following",
+    "post_placeholder": "What's happening on-chain?",
+    "post_button": "Post",
+    "content_warning": "Posting hate speech, harassment, or profanity may reduce your trust score. Keep it clean to maintain your BlockID reputation."
   },
   "profile": {
     "title": "Profile",

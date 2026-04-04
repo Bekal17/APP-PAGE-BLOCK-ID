@@ -57,7 +57,13 @@
     "no_alerts": "No se detectaron alertas de riesgo",
     "scan_wallet": "Escanear Billetera",
     "scans_remaining": "escaneos restantes",
-    "scans_used": "escaneos este mes"
+    "scans_used": "escaneos este mes",
+    "tab_explore": "Explorar",
+    "tab_newest": "Recientes",
+    "tab_following": "Siguiendo",
+    "post_placeholder": "¿Qué está pasando on-chain?",
+    "post_button": "Publicar",
+    "content_warning": "Publicar discurso de odio, acoso o blasfemias puede reducir tu puntuación de confianza. Manténlo limpio para mantener tu reputación en BlockID."
   },
   "profile": {
     "title": "Perfil",

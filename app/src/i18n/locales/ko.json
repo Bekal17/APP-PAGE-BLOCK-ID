@@ -57,7 +57,13 @@
     "no_alerts": "위험 알림이 감지되지 않았습니다",
     "scan_wallet": "지갑 스캔",
     "scans_remaining": "스캔 남음",
-    "scans_used": "이번 달 스캔 수"
+    "scans_used": "이번 달 스캔 수",
+    "tab_explore": "탐색",
+    "tab_newest": "최신",
+    "tab_following": "팔로잉",
+    "post_placeholder": "온체인에서 무슨 일이?",
+    "post_button": "게시",
+    "content_warning": "혐오 발언, 괴롭힘 또는 욕설을 게시하면 신뢰 점수가 낮아질 수 있습니다. BlockID 평판을 유지하기 위해 깨끗하게 유지하세요."
   },
   "profile": {
     "title": "프로필",

@@ -57,7 +57,13 @@
     "no_alerts": "Tidak ada peringatan risiko terdeteksi",
     "scan_wallet": "Pindai Wallet",
     "scans_remaining": "pemindaian tersisa",
-    "scans_used": "pemindaian bulan ini"
+    "scans_used": "pemindaian bulan ini",
+    "tab_explore": "Jelajahi",
+    "tab_newest": "Terbaru",
+    "tab_following": "Mengikuti",
+    "post_placeholder": "Apa yang terjadi on-chain?",
+    "post_button": "Posting",
+    "content_warning": "Konten ujaran kebencian, pelecehan, atau kata-kata kasar dapat menurunkan skor kepercayaan Anda. Jaga kebersihan untuk menjaga reputasi BlockID Anda."
   },
   "profile": {
     "title": "Profil",
