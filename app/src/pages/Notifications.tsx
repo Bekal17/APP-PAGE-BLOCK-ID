@@ -58,17 +58,19 @@ const Notifications = () => {
   const getNotifLabel = (type: string) => {
     switch (type) {
       case "FOLLOW":
-        return t("notifications.followed_you");
+        return t("notifications.wallet_followed");
       case "LIKE":
-        return t("notifications.liked_post");
+        return t("notifications.liked_your_post");
       case "REPLY":
-        return t("notifications.replied_post");
+        return t("notifications.replied_to_post");
       case "ENDORSE":
         return t("notifications.endorsed_you");
       case "REPOST":
-        return t("notifications.reposted");
+        return t("notifications.type_repost");
+      case "MENTION":
+        return t("notifications.mentioned_you");
       default:
-        return "Notification";
+        return t("notifications.default_type");
     }
   };
 
@@ -108,10 +110,8 @@ const Notifications = () => {
       <DashboardLayout>
         <div className="max-w-2xl mx-auto px-4 py-12 flex flex-col items-center text-muted-foreground">
           <Bell className="w-12 h-12 mb-4 opacity-30" />
-          <p className="text-lg font-medium">Connect your wallet</p>
-          <p className="text-sm mt-1">
-            Connect wallet to view notifications
-          </p>
+          <p className="text-lg font-medium">{t("common.connect_wallet")}</p>
+          <p className="text-sm mt-1">{t("notifications.connect_subtitle")}</p>
         </div>
       </DashboardLayout>
     );
@@ -135,7 +135,7 @@ const Notifications = () => {
           </div>
           {unreadCount > 0 && (
             <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-primary/15 text-primary">
-              {unreadCount} new
+              {t("notifications.badge_new", { count: unreadCount })}
             </span>
           )}
         </div>
@@ -150,7 +150,7 @@ const Notifications = () => {
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            All
+            {t("notifications.all")}
           </button>
           <button
             onClick={() => setFilter("unread")}
@@ -160,7 +160,7 @@ const Notifications = () => {
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            Unread
+            {t("notifications.unread")}
             {unreadCount > 0 && (
               <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-xs bg-primary text-primary-foreground">
                 {unreadCount}
@@ -190,8 +190,8 @@ const Notifications = () => {
             <Bell className="w-10 h-10 mx-auto mb-3 opacity-20" />
             <p className="text-sm">
               {filter === "unread"
-                ? "No unread notifications"
-                : "No notifications yet"}
+                ? t("notifications.empty_unread")
+                : t("notifications.empty")}
             </p>
           </div>
         ) : (
@@ -228,7 +228,7 @@ const Notifications = () => {
                   <p className="text-sm text-foreground mt-0.5">
                     {notif.message ??
                       notif.content ??
-                      "You have a new notification"}
+                      t("notifications.fallback_new")}
                   </p>
                   {notif.from_wallet && (
                     <p className="text-xs text-muted-foreground mt-1 font-mono">
