@@ -1698,16 +1698,18 @@ const Profile = () => {
                   {t("profile.wallet_health")}
                 </h2>
                 <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="rounded-lg border-border bg-transparent hover:bg-accent/50 gap-2"
-                    disabled={!canShare}
-                    onClick={() => setShareInvestigationOpen(true)}
-                  >
-                    <FileText className="w-4 h-4" />
-                    {t("profile.share_score")}
-                  </Button>
+                  {isOwnProfile && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-lg border-border bg-transparent hover:bg-accent/50 gap-2"
+                      disabled={!canShare}
+                      onClick={() => setShareInvestigationOpen(true)}
+                    >
+                      <FileText className="w-4 h-4" />
+                      {t("profile.share_score")}
+                    </Button>
+                  )}
                   <Button
                     size="sm"
                     disabled={analyzing || !address}
