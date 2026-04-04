@@ -23,22 +23,45 @@ interface ShareInvestigationModalProps {
   uniqueCounterparties: number;
   volume30d: string;
   behaviorPatterns: string[];
+  avatarUrl?: string | null;
+  bannerUrl?: string | null;
+  handle?: string | null;
+  badges?: string[];
+  plan?: string;
   onCopyReport: () => void;
   onShareTwitter: () => void;
   onShareTelegram: () => void;
 }
 
-const buildFullReport = (props: Omit<ShareInvestigationModalProps, "open" | "onOpenChange" | "onCopyReport" | "onShareTwitter" | "onShareTelegram">) => {
-  const tier = props.riskTier ? `${props.riskTier.charAt(0).toUpperCase()}${props.riskTier.slice(1).toLowerCase()} Risk` : "Unknown Risk";
+type ReportBuildProps = Omit<
+  ShareInvestigationModalProps,
+  | "open"
+  | "onOpenChange"
+  | "onCopyReport"
+  | "onShareTwitter"
+  | "onShareTelegram"
+>;
+
+const buildFullReport = (props: ReportBuildProps) => {
+  const tier = props.riskTier
+    ? `${props.riskTier.charAt(0).toUpperCase()}${props.riskTier.slice(1).toLowerCase()} Risk`
+    : "Unknown Risk";
   const url = `${APP_BASE_URL}/wallet/${props.walletAddress}`;
   const patterns = props.behaviorPatterns.map((p) => `• ${p}`).join("\n");
+  const handleLine =
+    props.handle != null && props.handle !== ""
+      ? `\nHandle:\n@${props.handle}\n`
+      : "";
+  const badgesBlock =
+    props.badges && props.badges.length > 0
+      ? `\nBadges:\n${props.badges.map((b) => `• ${b}`).join("\n")}\n`
+      : "";
 
   return `Wallet Investigation Report
 Powered by BlockID
 
 Wallet:
-${props.shortAddress}
-
+${props.shortAddress}${handleLine}
 Trust Score:
 ${props.trustScore} (${tier})
 
@@ -49,7 +72,7 @@ Activity Profile
 Transactions: ${props.totalTx}
 Unique Counterparties: ${props.uniqueCounterparties}
 30D Volume: ${props.volume30d}
-
+${badgesBlock}
 Behavior Pattern
 ${patterns}
 
@@ -57,13 +80,17 @@ Analyze full report:
 ${url}`;
 };
 
-const buildTwitterReport = (props: Omit<ShareInvestigationModalProps, "open" | "onOpenChange" | "onCopyReport" | "onShareTwitter" | "onShareTelegram">) => {
-  const tier = props.riskTier ? `${props.riskTier.charAt(0).toUpperCase()}${props.riskTier.slice(1).toLowerCase()} Risk` : "Unknown Risk";
+const buildTwitterReport = (props: ReportBuildProps) => {
+  const tier = props.riskTier
+    ? `${props.riskTier.charAt(0).toUpperCase()}${props.riskTier.slice(1).toLowerCase()} Risk`
+    : "Unknown Risk";
   const url = `${APP_BASE_URL}/wallet/${props.walletAddress}`;
   const patterns = props.behaviorPatterns.slice(0, 3).join("\n");
+  const handleOrWallet = props.handle ? `@${props.handle}` : props.shortAddress;
 
   return `Wallet Risk Investigation 🔎
 
+${handleOrWallet}
 Trust Score: ${props.trustScore} (${tier})
 
 Behavior:
@@ -84,6 +111,11 @@ export const ShareInvestigationModal = ({
   uniqueCounterparties,
   volume30d,
   behaviorPatterns,
+  avatarUrl,
+  bannerUrl,
+  handle,
+  badges = [],
+  plan = "free",
   onCopyReport,
   onShareTwitter,
   onShareTelegram,
@@ -124,51 +156,130 @@ export const ShareInvestigationModal = ({
         {/* Report card preview & image capture target */}
         <div
           ref={reportCardRef}
-          className="w-full max-w-sm mx-auto p-5 rounded-xl bg-zinc-950 border border-zinc-800 text-white"
+          className="w-full max-w-sm mx-auto rounded-xl bg-zinc-950 border border-zinc-800 text-white overflow-hidden"
           style={{ fontFamily: "system-ui, sans-serif" }}
         >
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
-              ID
-            </div>
-            <div>
-              <p className="text-xs text-zinc-500 uppercase tracking-wider">BlockID</p>
-              <p className="text-sm font-semibold">Wallet Investigation Report</p>
+          {/* Banner */}
+          <div
+            className="w-full h-20"
+            style={{
+              background: bannerUrl
+                ? `url(${bannerUrl}) center/cover no-repeat`
+                : "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
+            }}
+          />
+
+          {/* Avatar + Name row */}
+          <div className="px-5 -mt-6 mb-3">
+            <div className="flex items-end gap-3">
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt="avatar"
+                  className="w-12 h-12 rounded-full border-2 border-zinc-950 object-cover"
+                  crossOrigin="anonymous"
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-full border-2 border-zinc-950 bg-zinc-700 flex items-center justify-center text-lg font-bold text-white">
+                  {(handle ?? shortAddress ?? "?")[0]?.toUpperCase()}
+                </div>
+              )}
+              <div className="pb-1">
+                <p className="text-sm font-bold text-white leading-tight">
+                  {handle ? `@${handle}` : shortAddress}
+                </p>
+                {handle && (
+                  <p className="text-[10px] text-zinc-500 font-mono">{shortAddress}</p>
+                )}
+              </div>
             </div>
           </div>
-          <div className="space-y-3 text-sm">
-            <div>
-              <p className="text-zinc-500 text-xs uppercase">Wallet</p>
-              <p className="font-mono text-base">{shortAddress}</p>
-            </div>
-            <div className="flex gap-6">
-              <div>
-                <p className="text-zinc-500 text-xs uppercase">Trust Score</p>
-                <p className="text-lg font-semibold text-primary">{trustScore}</p>
-              </div>
+
+          <div className="px-5 pb-5 space-y-3 text-sm">
+            {/* Score + Risk Tier */}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <div
+                  className={`w-10 h-10 rounded-full border-2 flex items-center justify-center text-base font-bold ${
+                    trustScore >= 70
+                      ? "border-green-500 text-green-400"
+                      : trustScore >= 40
+                        ? "border-amber-500 text-amber-400"
+                        : "border-red-500 text-red-400"
+                  }`}
+                >
+                  {trustScore}
+                </div>
                 <div>
-                  <p className="text-zinc-500 text-xs uppercase">Risk Tier</p>
-                  <p className="font-medium">
-                    {riskTier ? `${riskTier.charAt(0).toUpperCase()}${riskTier.slice(1).toLowerCase()} Risk` : "Unknown Risk"}
+                  <p className="text-zinc-500 text-[10px] uppercase">Trust Score</p>
+                  <p className="text-xs font-medium">
+                    {riskTier
+                      ? `${riskTier.charAt(0).toUpperCase()}${riskTier.slice(1).toLowerCase()} Risk`
+                      : "Unknown"}
                   </p>
                 </div>
+              </div>
+              <div className="ml-auto text-right">
+                <p className="text-zinc-500 text-[10px] uppercase">Wallet Age</p>
+                <p className="text-xs">{walletAge}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-zinc-500 text-xs uppercase">Wallet Age</p>
-              <p>{walletAge}</p>
+
+            {/* Badges */}
+            {badges && badges.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {badges.slice(0, 5).map((badge, i) => (
+                  <span
+                    key={i}
+                    className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-primary/15 text-primary border border-primary/20"
+                  >
+                    {badge}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            {/* Activity */}
+            <div className="grid grid-cols-3 gap-2 py-2 border-y border-zinc-800">
+              <div className="text-center">
+                <p className="text-zinc-500 text-[10px] uppercase">Transactions</p>
+                <p className="text-xs font-semibold">{totalTx}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-zinc-500 text-[10px] uppercase">Counterparties</p>
+                <p className="text-xs font-semibold">{uniqueCounterparties}</p>
+              </div>
+              <div className="text-center">
+                <p className="text-zinc-500 text-[10px] uppercase">30D Volume</p>
+                <p className="text-xs font-semibold">{volume30d}</p>
+              </div>
             </div>
+
+            {/* Behavior Pattern */}
             <div>
-              <p className="text-zinc-500 text-xs uppercase mb-2">Behavior Pattern</p>
+              <p className="text-zinc-500 text-[10px] uppercase mb-1.5">Behavior Pattern</p>
               <ul className="space-y-1">
                 {behaviorPatterns.slice(0, 4).map((p, i) => (
-                  <li key={i} className="flex gap-2">
+                  <li key={i} className="flex gap-2 text-xs">
                     <span className="text-primary">•</span>
                     <span>{p}</span>
                   </li>
                 ))}
               </ul>
             </div>
-            <p className="text-xs text-zinc-600 pt-2">blockidscore.fun</p>
+
+            {/* Footer */}
+            <div className="flex items-center justify-between pt-2">
+              <div className="flex items-center gap-1.5">
+                <div className="w-4 h-4 rounded bg-primary/20 flex items-center justify-center">
+                  <span className="text-[8px] font-bold text-primary">ID</span>
+                </div>
+                <span className="text-[10px] text-zinc-500">blockidscore.fun</span>
+              </div>
+              <span className="text-[10px] text-zinc-600">
+                {new Date().toLocaleDateString()}
+              </span>
+            </div>
           </div>
         </div>
 
