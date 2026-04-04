@@ -92,7 +92,7 @@ const Explore = () => {
             {t("explore.title")}
           </h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Search wallets, handles, and discover trusted users
+            {t("explore.subtitle")}
           </p>
         </div>
 
@@ -112,14 +112,20 @@ const Explore = () => {
           <button
             onClick={handleSearch}
             disabled={searching || sub.isAtLimit}
-            title={sub.isAtLimit ? "Upgrade to scan more wallets this month" : undefined}
+            title={
+              sub.isAtLimit ? t("explore.search_limit_tooltip") : undefined
+            }
             className={`absolute right-3 top-1/2 -translate-y-1/2 px-4 py-1.5 text-sm font-medium rounded-lg transition-colors ${
               sub.isAtLimit
                 ? "opacity-50 cursor-not-allowed bg-zinc-600 text-zinc-300"
                 : "bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
             }`}
           >
-            {searching ? "Searching..." : sub.isAtLimit ? "Limit Reached" : "Search"}
+            {searching
+              ? t("explore.searching")
+              : sub.isAtLimit
+                ? t("explore.limit_reached")
+                : t("explore.search_button")}
           </button>
         </div>
 
@@ -162,7 +168,7 @@ const Explore = () => {
                           ⬡ {Math.round(result.trust_score ?? 0)}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          {result.follower_count ?? 0} Followers
+                          {result.follower_count ?? 0} {t("profile.followers")}
                         </span>
                       </div>
                     </div>
@@ -175,14 +181,21 @@ const Explore = () => {
 
         {searchResult?.notFound && (
           <div className="glass-card w-full p-4 text-center text-muted-foreground text-sm animate-slide-up">
-            No wallet or handle found for &quot;{search}&quot;
+            <p>{t("explore.no_results")}</p>
+            {search.trim() ? (
+              <p className="text-xs mt-2 font-mono opacity-80">
+                &quot;{search}&quot;
+              </p>
+            ) : null}
           </div>
         )}
 
         {/* Divider */}
         <div className="flex items-center gap-3">
           <div className="flex-1 h-px bg-zinc-800" />
-          <span className="text-xs text-muted-foreground">Latest Posts</span>
+          <span className="text-xs text-muted-foreground">
+            {t("explore.latest_posts")}
+          </span>
           <div className="flex-1 h-px bg-zinc-800" />
         </div>
 
@@ -204,7 +217,7 @@ const Explore = () => {
           </div>
         ) : feed.length === 0 ? (
           <div className="glass-card w-full p-8 text-center text-muted-foreground text-sm">
-            No posts yet. Be the first to post!
+            {t("post.no_posts")}
           </div>
         ) : (
           <div className="space-y-3 w-full">

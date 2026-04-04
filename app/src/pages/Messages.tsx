@@ -153,7 +153,7 @@ const Messages = () => {
       <DashboardLayout>
         <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
           <MessageCircle className="w-12 h-12 mb-4 opacity-30" />
-          <p>Connect your wallet to use messages</p>
+          <p>{t("messages.connect_wallet_prompt")}</p>
         </div>
       </DashboardLayout>
     );
@@ -177,7 +177,7 @@ const Messages = () => {
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search conversations..."
+                placeholder={t("messages.search_placeholder")}
                 className="w-full pl-9 pr-3 py-2 bg-muted/30 border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
             </div>
@@ -202,7 +202,7 @@ const Messages = () => {
             ) : filteredConvos.length === 0 ? (
               <div className="p-6 text-center text-sm text-muted-foreground">
                 <MessageCircle className="w-8 h-8 mx-auto mb-2 opacity-20" />
-                No conversations yet
+                {t("messages.no_conversations")}
               </div>
             ) : (
               filteredConvos.map((convo) => (
@@ -274,13 +274,13 @@ const Messages = () => {
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {msgLoading ? (
                 <div className="flex items-center justify-center h-32 text-muted-foreground text-sm">
-                  Loading messages...
+                  {t("messages.loading_messages")}
                 </div>
               ) : messages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-32 text-muted-foreground text-sm">
                   <MessageCircle className="w-8 h-8 mb-2 opacity-20" />
-                  <p>No messages yet</p>
-                  <p className="text-xs mt-1">Say hello!</p>
+                  <p>{t("messages.no_messages")}</p>
+                  <p className="text-xs mt-1">{t("messages.say_hello")}</p>
                 </div>
               ) : (
                 messages.map((msg) => (
@@ -342,9 +342,7 @@ const Messages = () => {
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground gap-3">
             <MessageCircle className="w-12 h-12 opacity-20" />
-            <p className="text-sm">
-              Select a conversation to start messaging
-            </p>
+            <p className="text-sm">{t("messages.select_conversation")}</p>
           </div>
         )}
       </div>

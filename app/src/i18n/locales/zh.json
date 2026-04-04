@@ -139,7 +139,14 @@
     "trending": "热门",
     "latest": "最新",
     "people": "用户",
-    "search_placeholder": "搜索钱包、用户名或帖子..."
+    "search_placeholder": "搜索钱包、用户名或帖子...",
+    "subtitle": "搜索钱包、句柄，发现可信用户",
+    "search_button": "搜索",
+    "searching": "搜索中...",
+    "limit_reached": "已达上限",
+    "search_limit_tooltip": "升级以在本月扫描更多钱包",
+    "latest_posts": "最新帖子",
+    "no_results": "未找到结果"
   },
   "messages": {
     "title": "消息",
@@ -147,7 +154,13 @@
     "no_messages": "暂无消息",
     "type_message": "输入消息...",
     "send": "发送",
-    "to": "收件人"
+    "to": "收件人",
+    "search_placeholder": "搜索对话...",
+    "no_conversations": "暂无对话",
+    "select_conversation": "选择对话开始发消息",
+    "connect_wallet_prompt": "连接钱包以使用消息",
+    "loading_messages": "正在加载消息...",
+    "say_hello": "打个招呼吧！"
   },
   "notifications": {
     "title": "通知",
