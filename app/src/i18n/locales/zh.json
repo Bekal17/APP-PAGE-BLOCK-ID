@@ -57,7 +57,13 @@
     "no_alerts": "未检测到风险警报",
     "scan_wallet": "扫描钱包",
     "scans_remaining": "剩余扫描次数",
-    "scans_used": "本月已扫描"
+    "scans_used": "本月已扫描",
+    "tab_explore": "探索",
+    "tab_newest": "最新",
+    "tab_following": "关注",
+    "post_placeholder": "链上发生了什么？",
+    "post_button": "发布",
+    "content_warning": "发布仇恨言论、骚扰或不雅内容可能会降低您的信任分数。保持干净以维护您的BlockID声誉。"
   },
   "profile": {
     "title": "个人资料",
