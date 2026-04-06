@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -121,6 +121,58 @@ export const ShareInvestigationModal = ({
   onShareTelegram,
 }: ShareInvestigationModalProps) => {
   const reportCardRef = useRef<HTMLDivElement>(null);
+  const [avatarBase64, setAvatarBase64] = useState<string | null>(null);
+  const [bannerBase64, setBannerBase64] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    // Convert avatar to base64 for html2canvas
+    if (avatarUrl) {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(img, 0, 0);
+            setAvatarBase64(canvas.toDataURL("image/png"));
+          }
+        } catch {
+          setAvatarBase64(null);
+        }
+      };
+      img.onerror = () => setAvatarBase64(null);
+      img.src = avatarUrl;
+    } else {
+      setAvatarBase64(null);
+    }
+    // Convert banner to base64 for html2canvas
+    if (bannerUrl) {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.naturalWidth;
+          canvas.height = img.naturalHeight;
+          const ctx = canvas.getContext("2d");
+          if (ctx) {
+            ctx.drawImage(img, 0, 0);
+            setBannerBase64(canvas.toDataURL("image/png"));
+          }
+        } catch {
+          setBannerBase64(null);
+        }
+      };
+      img.onerror = () => setBannerBase64(null);
+      img.src = bannerUrl;
+    } else {
+      setBannerBase64(null);
+    }
+  }, [open, avatarUrl, bannerUrl]);
 
   const handleDownloadImage = async () => {
     const element = reportCardRef.current;
@@ -132,6 +184,8 @@ export const ShareInvestigationModal = ({
         backgroundColor: "#0a0a0b",
         scale: 2,
         useCORS: true,
+        allowTaint: false,
+        logging: false,
       });
       const dataUrl = canvas.toDataURL("image/png");
       const link = document.createElement("a");
@@ -163,9 +217,11 @@ export const ShareInvestigationModal = ({
           <div
             className="w-full h-20"
             style={{
-              background: bannerUrl
-                ? `url(${bannerUrl}) center/cover no-repeat`
-                : "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
+              background: bannerBase64
+                ? `url(${bannerBase64}) center/cover no-repeat`
+                : bannerUrl
+                  ? `url(${bannerUrl}) center/cover no-repeat`
+                  : "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
             }}
           />
 
@@ -174,7 +230,7 @@ export const ShareInvestigationModal = ({
             <div className="flex items-end gap-3">
               {avatarUrl ? (
                 <img
-                  src={avatarUrl}
+                  src={avatarBase64 ?? avatarUrl ?? ""}
                   alt="avatar"
                   className="w-12 h-12 rounded-full border-2 border-zinc-950 object-cover"
                   crossOrigin="anonymous"
