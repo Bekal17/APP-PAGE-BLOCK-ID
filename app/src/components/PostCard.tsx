@@ -15,6 +15,8 @@ import {
 import WalletHoverCard from "@/components/WalletHoverCard";
 import UserAvatar from "@/components/UserAvatar";
 import SubscriptionBadge from "@/components/blockid/SubscriptionBadge";
+import LinkPreviewCard from "@/components/LinkPreviewCard";
+import { linkifyContent } from "@/utils/linkify";
 import { likePost, unlikePost, repostPost } from "@/services/blockidApi";
 
 export type SocialPost = {
@@ -34,6 +36,10 @@ export type SocialPost = {
   quote_content?: string | null;
   reposted_by_wallet?: string | null;
   reposted_by_handle?: string | null;
+  link_url?: string | null;
+  link_title?: string | null;
+  link_description?: string | null;
+  link_image?: string | null;
   original_post?: {
     wallet: string;
     handle?: string | null;
@@ -42,6 +48,10 @@ export type SocialPost = {
     created_at?: string;
     image_url?: string | null;
     plan?: string;
+    link_url?: string | null;
+    link_title?: string | null;
+    link_description?: string | null;
+    link_image?: string | null;
   } | null;
   plan?: string;
   image_url?: string | null;
@@ -485,7 +495,7 @@ export default function PostCard({
               <div className="mt-1 p-3 rounded-xl border border-border bg-muted/20">
                 <p className="text-xs text-muted-foreground mb-1">Quote</p>
                 <p className="text-sm text-foreground whitespace-pre-wrap">
-                  {post.quote_content}
+                  {linkifyContent(post.quote_content ?? "")}
                 </p>
               </div>
             )}
@@ -494,9 +504,22 @@ export default function PostCard({
               <div className="h-4 bg-muted/30 rounded animate-pulse w-2/3" />
             ) : (
               <p className="text-sm text-foreground whitespace-pre-wrap">
-                {displayContent}
+                {linkifyContent(displayContent)}
               </p>
             )}
+            {(() => {
+              const linkData = isRepost && originalPost
+                ? originalPost
+                : post;
+              return (linkData as any)?.link_url ? (
+                <LinkPreviewCard
+                  url={(linkData as any).link_url}
+                  title={(linkData as any).link_title}
+                  description={(linkData as any).link_description}
+                  image={(linkData as any).link_image}
+                />
+              ) : null;
+            })()}
             {(() => {
               const imgUrl =
                 isRepost && originalPost
