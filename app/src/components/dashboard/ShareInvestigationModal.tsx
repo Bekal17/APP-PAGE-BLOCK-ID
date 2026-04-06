@@ -124,10 +124,30 @@ export const ShareInvestigationModal = ({
   const [avatarBase64, setAvatarBase64] = useState<string | null>(null);
   const [bannerBase64, setBannerBase64] = useState<string | null>(null);
 
+  // Strip Helius CDN proxy prefix to get direct R2 URL
+  const getDirectUrl = (url: string): string => {
+    const heliusPrefix = "https://cdn.helius-rpc.com/cdn-cgi/image/";
+    if (url.startsWith(heliusPrefix)) {
+      // Remove prefix, also handle double slash
+      let direct = url.slice(heliusPrefix.length);
+      // Remove leading slash if present
+      while (direct.startsWith("/")) {
+        direct = direct.slice(1);
+      }
+      // Ensure https://
+      if (!direct.startsWith("https://")) {
+        direct = "https://" + direct;
+      }
+      return direct;
+    }
+    return url;
+  };
+
   useEffect(() => {
     if (!open) return;
     // Convert avatar to base64 for html2canvas
     if (avatarUrl) {
+      const directAvatarUrl = getDirectUrl(avatarUrl);
       const img = new Image();
       img.crossOrigin = "anonymous";
       img.onload = () => {
@@ -145,12 +165,13 @@ export const ShareInvestigationModal = ({
         }
       };
       img.onerror = () => setAvatarBase64(null);
-      img.src = avatarUrl;
+      img.src = directAvatarUrl;
     } else {
       setAvatarBase64(null);
     }
     // Convert banner to base64 for html2canvas
     if (bannerUrl) {
+      const directBannerUrl = getDirectUrl(bannerUrl);
       const img = new Image();
       img.crossOrigin = "anonymous";
       img.onload = () => {
@@ -168,7 +189,7 @@ export const ShareInvestigationModal = ({
         }
       };
       img.onerror = () => setBannerBase64(null);
-      img.src = bannerUrl;
+      img.src = directBannerUrl;
     } else {
       setBannerBase64(null);
     }
