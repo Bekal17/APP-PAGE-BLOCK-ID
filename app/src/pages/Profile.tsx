@@ -80,6 +80,8 @@ import {
 } from "lucide-react";
 import WalletHoverCard from "@/components/WalletHoverCard";
 import ImageCropModal from "@/components/ImageCropModal";
+import LinkPreviewCard from "@/components/LinkPreviewCard";
+import { linkifyContent } from "@/utils/linkify";
 import {
   InvestigatorProgress,
   type InvestigatorStep,
@@ -2345,8 +2347,23 @@ const Profile = () => {
 
                       {/* Content */}
                       <p className="text-sm text-foreground whitespace-pre-wrap">
-                        {isRepost && originalPost ? originalPost.content : post.content}
+                        {linkifyContent(
+                          isRepost && originalPost ? originalPost.content : post.content
+                        )}
                       </p>
+                      {(() => {
+                        const linkData = isRepost && originalPost
+                          ? originalPost
+                          : post;
+                        return (linkData as any)?.link_url ? (
+                          <LinkPreviewCard
+                            url={(linkData as any).link_url}
+                            title={(linkData as any).link_title}
+                            description={(linkData as any).link_description}
+                            image={(linkData as any).link_image}
+                          />
+                        ) : null;
+                      })()}
 
                       {/* Post image */}
                       {(() => {

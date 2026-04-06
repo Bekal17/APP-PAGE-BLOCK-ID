@@ -10,6 +10,8 @@ import {
   getPost,
 } from "@/services/blockidApi";
 import UserAvatar from "@/components/UserAvatar";
+import LinkPreviewCard from "@/components/LinkPreviewCard";
+import { linkifyContent } from "@/utils/linkify";
 
 type SocialPost = {
   id: number;
@@ -26,6 +28,10 @@ type SocialPost = {
   is_repost?: boolean;
   repost_of?: number | null;
   quote_content?: string | null;
+  link_url?: string | null;
+  link_title?: string | null;
+  link_description?: string | null;
+  link_image?: string | null;
   avatar_url?: string | null;
   avatar_type?: string | null;
   avatar_is_animated?: boolean;
@@ -37,6 +43,10 @@ type SocialPost = {
     created_at?: string;
     image_url?: string | null;
     plan?: string;
+    link_url?: string | null;
+    link_title?: string | null;
+    link_description?: string | null;
+    link_image?: string | null;
   } | null;
   plan?: string;
   image_url?: string | null;
@@ -329,8 +339,19 @@ export default function PostDetailPanel({
             marginBottom: 12,
           }}
         >
-          {displayContent}
+          {linkifyContent(displayContent)}
         </p>
+        {(() => {
+          const linkData = isRepost && originalPost ? originalPost : post;
+          return (linkData as any)?.link_url ? (
+            <LinkPreviewCard
+              url={(linkData as any).link_url}
+              title={(linkData as any).link_title}
+              description={(linkData as any).link_description}
+              image={(linkData as any).link_image}
+            />
+          ) : null;
+        })()}
 
         <div style={{ color: "#666", fontSize: 13, marginBottom: 12 }}>
           {formatRelativeTime(post.created_at)}
