@@ -2537,6 +2537,7 @@ const Profile = () => {
             open={shareInvestigationOpen}
             onOpenChange={setShareInvestigationOpen}
             {...investigationReportProps}
+            avatarType={profile?.avatar_type}
             onCopyReport={handleCopyInvestigationReport}
             onShareTwitter={handleShareInvestigationTwitter}
             onShareTelegram={handleShareInvestigationTelegram}

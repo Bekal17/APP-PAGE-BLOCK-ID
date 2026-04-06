@@ -28,6 +28,7 @@ interface ShareInvestigationModalProps {
   handle?: string | null;
   badges?: string[];
   plan?: string;
+  avatarType?: string | null;
   onCopyReport: () => void;
   onShareTwitter: () => void;
   onShareTelegram: () => void;
@@ -116,6 +117,7 @@ export const ShareInvestigationModal = ({
   handle,
   badges = [],
   plan = "free",
+  avatarType,
   onCopyReport,
   onShareTwitter,
   onShareTelegram,
@@ -249,13 +251,27 @@ export const ShareInvestigationModal = ({
           {/* Avatar + Name row */}
           <div className="px-5 -mt-6 mb-3">
             <div className="flex items-end gap-3">
-              {avatarUrl ? (
-                <img
-                  src={avatarBase64 ?? avatarUrl ?? ""}
-                  alt="avatar"
-                  className="w-12 h-12 rounded-full border-2 border-zinc-950 object-cover"
-                  crossOrigin="anonymous"
-                />
+              {avatarBase64 || avatarUrl ? (
+                avatarType === "NFT" ? (
+                  <img
+                    src={avatarBase64 ?? avatarUrl ?? ""}
+                    alt="avatar"
+                    className="w-12 h-12 object-cover"
+                    crossOrigin="anonymous"
+                    style={{
+                      borderRadius: "6px",
+                      border: "2px solid gold",
+                      boxShadow: "0 0 8px rgba(255,215,0,0.5)",
+                    }}
+                  />
+                ) : (
+                  <img
+                    src={avatarBase64 ?? avatarUrl ?? ""}
+                    alt="avatar"
+                    className="w-12 h-12 rounded-full border-2 border-zinc-950 object-cover"
+                    crossOrigin="anonymous"
+                  />
+                )
               ) : (
                 <div className="w-12 h-12 rounded-full border-2 border-zinc-950 bg-zinc-700 flex items-center justify-center text-lg font-bold text-white">
                   {(handle ?? shortAddress ?? "?")[0]?.toUpperCase()}
