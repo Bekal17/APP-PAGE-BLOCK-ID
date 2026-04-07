@@ -817,7 +817,7 @@ const Dashboard = () => {
 
         {publicKey && (
           <div className="glass-card p-4 flex gap-3 animate-slide-up">
-            <UserAvatar walletAddress={publicKey.toString()} size="sm" />
+            <UserAvatar wallet={publicKey.toString()} size={36} />
             <div className="flex-1">
               <textarea
                 value={postContent}
