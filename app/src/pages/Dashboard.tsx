@@ -1300,9 +1300,7 @@ const Dashboard = () => {
 
             {/* Reply composer */}
             <div className="flex gap-3">
-              <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0">
-                {publicKey?.toString()[0].toUpperCase() ?? "?"}
-              </div>
+              <UserAvatar wallet={publicKey?.toString() ?? ""} size={36} />
               <div className="flex-1">
                 <textarea
                   value={replyContent}
@@ -1394,13 +1392,7 @@ const Dashboard = () => {
 
             {/* Quote input area */}
             <div className="flex gap-3 px-4 pt-4 pb-2">
-              <div
-                className="w-9 h-9 rounded-full bg-primary/10 flex
-                  items-center justify-center text-xs font-bold text-primary
-                  shrink-0"
-              >
-                {(address ?? "?")[0]?.toUpperCase()}
-              </div>
+              <UserAvatar wallet={address ?? ""} size={36} />
               <textarea
                 autoFocus
                 value={quoteModalText}
