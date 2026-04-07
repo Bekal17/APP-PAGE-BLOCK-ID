@@ -12,6 +12,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import PostDetailPanel from "@/components/PostDetailPanel";
 import PostCard from "@/components/PostCard";
+import UserAvatar from "@/components/UserAvatar";
 import {
   Users,
   Clock,
@@ -816,9 +817,7 @@ const Dashboard = () => {
 
         {publicKey && (
           <div className="glass-card p-4 flex gap-3 animate-slide-up">
-            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-xs font-semibold text-primary shrink-0">
-              {publicKey.toString()[0].toUpperCase()}
-            </div>
+            <UserAvatar walletAddress={publicKey.toString()} size="sm" />
             <div className="flex-1">
               <textarea
                 value={postContent}
