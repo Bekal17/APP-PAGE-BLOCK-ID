@@ -808,7 +808,7 @@ const SmartRouter = () => {
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground font-mono truncate">
-                    {resolveResult.wallet}
+                    {resolveResult.wallet.slice(0, 4)}...{resolveResult.wallet.slice(-4)}
                   </p>
                 </div>
               </div>
