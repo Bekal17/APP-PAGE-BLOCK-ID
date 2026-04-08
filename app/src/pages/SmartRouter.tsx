@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, type KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { Buffer } from "buffer";
 import {
   PublicKey,
   Transaction,
@@ -66,6 +67,9 @@ const SmartRouter = () => {
   const [executing, setExecuting] = useState(false);
   const [txSignature, setTxSignature] = useState<string | null>(null);
   const [txError, setTxError] = useState<string | null>(null);
+  const [quoteResult, setQuoteResult] = useState<any>(null);
+  const [quoting, setQuoting] = useState(false);
+  const [swapStep, setSwapStep] = useState<"idle" | "quoted" | "signing">("idle");
   const [balance, setBalance] = useState<any>(null);
   const [balanceLoading, setBalanceLoading] = useState(false);
 
@@ -94,6 +98,8 @@ const SmartRouter = () => {
     setTxSignature(null);
     setTxError(null);
     setExecuting(false);
+    setQuoteResult(null);
+    setSwapStep("idle");
 
     try {
       const res = await fetch(`${API_BASE}/router/parse`, {
@@ -134,6 +140,116 @@ const SmartRouter = () => {
       setResolveError(message);
     } finally {
       setResolving(false);
+    }
+  };
+
+  const handleQuote = async () => {
+    if (
+      !publicKey ||
+      !parseResult?.amount ||
+      !parseResult?.token ||
+      !parseResult?.output_token
+    )
+      return;
+
+    setQuoting(true);
+    setTxError(null);
+    setQuoteResult(null);
+
+    try {
+      const res = await fetch(`${API_BASE}/router/quote`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sender_wallet: publicKey.toString(),
+          recipient_handle: "",
+          amount: parseFloat(String(parseResult.amount)),
+          input_token: parseResult.token.toUpperCase(),
+          output_token: parseResult.output_token.toUpperCase(),
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail ?? "Quote failed");
+      }
+      const data = await res.json();
+      setQuoteResult(data);
+      setSwapStep("quoted");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to get quote";
+      setTxError(message);
+    } finally {
+      setQuoting(false);
+    }
+  };
+
+  const handleSwapExecute = async () => {
+    if (!publicKey || !signTransaction || !connection || !parseResult) return;
+
+    setSwapStep("signing");
+    setExecuting(true);
+    setTxError(null);
+    setTxSignature(null);
+
+    try {
+      const swapRes = await fetch(`${API_BASE}/router/swap`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sender_wallet: publicKey.toString(),
+          recipient_wallet: publicKey.toString(),
+          amount: parseFloat(String(parseResult.amount)),
+          input_token: (parseResult.token ?? "SOL").toUpperCase(),
+          output_token: (parseResult.output_token ?? "USDC").toUpperCase(),
+        }),
+      });
+      if (!swapRes.ok) {
+        const err = await swapRes.json().catch(() => ({}));
+        throw new Error(err.detail ?? "Swap preparation failed");
+      }
+      const swapData = await swapRes.json();
+
+      if (!swapData.transaction) {
+        throw new Error("No transaction returned from swap endpoint");
+      }
+
+      const transactionBuf = Buffer.from(swapData.transaction, "base64");
+      const transaction = Transaction.from(transactionBuf);
+      const signed = await signTransaction(transaction);
+      const serialized = signed.serialize();
+      const base64Signed = Buffer.from(serialized).toString("base64");
+
+      const execRes = await fetch(`${API_BASE}/router/execute`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          signed_transaction: base64Signed,
+          request_id: swapData.request_id,
+        }),
+      });
+      if (!execRes.ok) {
+        const err = await execRes.json().catch(() => ({}));
+        throw new Error(err.detail ?? "Swap execution failed");
+      }
+      const execData = await execRes.json();
+
+      if (execData.status === "Success" && execData.signature) {
+        setTxSignature(execData.signature);
+        setSwapStep("idle");
+        setStep("input");
+      } else {
+        throw new Error(execData.error ?? "Swap failed");
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Swap failed";
+      if (message.includes("User rejected") || message.includes("cancelled")) {
+        setTxError("Swap cancelled.");
+      } else {
+        setTxError(message.length > 150 ? message.slice(0, 150) + "..." : message);
+      }
+      setSwapStep("quoted");
+    } finally {
+      setExecuting(false);
     }
   };
 
@@ -237,6 +353,8 @@ const SmartRouter = () => {
     setTxSignature(null);
     setTxError(null);
     setExecuting(false);
+    setQuoteResult(null);
+    setSwapStep("idle");
     setInput("");
     inputRef.current?.focus();
   };
@@ -352,7 +470,11 @@ const SmartRouter = () => {
           </div>
         )}
 
-        {parseResult && !parseError && step === "input" && !txSignature && (
+        {parseResult &&
+          !parseError &&
+          step === "input" &&
+          !txSignature &&
+          swapStep !== "quoted" && (
           <div
             className="glass-card p-5 space-y-4 animate-slide-up"
             style={{ animationDelay: "0.05s" }}
@@ -471,15 +593,105 @@ const SmartRouter = () => {
               !parseResult.needs_more_info && (
                 <button
                   type="button"
-                  className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
-                  onClick={() => {
-                    console.log("Continue to swap", parseResult);
-                  }}
+                  className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  onClick={() => void handleQuote()}
+                  disabled={quoting}
                 >
-                  <ArrowRight className="w-4 h-4" />
-                  {t("smart_router.continue_swap", "Preview Swap")}
+                  {quoting ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <ArrowRight className="w-4 h-4" />
+                  )}
+                  {quoting
+                    ? t("common.loading", "Getting quote...")
+                    : t("smart_router.continue_swap", "Preview Swap")}
                 </button>
               )}
+          </div>
+        )}
+
+        {swapStep === "quoted" && quoteResult && parseResult && !txSignature && (
+          <div className="glass-card p-5 space-y-5 animate-slide-up">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-foreground">
+                {t("smart_router.swap_preview", "Swap Preview")}
+              </h3>
+              <button
+                type="button"
+                onClick={clearResult}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {t("common.cancel", "Cancel")}
+              </button>
+            </div>
+
+            <div className="p-4 rounded-xl bg-muted/20 border border-border/50 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
+                    You Pay
+                  </p>
+                  <p className="text-lg font-bold text-foreground">
+                    {quoteResult.input_amount ?? parseResult.amount}{" "}
+                    {quoteResult.input_token ?? parseResult.token}
+                  </p>
+                </div>
+                <ArrowRight className="w-5 h-5 text-muted-foreground" />
+                <div className="text-right">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
+                    You Receive
+                  </p>
+                  <p className="text-lg font-bold text-emerald-400">
+                    {quoteResult.output_amount}{" "}
+                    {quoteResult.output_token ?? parseResult.output_token}
+                  </p>
+                </div>
+              </div>
+              {quoteResult.price_impact_pct != null && (
+                <div className="flex items-center justify-between pt-2 border-t border-border/30">
+                  <p className="text-xs text-muted-foreground">Price Impact</p>
+                  <p
+                    className={`text-xs font-medium ${parseFloat(quoteResult.price_impact_pct) > 1 ? "text-amber-400" : "text-muted-foreground"}`}
+                  >
+                    {quoteResult.price_impact_pct}%
+                  </p>
+                </div>
+              )}
+              {quoteResult.router && (
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground">Route</p>
+                  <p className="text-xs text-muted-foreground">
+                    {quoteResult.router}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <button
+              type="button"
+              className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              onClick={() => void handleSwapExecute()}
+              disabled={executing || !publicKey}
+            >
+              {executing ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  {t("smart_router.swapping", "Swapping...")}
+                </>
+              ) : (
+                <>
+                  <Zap className="w-4 h-4" />
+                  {t("smart_router.confirm_swap", "Confirm Swap")}
+                </>
+              )}
+            </button>
+
+            <p className="text-[10px] text-muted-foreground/50 text-center">
+              {t(
+                "smart_router.sign_note",
+                "You will be asked to sign the transaction with your wallet.",
+              )}
+            </p>
           </div>
         )}
 
@@ -651,8 +863,9 @@ const SmartRouter = () => {
                 {t("smart_router.tx_success", "Transaction Sent!")}
               </h3>
               <p className="text-sm text-muted-foreground">
-                {parseResult?.amount} {parseResult?.token ?? "SOL"} → @
-                {resolveResult?.handle ?? "recipient"}
+                {parseResult?.intent === "swap"
+                  ? `${parseResult?.amount} ${parseResult?.token} → ${parseResult?.output_token}`
+                  : `${parseResult?.amount} ${parseResult?.token ?? "SOL"} → @${resolveResult?.handle ?? "recipient"}`}
               </p>
             </div>
 
