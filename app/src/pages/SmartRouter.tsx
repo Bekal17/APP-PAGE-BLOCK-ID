@@ -27,6 +27,34 @@ const API_BASE =
   import.meta.env.VITE_SOCIAL_API_URL ??
   "https://blockid-backend-production.up.railway.app";
 
+const POPULAR_TOKENS = [
+  {
+    symbol: "USDC",
+    name: "USD Coin",
+    mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+  },
+  {
+    symbol: "USDT",
+    name: "Tether USD",
+    mint: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+  },
+  {
+    symbol: "BONK",
+    name: "Bonk",
+    mint: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263",
+  },
+  {
+    symbol: "JUP",
+    name: "Jupiter",
+    mint: "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  },
+  {
+    symbol: "WIF",
+    name: "dogwifhat",
+    mint: "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",
+  },
+];
+
 interface ParseResult {
   intent: string;
   handle: string | null;
@@ -239,6 +267,12 @@ const SmartRouter = () => {
         setTxSignature(execData.signature);
         setSwapStep("idle");
         setStep("input");
+        // Refresh balance after swap
+        if (publicKey) {
+          getWalletBalance(publicKey.toString())
+            .then(setBalance)
+            .catch(() => {});
+        }
       } else {
         throw new Error(execData.error ?? "Swap failed");
       }
@@ -306,6 +340,12 @@ const SmartRouter = () => {
 
         setTxSignature(signature);
         setStep("input");
+        // Refresh balance after send
+        if (publicKey) {
+          getWalletBalance(publicKey.toString())
+            .then(setBalance)
+            .catch(() => {});
+        }
       } else {
         throw new Error(
           "SPL token transfers coming soon. Only SOL supported for now.",
@@ -368,6 +408,25 @@ const SmartRouter = () => {
     "送金 0.5 SOL @blockid",
     "enviar 10 USDC a @bee17",
   ];
+
+  const getMergedTokens = () => {
+    if (!balance) return [];
+    const backendTokens = balance.tokens ?? [];
+    const ownedMints = new Set(backendTokens.map((t: any) => t.mint));
+
+    const missingPopular = POPULAR_TOKENS.filter((pt) => !ownedMints.has(pt.mint))
+      .map((pt) => ({
+        symbol: pt.symbol,
+        name: pt.name,
+        mint: pt.mint,
+        balance: 0,
+        usd_value: 0,
+        decimals: 0,
+        logo_uri: null,
+      }));
+
+    return [...backendTokens, ...missingPopular];
+  };
 
   return (
     <DashboardLayout>
@@ -1002,9 +1061,7 @@ const SmartRouter = () => {
                     </div>
                   </div>
 
-                  {balance.tokens
-                    ?.slice(0, 3)
-                    .map((token: any, i: number) => (
+                  {getMergedTokens().map((token: any, i: number) => (
                       <div
                         key={token.mint ?? token.symbol ?? i}
                         className="flex items-center justify-between py-2 border-t border-border/30"
@@ -1040,7 +1097,7 @@ const SmartRouter = () => {
                       </div>
                     ))}
 
-                  {(!balance.tokens || balance.tokens.length === 0) &&
+                  {getMergedTokens().length === 0 &&
                     (balance.sol_balance ?? 0) === 0 && (
                       <p className="text-[10px] text-muted-foreground text-center py-1">
                         No assets found
