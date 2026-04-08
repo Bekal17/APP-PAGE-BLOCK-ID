@@ -508,7 +508,7 @@ const SmartRouter = () => {
             </div>
 
             <p className="text-[10px] text-muted-foreground/50 mt-2 text-right">
-              Powered by GPT-4o-mini · Jupiter Metis v1
+              Powered by BlockID AI · Jupiter Swap v2
             </p>
           </div>
         )}
