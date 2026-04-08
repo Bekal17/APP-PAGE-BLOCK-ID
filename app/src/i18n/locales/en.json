@@ -185,6 +185,7 @@
   "smart_router": {
     "title": "Smart Router",
     "subtitle": "Type what you want to do in any language. AI handles the rest.",
+    "connect_wallet": "Connect your wallet to start using Smart Router.",
     "input_placeholder": "\"send 1 SOL to @blockid\" — type in any language",
     "parsing": "AI is parsing your intent...",
     "resolving": "Resolving recipient...",

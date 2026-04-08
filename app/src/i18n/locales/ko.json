@@ -183,6 +183,7 @@
   "smart_router": {
     "title": "스마트 라우터",
     "subtitle": "어떤 언어로든 원하는 작업을 입력하세요. AI가 처리합니다.",
+    "connect_wallet": "Smart Router를 사용하려면 지갑을 연결하세요.",
     "input_placeholder": "\"send 1 SOL to @blockid\" — 어떤 언어로든 입력",
     "parsing": "AI가 분석 중...",
     "resolving": "수신자 확인 중...",

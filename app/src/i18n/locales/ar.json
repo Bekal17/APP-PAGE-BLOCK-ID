@@ -185,6 +185,7 @@
   "smart_router": {
     "title": "الراوتر الذكي",
     "subtitle": "اكتب ما تريد فعله بأي لغة. الذكاء الاصطناعي يتولى الباقي.",
+    "connect_wallet": "قم بتوصيل محفظتك لبدء استخدام Smart Router.",
     "input_placeholder": "\"send 1 SOL to @blockid\" — اكتب بأي لغة",
     "parsing": "الذكاء الاصطناعي يحلل...",
     "resolving": "جاري البحث عن المستلم...",
