@@ -215,6 +215,11 @@
     "amount_label": "金額",
     "network_label": "ネットワーク",
     "sign_note": "ウォレットでトランザクションの署名が求められます。",
+    "executing": "送信中...",
+    "tx_success": "送信完了！",
+    "view_on_solscan": "Solscanで確認",
+    "new_transfer": "新しい送金",
+    "try_again": "もう一度試す",
     "coming_soon_title": "近日公開",
     "coming_soon_desc": "AI最適化クロスチェーンルーティングは開発中です。次のアップデートをお楽しみに。"
   },

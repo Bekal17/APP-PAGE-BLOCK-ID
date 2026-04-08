@@ -1,6 +1,12 @@
 import { useState, useRef, type KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import {
+  PublicKey,
+  Transaction,
+  SystemProgram,
+  LAMPORTS_PER_SOL,
+} from "@solana/web3.js";
 import DashboardLayout from "@/components/DashboardLayout";
 import UserAvatar from "@/components/UserAvatar";
 import {
@@ -16,6 +22,14 @@ import {
 const API_BASE =
   import.meta.env.VITE_SOCIAL_API_URL ??
   "https://blockid-backend-production.up.railway.app";
+
+declare global {
+  interface Window {
+    solana?: {
+      signTransaction: (tx: Transaction) => Promise<Transaction>;
+    };
+  }
+}
 
 interface ParseResult {
   intent: string;
@@ -44,6 +58,7 @@ interface ResolveResult {
 const SmartRouter = () => {
   const { t } = useTranslation();
   const { publicKey } = useWallet();
+  const { connection } = useConnection();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [input, setInput] = useState("");
@@ -54,6 +69,9 @@ const SmartRouter = () => {
   const [resolving, setResolving] = useState(false);
   const [resolveResult, setResolveResult] = useState<ResolveResult | null>(null);
   const [resolveError, setResolveError] = useState<string | null>(null);
+  const [executing, setExecuting] = useState(false);
+  const [txSignature, setTxSignature] = useState<string | null>(null);
+  const [txError, setTxError] = useState<string | null>(null);
 
   const handleParse = async () => {
     const text = input.trim();
@@ -65,6 +83,9 @@ const SmartRouter = () => {
     setStep("input");
     setResolveResult(null);
     setResolveError(null);
+    setTxSignature(null);
+    setTxError(null);
+    setExecuting(false);
 
     try {
       const res = await fetch(`${API_BASE}/router/parse`, {
@@ -108,6 +129,74 @@ const SmartRouter = () => {
     }
   };
 
+  const handleExecute = async () => {
+    if (!publicKey || !resolveResult || !parseResult?.amount || !connection)
+      return;
+
+    setExecuting(true);
+    setTxError(null);
+    setTxSignature(null);
+
+    try {
+      const recipientPubkey = new PublicKey(resolveResult.wallet);
+      const amount = parseFloat(String(parseResult.amount));
+
+      if (isNaN(amount) || amount <= 0) {
+        throw new Error("Invalid amount");
+      }
+
+      const token = (parseResult.token ?? "SOL").toUpperCase();
+
+      if (token === "SOL") {
+        const lamports = Math.round(amount * LAMPORTS_PER_SOL);
+
+        const { blockhash, lastValidBlockHeight } =
+          await connection.getLatestBlockhash();
+
+        const transaction = new Transaction({
+          recentBlockhash: blockhash,
+          feePayer: publicKey,
+        }).add(
+          SystemProgram.transfer({
+            fromPubkey: publicKey,
+            toPubkey: recipientPubkey,
+            lamports,
+          }),
+        );
+
+        if (!window.solana) {
+          throw new Error("Wallet not found. Please connect Phantom.");
+        }
+
+        const signed = await window.solana.signTransaction(transaction);
+        const signature = await connection.sendRawTransaction(
+          signed.serialize(),
+        );
+
+        await connection.confirmTransaction(
+          { signature, blockhash, lastValidBlockHeight },
+          "confirmed",
+        );
+
+        setTxSignature(signature);
+        setStep("input");
+      } else {
+        throw new Error(
+          "SPL token transfers coming soon. Only SOL supported for now.",
+        );
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Transaction failed";
+      if (message.includes("User rejected") || message.includes("cancelled")) {
+        setTxError("Transaction cancelled by user.");
+      } else {
+        setTxError(message);
+      }
+    } finally {
+      setExecuting(false);
+    }
+  };
+
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -121,6 +210,9 @@ const SmartRouter = () => {
     setResolveResult(null);
     setResolveError(null);
     setStep("input");
+    setTxSignature(null);
+    setTxError(null);
+    setExecuting(false);
     setInput("");
     inputRef.current?.focus();
   };
@@ -222,7 +314,7 @@ const SmartRouter = () => {
           </div>
         )}
 
-        {parseResult && !parseError && (
+        {parseResult && !parseError && step === "input" && (
           <div
             className="glass-card p-5 space-y-4 animate-slide-up"
             style={{ animationDelay: "0.05s" }}
@@ -451,14 +543,22 @@ const SmartRouter = () => {
 
             <button
               type="button"
-              className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
-              onClick={() => {
-                console.log("Execute transfer", { parseResult, resolveResult });
-              }}
+              className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              onClick={() => void handleExecute()}
+              disabled={executing || !publicKey}
             >
-              <Send className="w-4 h-4" />
-              {t("smart_router.confirm_send", "Confirm & Send")}{" "}
-              {parseResult.amount} {parseResult.token ?? "SOL"}
+              {executing ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  {t("smart_router.executing", "Sending...")}
+                </>
+              ) : (
+                <>
+                  <Send className="w-4 h-4" />
+                  {t("smart_router.confirm_send", "Confirm & Send")}{" "}
+                  {parseResult.amount} {parseResult.token ?? "SOL"}
+                </>
+              )}
             </button>
 
             <p className="text-[10px] text-muted-foreground/50 text-center">
@@ -482,6 +582,69 @@ const SmartRouter = () => {
                   className="text-xs text-primary hover:underline mt-1"
                 >
                   Try again
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {txSignature && (
+          <div className="glass-card p-5 space-y-4 animate-slide-up">
+            <div className="text-center space-y-3">
+              <div className="w-14 h-14 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto">
+                <svg
+                  className="w-7 h-7 text-emerald-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2.5}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-foreground">
+                {t("smart_router.tx_success", "Transaction Sent!")}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {parseResult?.amount} {parseResult?.token ?? "SOL"} → @
+                {resolveResult?.handle ?? "recipient"}
+              </p>
+            </div>
+
+            <a
+              href={`https://solscan.io/tx/${txSignature}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full py-3 rounded-xl bg-muted/30 text-center text-sm font-medium text-primary hover:bg-muted/50 transition-colors border border-border/50"
+            >
+              {t("smart_router.view_on_solscan", "View on Solscan")} ↗
+            </a>
+            <button
+              type="button"
+              onClick={clearResult}
+              className="w-full py-3 rounded-xl text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {t("smart_router.new_transfer", "New Transfer")}
+            </button>
+          </div>
+        )}
+
+        {txError && (
+          <div className="glass-card p-4 border-red-500/20 animate-slide-up">
+            <div className="flex items-center gap-3 text-red-400">
+              <AlertCircle className="w-5 h-5 shrink-0" />
+              <div>
+                <p className="text-sm font-medium">{txError}</p>
+                <button
+                  type="button"
+                  onClick={() => setTxError(null)}
+                  className="text-xs text-primary hover:underline mt-1"
+                >
+                  {t("smart_router.try_again", "Try again")}
                 </button>
               </div>
             </div>

@@ -215,6 +215,11 @@
     "amount_label": "Jumlah",
     "network_label": "Jaringan",
     "sign_note": "Anda akan diminta menandatangani transaksi dengan dompet Anda.",
+    "executing": "Mengirim...",
+    "tx_success": "Transaksi Terkirim!",
+    "view_on_solscan": "Lihat di Solscan",
+    "new_transfer": "Transfer Baru",
+    "try_again": "Coba lagi",
     "coming_soon_title": "Segera Hadir",
     "coming_soon_desc": "Routing lintas-chain berbasis AI sedang dalam pengembangan. Nantikan pembaruan selanjutnya."
   },

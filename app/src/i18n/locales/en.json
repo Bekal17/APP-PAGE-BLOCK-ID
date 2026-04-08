@@ -215,6 +215,11 @@
     "amount_label": "Amount",
     "network_label": "Network",
     "sign_note": "You will be asked to sign the transaction with your wallet.",
+    "executing": "Sending...",
+    "tx_success": "Transaction Sent!",
+    "view_on_solscan": "View on Solscan",
+    "new_transfer": "New Transfer",
+    "try_again": "Try again",
     "coming_soon_title": "Coming Soon",
     "coming_soon_desc": "AI-optimized cross-chain routing is under development. Stay tuned for the next update."
   },

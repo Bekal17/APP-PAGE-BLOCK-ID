@@ -213,6 +213,11 @@
     "amount_label": "Cantidad",
     "network_label": "Red",
     "sign_note": "Se le pedirá que firme la transacción con su billetera.",
+    "executing": "Enviando...",
+    "tx_success": "¡Transacción Enviada!",
+    "view_on_solscan": "Ver en Solscan",
+    "new_transfer": "Nueva Transferencia",
+    "try_again": "Intentar de nuevo",
     "coming_soon_title": "Próximamente",
     "coming_soon_desc": "El enrutamiento cross-chain optimizado por IA está en desarrollo. Mantente atento a la próxima actualización."
   },

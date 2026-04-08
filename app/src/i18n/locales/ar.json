@@ -215,6 +215,11 @@
     "amount_label": "المبلغ",
     "network_label": "الشبكة",
     "sign_note": "سيُطلب منك توقيع المعاملة بمحفظتك.",
+    "executing": "جاري الإرسال...",
+    "tx_success": "تم إرسال المعاملة!",
+    "view_on_solscan": "عرض على Solscan",
+    "new_transfer": "تحويل جديد",
+    "try_again": "حاول مرة أخرى",
     "coming_soon_title": "قريبًا",
     "coming_soon_desc": "التوجيه عبر السلاسل المُحسّن بالذكاء الاصطناعي قيد التطوير. ترقبوا التحديث القادم."
   },
