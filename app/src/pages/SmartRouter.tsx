@@ -20,7 +20,7 @@ import {
   AlertCircle,
   X,
   Shield,
-  DollarSign,
+  Wallet,
 } from "lucide-react";
 
 const API_BASE =
@@ -1000,7 +1000,7 @@ const SmartRouter = () => {
               style={{ animationDelay: "0.15s" }}
             >
               <div className="flex items-center gap-2 mb-3">
-                <DollarSign className="w-4 h-4 text-primary" />
+                <Wallet className="w-4 h-4 text-primary" />
                 <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">
                   {t("smart_router.your_balance", "Your Balance")}
                 </h3>
