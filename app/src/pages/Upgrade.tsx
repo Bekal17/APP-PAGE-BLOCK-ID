@@ -146,7 +146,10 @@ export default function Upgrade() {
   ) => {
     if (!publicKey || !signTransaction) return;
     const price = await fetchSolPrice();
-    if (!price) throw new Error("Could not fetch SOL price");
+    if (!price)
+      throw new Error(
+        t("upgrade.err_fetch_sol_price", "Could not fetch SOL price")
+      );
 
     const usdAmount = PLANS[plan][period];
     const solAmount = usdAmount / price;
@@ -190,7 +193,10 @@ export default function Upgrade() {
   // Handle upgrade
   const handleUpgrade = async (plan: "explorer" | "pro") => {
     if (!publicKey) {
-      toast({ title: "Connect your wallet first", variant: "destructive" });
+      toast({
+        title: t("upgrade.connect_wallet_first", "Connect your wallet first"),
+        variant: "destructive",
+      });
       return;
     }
     setPaying(plan);
@@ -201,7 +207,10 @@ export default function Upgrade() {
       } else {
         sig = await payWithSOL(plan, billing);
       }
-      if (!sig) throw new Error("Transaction failed");
+      if (!sig)
+        throw new Error(
+          t("upgrade.err_transaction_failed", "Transaction failed")
+        );
 
       // Notify backend
       const res = await fetch(`${API_BASE}/social/subscription/pay`, {
@@ -216,17 +225,24 @@ export default function Upgrade() {
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail ?? "Upgrade failed");
+      if (!res.ok)
+        throw new Error(
+          data.detail ?? t("upgrade.err_upgrade_failed", "Upgrade failed")
+        );
 
+      const planLabel = plan === "explorer" ? t("upgrade.explorer") : t("upgrade.pro");
       toast({
-        title: `Upgraded to ${plan === "explorer" ? "Explorer" : "PRO"}!`,
-        description: "Your plan is now active.",
+        title: t("upgrade.upgraded_to_plan", { plan: planLabel }),
+        description: t("upgrade.plan_active", "Your plan is now active."),
       });
 
       // Refresh subscription data
       window.location.reload();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Payment failed";
+      const msg =
+        err instanceof Error
+          ? err.message
+          : t("upgrade.err_payment_failed", "Payment failed");
       toast({ title: msg, variant: "destructive" });
     } finally {
       setPaying(null);
@@ -397,16 +413,18 @@ export default function Upgrade() {
             className={`px-4 py-1.5 rounded-full text-sm font-semibold transition-colors
               ${billing === "annual" ? "bg-zinc-700 text-white" : "text-zinc-400 hover:text-white"}`}
           >
-            Annual
+            {t("upgrade.annual", "Annual")}
             <span className="ml-2 px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 text-xs font-bold">
-              20% off
+              {t("upgrade.annual_discount", "20% off")}
             </span>
           </button>
         </div>
 
         {/* Pay with toggle */}
         <div className="flex items-center justify-center gap-2">
-          <span className="text-xs text-zinc-500">{t("upgrade.pay_with")}</span>
+          <span className="text-xs text-zinc-500">
+            {t("upgrade.payment_method", "Payment Method:")}
+          </span>
           {(["USDC", "SOL"] as const).map((token) => (
             <button
               key={token}
@@ -425,10 +443,12 @@ export default function Upgrade() {
           <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 space-y-4">
             <div>
               <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">
-                {t("upgrade.free")}
+                {t("upgrade.free_tier", "Free")}
               </p>
               <p className="text-4xl font-bold">$0</p>
-              <p className="text-xs text-zinc-500 mt-1">{t("upgrade.forever")}</p>
+              <p className="text-xs text-zinc-500 mt-1">
+                {t("upgrade.forever_free", "forever free")}
+              </p>
             </div>
             <ul className="space-y-2 text-xs text-zinc-400">
               <li className="flex items-center gap-2">
@@ -450,7 +470,7 @@ export default function Upgrade() {
             >
               {currentPlan === "free"
                 ? t("upgrade.current_plan")
-                : t("upgrade.free")}
+                : t("upgrade.free_tier", "Free")}
             </button>
           </div>
 
@@ -571,7 +591,7 @@ export default function Upgrade() {
         {/* Feature comparison table */}
         <div className="space-y-6">
           <h2 className="text-lg font-bold text-center">
-            {t("upgrade.compare_title")}
+            {t("upgrade.compare_plans", "Compare Plans & Features")}
           </h2>
           {features.map((section, sIdx) => (
             <div
