@@ -186,6 +186,7 @@
     "title": "スマートルーター",
     "subtitle": "何をしたいか、どの言語でも入力してください。AIが処理します。",
     "connect_wallet": "Smart Routerを使用するにはウォレットを接続してください。",
+    "your_balance": "残高",
     "input_placeholder": "\"send 1 SOL to @blockid\" — 任意の言語で入力",
     "parsing": "AIが解析中...",
     "resolving": "受取人を解決中...",

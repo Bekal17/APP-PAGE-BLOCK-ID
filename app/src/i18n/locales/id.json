@@ -186,6 +186,7 @@
     "title": "Smart Router",
     "subtitle": "Ketik apa yang ingin kamu lakukan dalam bahasa apapun. AI yang menangani sisanya.",
     "connect_wallet": "Hubungkan dompet Anda untuk mulai menggunakan Smart Router.",
+    "your_balance": "Saldo Anda",
     "input_placeholder": "\"kirim 1 SOL ke @blockid\" — ketik dalam bahasa apapun",
     "parsing": "AI sedang memproses...",
     "resolving": "Mencari penerima...",
