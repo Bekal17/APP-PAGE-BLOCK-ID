@@ -183,6 +183,7 @@
   "smart_router": {
     "title": "Smart Router",
     "subtitle": "Escribe lo que quieras hacer en cualquier idioma. La IA se encarga del resto.",
+    "connect_wallet": "Conecta tu billetera para comenzar a usar Smart Router.",
     "input_placeholder": "\"send 1 SOL to @blockid\" — escribe en cualquier idioma",
     "parsing": "La IA está analizando...",
     "resolving": "Resolviendo destinatario...",

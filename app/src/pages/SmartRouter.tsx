@@ -180,9 +180,25 @@ const SmartRouter = () => {
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Transaction failed";
       if (message.includes("User rejected") || message.includes("cancelled")) {
-        setTxError("Transaction cancelled by user.");
+        setTxError("Transaction cancelled.");
+      } else if (
+        message.includes("insufficient") ||
+        message.includes("funds for rent")
+      ) {
+        setTxError(
+          "Insufficient balance. Make sure you have enough SOL for the transfer plus network fee (~0.005 SOL).",
+        );
+      } else if (
+        message.includes("Blockhash not found") ||
+        message.includes("block height exceeded")
+      ) {
+        setTxError("Transaction expired. Please try again.");
+      } else if (message.includes("does not support signing")) {
+        setTxError("Wallet not connected. Please reconnect and try again.");
       } else {
-        setTxError(message);
+        setTxError(
+          message.length > 150 ? message.slice(0, 150) + "..." : message,
+        );
       }
     } finally {
       setExecuting(false);
@@ -233,60 +249,73 @@ const SmartRouter = () => {
           </p>
         </div>
 
-        <div
-          className="glass-card p-4 animate-slide-up"
-          style={{ animationDelay: "0.05s" }}
-        >
-          <div className="flex items-center gap-3">
-            <div className="flex-1 relative">
-              <input
-                ref={inputRef}
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder={t(
-                  "smart_router.input_placeholder",
-                  '"send 1 SOL to @blockid" — type in any language',
-                )}
-                className="w-full bg-transparent border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
-                disabled={parsing}
-                autoFocus
-              />
-              {input && !parsing && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setInput("");
-                    inputRef.current?.focus();
-                  }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-muted/30 text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
+        {!publicKey && (
+          <div className="glass-card p-4 text-center animate-slide-up">
+            <p className="text-sm text-muted-foreground">
+              {t(
+                "smart_router.connect_wallet",
+                "Connect your wallet to start using Smart Router.",
               )}
-            </div>
-            <button
-              type="button"
-              onClick={() => void handleParse()}
-              disabled={!input.trim() || parsing}
-              className="px-5 py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shrink-0"
-            >
-              {parsing ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Send className="w-4 h-4" />
-              )}
-              {parsing
-                ? t("common.loading", "Processing...")
-                : t("smart_router.send_button", "Send")}
-            </button>
+            </p>
           </div>
+        )}
 
-          <p className="text-[10px] text-muted-foreground/50 mt-2 text-right">
-            Powered by GPT-4o-mini · Jupiter Metis v1
-          </p>
-        </div>
+        {publicKey && !txSignature && (
+          <div
+            className="glass-card p-4 animate-slide-up"
+            style={{ animationDelay: "0.05s" }}
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex-1 relative">
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder={t(
+                    "smart_router.input_placeholder",
+                    '"send 1 SOL to @blockid" — type in any language',
+                  )}
+                  className="w-full bg-transparent border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
+                  disabled={parsing}
+                  autoFocus
+                />
+                {input && !parsing && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setInput("");
+                      inputRef.current?.focus();
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-muted/30 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => void handleParse()}
+                disabled={!input.trim() || parsing}
+                className="px-5 py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shrink-0"
+              >
+                {parsing ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
+                {parsing
+                  ? t("common.loading", "Processing...")
+                  : t("smart_router.send_button", "Send")}
+              </button>
+            </div>
+
+            <p className="text-[10px] text-muted-foreground/50 mt-2 text-right">
+              Powered by GPT-4o-mini · Jupiter Metis v1
+            </p>
+          </div>
+        )}
 
         {parseError && (
           <div className="glass-card p-4 border-red-500/20 animate-slide-up">
@@ -306,7 +335,7 @@ const SmartRouter = () => {
           </div>
         )}
 
-        {parseResult && !parseError && step === "input" && (
+        {parseResult && !parseError && step === "input" && !txSignature && (
           <div
             className="glass-card p-5 space-y-4 animate-slide-up"
             style={{ animationDelay: "0.05s" }}
@@ -438,8 +467,11 @@ const SmartRouter = () => {
         )}
 
         {/* Confirmation Card — Step 2 */}
-        {step === "confirm" && resolveResult && parseResult && (
-          <div className="glass-card p-5 space-y-5 animate-slide-up">
+        {step === "confirm" &&
+          resolveResult &&
+          parseResult &&
+          !txSignature && (
+            <div className="glass-card p-5 space-y-5 animate-slide-up">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-foreground">
                 {t("smart_router.confirm_transfer", "Confirm Transfer")}

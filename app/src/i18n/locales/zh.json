@@ -185,6 +185,7 @@
   "smart_router": {
     "title": "智能路由",
     "subtitle": "用任何语言输入您想做的事情。AI会处理其余的。",
+    "connect_wallet": "连接钱包以开始使用Smart Router。",
     "input_placeholder": "\"send 1 SOL to @blockid\" — 用任何语言输入",
     "parsing": "AI正在解析...",
     "resolving": "正在解析收款人...",
