@@ -215,6 +215,11 @@
     "amount_label": "金额",
     "network_label": "网络",
     "sign_note": "您将被要求使用钱包签署交易。",
+    "executing": "发送中...",
+    "tx_success": "交易已发送！",
+    "view_on_solscan": "在Solscan上查看",
+    "new_transfer": "新转账",
+    "try_again": "重试",
     "coming_soon_title": "即将推出",
     "coming_soon_desc": "AI优化的跨链路由正在开发中。敬请期待下一次更新。"
   },

@@ -213,6 +213,11 @@
     "amount_label": "금액",
     "network_label": "네트워크",
     "sign_note": "지갑에서 거래 서명을 요청받게 됩니다.",
+    "executing": "전송 중...",
+    "tx_success": "전송 완료!",
+    "view_on_solscan": "Solscan에서 보기",
+    "new_transfer": "새 전송",
+    "try_again": "다시 시도",
     "coming_soon_title": "출시 예정",
     "coming_soon_desc": "AI 최적화 크로스체인 라우팅이 개발 중입니다. 다음 업데이트를 기대해 주세요."
   },
