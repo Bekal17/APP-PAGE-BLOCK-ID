@@ -23,14 +23,6 @@ const API_BASE =
   import.meta.env.VITE_SOCIAL_API_URL ??
   "https://blockid-backend-production.up.railway.app";
 
-declare global {
-  interface Window {
-    solana?: {
-      signTransaction: (tx: Transaction) => Promise<Transaction>;
-    };
-  }
-}
-
 interface ParseResult {
   intent: string;
   handle: string | null;
@@ -57,7 +49,7 @@ interface ResolveResult {
 
 const SmartRouter = () => {
   const { t } = useTranslation();
-  const { publicKey } = useWallet();
+  const { publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -164,11 +156,11 @@ const SmartRouter = () => {
           }),
         );
 
-        if (!window.solana) {
-          throw new Error("Wallet not found. Please connect Phantom.");
+        if (!signTransaction) {
+          throw new Error("Wallet does not support signing. Please reconnect.");
         }
 
-        const signed = await window.solana.signTransaction(transaction);
+        const signed = await signTransaction(transaction);
         const signature = await connection.sendRawTransaction(
           signed.serialize(),
         );
