@@ -102,9 +102,7 @@ const PrivacySettings = () => {
       ) : (
         <div className="space-y-0">
 
-          <p className="text-xs font-semibold
-            text-muted-foreground uppercase
-            tracking-wider mb-3">
+          <p className="text-sm font-bold text-foreground/70 uppercase tracking-widest pt-6 pb-2 border-t border-border/30 mt-4">
             {t("settings.content")}
           </p>
 
@@ -189,9 +187,7 @@ const PrivacySettings = () => {
             </div>
           </div>
 
-          <p className="text-xs font-semibold
-            text-muted-foreground uppercase
-            tracking-wider mb-3 mt-6">
+          <p className="text-sm font-bold text-foreground/70 uppercase tracking-widest pt-6 pb-2 border-t border-border/30 mt-4">
             {t("settings.discoverability")}
           </p>
 
@@ -258,9 +254,7 @@ const PrivacySettings = () => {
             </div>
           </div>
 
-          <p className="text-xs font-semibold
-            text-muted-foreground uppercase
-            tracking-wider mb-3 mt-6">
+          <p className="text-sm font-bold text-foreground/70 uppercase tracking-widest pt-6 pb-2 border-t border-border/30 mt-4">
             {t("settings.financial_privacy")}
           </p>
 
@@ -316,9 +310,7 @@ const PrivacySettings = () => {
             </select>
           </div>
 
-          <p className="text-xs font-semibold
-            text-muted-foreground uppercase
-            tracking-wider mb-3 mt-6">
+          <p className="text-sm font-bold text-foreground/70 uppercase tracking-widest pt-6 pb-2 border-t border-border/30 mt-4">
             {t("settings.interactions")}
           </p>
 
