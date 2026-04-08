@@ -1,4 +1,4 @@
-import { useState, useRef, type KeyboardEvent } from "react";
+import { useState, useRef, useEffect, type KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import {
@@ -9,6 +9,7 @@ import {
 } from "@solana/web3.js";
 import DashboardLayout from "@/components/DashboardLayout";
 import UserAvatar from "@/components/UserAvatar";
+import { getWalletBalance } from "@/services/blockidApi";
 import {
   Zap,
   Send,
@@ -17,6 +18,7 @@ import {
   AlertCircle,
   X,
   Shield,
+  DollarSign,
 } from "lucide-react";
 
 const API_BASE =
@@ -64,6 +66,20 @@ const SmartRouter = () => {
   const [executing, setExecuting] = useState(false);
   const [txSignature, setTxSignature] = useState<string | null>(null);
   const [txError, setTxError] = useState<string | null>(null);
+  const [balance, setBalance] = useState<any>(null);
+  const [balanceLoading, setBalanceLoading] = useState(false);
+
+  useEffect(() => {
+    if (!publicKey) {
+      setBalance(null);
+      return;
+    }
+    setBalanceLoading(true);
+    getWalletBalance(publicKey.toString())
+      .then(setBalance)
+      .catch(() => setBalance(null))
+      .finally(() => setBalanceLoading(false));
+  }, [publicKey]);
 
   const handleParse = async () => {
     const text = input.trim();
@@ -235,7 +251,8 @@ const SmartRouter = () => {
 
   return (
     <DashboardLayout>
-      <div className="max-w-2xl mx-auto space-y-6">
+      <div className="max-w-5xl mx-auto flex gap-6">
+        <div className="flex-1 min-w-0 space-y-6">
         <div className="text-center space-y-2 pt-4 animate-slide-up">
           <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto">
             <Zap className="w-7 h-7 text-primary" />
@@ -697,6 +714,125 @@ const SmartRouter = () => {
                   &quot;{ex}&quot;
                 </button>
               ))}
+            </div>
+          </div>
+        )}
+        </div>
+
+        {publicKey && (
+          <div className="hidden lg:block w-72 shrink-0 space-y-4">
+            <div
+              className="glass-card p-4 sticky top-20 animate-slide-up"
+              style={{ animationDelay: "0.15s" }}
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <DollarSign className="w-4 h-4 text-primary" />
+                <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">
+                  {t("smart_router.your_balance", "Your Balance")}
+                </h3>
+              </div>
+
+              {balanceLoading ? (
+                <div className="space-y-2 animate-pulse">
+                  <div className="h-6 bg-muted/40 rounded w-2/3" />
+                  <div className="h-4 bg-muted/30 rounded w-1/2" />
+                </div>
+              ) : !balance ? (
+                <p className="text-xs text-muted-foreground">
+                  Unable to load balance
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-xl font-bold text-foreground">
+                      $
+                      {(balance.total_usd_value ?? 0).toLocaleString("en-US", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground">
+                      Total Balance
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between py-2 border-t border-border/30">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-[10px] font-bold text-white">
+                        ◎
+                      </div>
+                      <span className="text-xs font-medium text-foreground">
+                        SOL
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-medium text-foreground">
+                        {(balance.sol_balance ?? 0).toLocaleString("en-US", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 4,
+                        })}
+                      </p>
+                      {(balance.sol_usd_value ?? 0) > 0 && (
+                        <p className="text-[10px] text-muted-foreground">
+                          $
+                          {(balance.sol_usd_value ?? 0).toLocaleString(
+                            "en-US",
+                            {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            },
+                          )}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {balance.tokens
+                    ?.slice(0, 3)
+                    .map((token: any, i: number) => (
+                      <div
+                        key={token.mint ?? token.symbol ?? i}
+                        className="flex items-center justify-between py-2 border-t border-border/30"
+                      >
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-full bg-zinc-700 flex items-center justify-center text-[10px] font-bold text-foreground">
+                            {token.symbol?.[0] ?? "?"}
+                          </div>
+                          <span className="text-xs font-medium text-foreground">
+                            {token.symbol}
+                          </span>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs font-medium text-foreground">
+                            {(token.balance ?? 0).toLocaleString("en-US", {
+                              minimumFractionDigits: 0,
+                              maximumFractionDigits: 4,
+                            })}
+                          </p>
+                          {token.usd_value && (
+                            <p className="text-[10px] text-muted-foreground">
+                              $
+                              {(token.usd_value ?? 0).toLocaleString(
+                                "en-US",
+                                {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                },
+                              )}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+
+                  {(!balance.tokens || balance.tokens.length === 0) &&
+                    (balance.sol_balance ?? 0) === 0 && (
+                      <p className="text-[10px] text-muted-foreground text-center py-1">
+                        No assets found
+                      </p>
+                    )}
+                </div>
+              )}
             </div>
           </div>
         )}
