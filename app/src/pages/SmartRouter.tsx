@@ -158,12 +158,11 @@ const SmartRouter = () => {
     setQuoteResult(null);
 
     try {
-      const res = await fetch(`${API_BASE}/router/quote`, {
+      const res = await fetch(`${API_BASE}/router/swap-quote`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           sender_wallet: publicKey.toString(),
-          recipient_handle: "",
           amount: parseFloat(String(parseResult.amount)),
           input_token: parseResult.token.toUpperCase(),
           output_token: parseResult.output_token.toUpperCase(),
