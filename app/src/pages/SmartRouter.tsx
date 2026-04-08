@@ -129,14 +129,14 @@ const SmartRouter = () => {
       );
       if (!res.ok) {
         const err: { detail?: string } = await res.json().catch(() => ({}));
-        throw new Error(err.detail ?? "Handle not found");
+        throw new Error(err.detail ?? "Handle, SNS or DNS not found");
       }
       const data: ResolveResult = await res.json();
       setResolveResult(data);
       setStep("confirm");
     } catch (err: unknown) {
       const message =
-        err instanceof Error ? err.message : "Could not resolve recipient";
+        err instanceof Error ? err.message : "Handle, SNS or DNS not found";
       setResolveError(message);
     } finally {
       setResolving(false);
@@ -154,6 +154,7 @@ const SmartRouter = () => {
 
     setQuoting(true);
     setTxError(null);
+    setResolveError(null);
     setQuoteResult(null);
 
     try {
