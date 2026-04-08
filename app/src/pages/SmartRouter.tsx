@@ -5,6 +5,7 @@ import { Buffer } from "buffer";
 import {
   PublicKey,
   Transaction,
+  VersionedTransaction,
   SystemProgram,
   LAMPORTS_PER_SOL,
 } from "@solana/web3.js";
@@ -214,7 +215,8 @@ const SmartRouter = () => {
       }
 
       const transactionBuf = Buffer.from(swapData.transaction, "base64");
-      const transaction = Transaction.from(transactionBuf);
+      // Jupiter v2 returns VersionedTransaction (v0)
+      const transaction = VersionedTransaction.deserialize(transactionBuf);
       const signed = await signTransaction(transaction);
       const serialized = signed.serialize();
       const base64Signed = Buffer.from(serialized).toString("base64");
