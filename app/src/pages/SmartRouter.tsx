@@ -2,7 +2,16 @@ import { useState, useRef, type KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useWallet } from "@solana/wallet-adapter-react";
 import DashboardLayout from "@/components/DashboardLayout";
-import { Zap, Send, ArrowRight, Loader2, AlertCircle, X } from "lucide-react";
+import UserAvatar from "@/components/UserAvatar";
+import {
+  Zap,
+  Send,
+  ArrowRight,
+  Loader2,
+  AlertCircle,
+  X,
+  Shield,
+} from "lucide-react";
 
 const API_BASE =
   import.meta.env.VITE_SOCIAL_API_URL ??
@@ -20,6 +29,18 @@ interface ParseResult {
   needs_more_info: boolean;
 }
 
+interface ResolveResult {
+  wallet: string;
+  handle: string | null;
+  trust_score: number | null;
+  risk_level: string | null;
+  avatar_url: string | null;
+  avatar_type: string | null;
+  badges: string[];
+  plan: string;
+  risk_warning: string | null;
+}
+
 const SmartRouter = () => {
   const { t } = useTranslation();
   const { publicKey } = useWallet();
@@ -29,6 +50,10 @@ const SmartRouter = () => {
   const [parsing, setParsing] = useState(false);
   const [parseResult, setParseResult] = useState<ParseResult | null>(null);
   const [parseError, setParseError] = useState<string | null>(null);
+  const [step, setStep] = useState<"input" | "confirm">("input");
+  const [resolving, setResolving] = useState(false);
+  const [resolveResult, setResolveResult] = useState<ResolveResult | null>(null);
+  const [resolveError, setResolveError] = useState<string | null>(null);
 
   const handleParse = async () => {
     const text = input.trim();
@@ -37,6 +62,9 @@ const SmartRouter = () => {
     setParsing(true);
     setParseError(null);
     setParseResult(null);
+    setStep("input");
+    setResolveResult(null);
+    setResolveError(null);
 
     try {
       const res = await fetch(`${API_BASE}/router/parse`, {
@@ -54,6 +82,32 @@ const SmartRouter = () => {
     }
   };
 
+  const handleContinue = async () => {
+    if (!parseResult?.handle) return;
+
+    setResolving(true);
+    setResolveError(null);
+
+    try {
+      const res = await fetch(
+        `${API_BASE}/router/resolve/${encodeURIComponent(parseResult.handle)}`,
+      );
+      if (!res.ok) {
+        const err: { detail?: string } = await res.json().catch(() => ({}));
+        throw new Error(err.detail ?? "Handle not found");
+      }
+      const data: ResolveResult = await res.json();
+      setResolveResult(data);
+      setStep("confirm");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Could not resolve recipient";
+      setResolveError(message);
+    } finally {
+      setResolving(false);
+    }
+  };
+
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -64,6 +118,9 @@ const SmartRouter = () => {
   const clearResult = () => {
     setParseResult(null);
     setParseError(null);
+    setResolveResult(null);
+    setResolveError(null);
+    setStep("input");
     setInput("");
     inputRef.current?.focus();
   };
@@ -261,13 +318,18 @@ const SmartRouter = () => {
               !parseResult.needs_more_info && (
                 <button
                   type="button"
-                  className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
-                  onClick={() => {
-                    console.log("Continue to resolve & confirm", parseResult);
-                  }}
+                  className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  onClick={() => void handleContinue()}
+                  disabled={resolving}
                 >
-                  <ArrowRight className="w-4 h-4" />
-                  {t("smart_router.continue", "Continue")}
+                  {resolving ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <ArrowRight className="w-4 h-4" />
+                  )}
+                  {resolving
+                    ? t("smart_router.resolving", "Resolving recipient...")
+                    : t("smart_router.continue", "Continue")}
                 </button>
               )}
 
@@ -288,6 +350,141 @@ const SmartRouter = () => {
                   {t("smart_router.continue_swap", "Preview Swap")}
                 </button>
               )}
+          </div>
+        )}
+
+        {/* Confirmation Card — Step 2 */}
+        {step === "confirm" && resolveResult && parseResult && (
+          <div className="glass-card p-5 space-y-5 animate-slide-up">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-foreground">
+                {t("smart_router.confirm_transfer", "Confirm Transfer")}
+              </h3>
+              <button
+                type="button"
+                onClick={clearResult}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {t("common.cancel", "Cancel")}
+              </button>
+            </div>
+
+            <div className="p-4 rounded-xl bg-muted/20 border border-border/50 space-y-3">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                {t("smart_router.sending_to", "Sending to")}
+              </p>
+              <div className="flex items-center gap-3">
+                <UserAvatar
+                  avatarUrl={resolveResult.avatar_url}
+                  avatarType={resolveResult.avatar_type}
+                  wallet={resolveResult.wallet}
+                  handle={resolveResult.handle}
+                  size={44}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-foreground">
+                      @{resolveResult.handle}
+                    </p>
+                    {resolveResult.trust_score != null && (
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1 ${
+                          resolveResult.trust_score >= 70
+                            ? "bg-emerald-500/10 text-emerald-400"
+                            : resolveResult.trust_score >= 40
+                              ? "bg-amber-500/10 text-amber-400"
+                              : "bg-rose-500/10 text-rose-400"
+                        }`}
+                      >
+                        <Shield className="w-3 h-3" />
+                        {Math.round(resolveResult.trust_score)}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground font-mono truncate">
+                    {resolveResult.wallet}
+                  </p>
+                </div>
+              </div>
+
+              {resolveResult.badges && resolveResult.badges.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {resolveResult.badges.slice(0, 3).map((badge) => (
+                    <span
+                      key={badge}
+                      className="px-2 py-0.5 rounded-full text-[10px] font-medium bg-primary/10 text-primary border border-primary/20"
+                    >
+                      {badge}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {resolveResult.risk_warning && (
+                <div className="flex items-center gap-2 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                  <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
+                  <p className="text-xs text-amber-400">
+                    {resolveResult.risk_warning}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 rounded-xl bg-muted/20 border border-border/50">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
+                    {t("smart_router.amount_label", "Amount")}
+                  </p>
+                  <p className="text-lg font-bold text-foreground">
+                    {parseResult.amount} {parseResult.token ?? "SOL"}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
+                    {t("smart_router.network_label", "Network")}
+                  </p>
+                  <p className="text-sm font-medium text-foreground">Solana</p>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
+              onClick={() => {
+                console.log("Execute transfer", { parseResult, resolveResult });
+              }}
+            >
+              <Send className="w-4 h-4" />
+              {t("smart_router.confirm_send", "Confirm & Send")}{" "}
+              {parseResult.amount} {parseResult.token ?? "SOL"}
+            </button>
+
+            <p className="text-[10px] text-muted-foreground/50 text-center">
+              {t(
+                "smart_router.sign_note",
+                "You will be asked to sign the transaction with your wallet.",
+              )}
+            </p>
+          </div>
+        )}
+
+        {resolveError && (
+          <div className="glass-card p-4 border-red-500/20 animate-slide-up">
+            <div className="flex items-center gap-3 text-red-400">
+              <AlertCircle className="w-5 h-5 shrink-0" />
+              <div>
+                <p className="text-sm font-medium">{resolveError}</p>
+                <button
+                  type="button"
+                  onClick={clearResult}
+                  className="text-xs text-primary hover:underline mt-1"
+                >
+                  Try again
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
