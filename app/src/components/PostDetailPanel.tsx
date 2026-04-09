@@ -100,6 +100,8 @@ export default function PostDetailPanel({
   const [nestedReplies, setNestedReplies] = useState<Record<number, any[]>>(
     {}
   );
+  const [currentPost, setCurrentPost] = useState<SocialPost>(post);
+  const [currentReplies, setCurrentReplies] = useState<any[]>(replies);
 
   useEffect(() => {
     setReplyToId(post.id);
@@ -111,8 +113,16 @@ export default function PostDetailPanel({
   }, [post.id]);
 
   useEffect(() => {
+    setCurrentPost(post);
+  }, [post.id]);
+
+  useEffect(() => {
+    setCurrentReplies(replies);
+  }, [replies]);
+
+  useEffect(() => {
     const loadNestedReplies = async () => {
-      for (const reply of replies) {
+      for (const reply of currentReplies) {
         if (reply.id == null) continue;
         if ((reply.reply_count ?? reply.replies_count ?? 0) > 0) {
           try {
@@ -129,23 +139,23 @@ export default function PostDetailPanel({
         }
       }
     };
-    if (replies.length > 0) void loadNestedReplies();
-  }, [replies.length]);
+    if (currentReplies.length > 0) void loadNestedReplies();
+  }, [currentReplies.length]);
 
-  const originalPost = post.original_post ?? null;
-  const isRepost = originalPost != null || !!post.is_repost;
-  const isQuoteRepost = !!post.quote_content;
+  const originalPost = currentPost.original_post ?? null;
+  const isRepost = originalPost != null || !!currentPost.is_repost;
+  const isQuoteRepost = !!currentPost.quote_content;
 
   const displayWallet =
-    isRepost && originalPost ? originalPost.wallet : post.wallet ?? "";
+    isRepost && originalPost ? originalPost.wallet : currentPost.wallet ?? "";
   const displayHandle =
     isRepost && originalPost
       ? originalPost.handle ?? null
-      : post.handle ?? null;
+      : currentPost.handle ?? null;
   const displayContent =
-    isRepost && originalPost ? originalPost.content : post.content;
+    isRepost && originalPost ? originalPost.content : currentPost.content;
   const imgUrl =
-    isRepost && originalPost ? originalPost.image_url : post.image_url;
+    isRepost && originalPost ? originalPost.image_url : currentPost.image_url;
 
   const handleLine = displayHandle
     ? `@${displayHandle}`
@@ -200,8 +210,8 @@ export default function PostDetailPanel({
         replyToId
       );
       setReplyContent("");
-      setReplyToId(post.id);
-      const data = await getPost(post.id);
+      setReplyToId(currentPost.id);
+      const data = await getPost(currentPost.id);
       onRepliesChange?.(data.replies ?? []);
     } catch (e) {
       console.error(e);
@@ -287,9 +297,9 @@ export default function PostDetailPanel({
           }}
         >
           <UserAvatar
-            avatarUrl={post.avatar_url ?? null}
-            avatarType={post.avatar_type ?? null}
-            avatarIsAnimated={post.avatar_is_animated ?? false}
+            avatarUrl={currentPost.avatar_url ?? null}
+            avatarType={currentPost.avatar_type ?? null}
+            avatarIsAnimated={currentPost.avatar_is_animated ?? false}
             handle={displayHandle}
             wallet={displayWallet}
             size={40}
@@ -325,7 +335,7 @@ export default function PostDetailPanel({
                 lineHeight: 1.5,
               }}
             >
-              {post.quote_content}
+              {currentPost.quote_content}
             </p>
           </div>
         )}
@@ -342,7 +352,7 @@ export default function PostDetailPanel({
           {linkifyContent(displayContent)}
         </p>
         {(() => {
-          const linkData = isRepost && originalPost ? originalPost : post;
+          const linkData = isRepost && originalPost ? originalPost : currentPost;
           return (linkData as any)?.link_url ? (
             <LinkPreviewCard
               url={(linkData as any).link_url}
@@ -354,7 +364,7 @@ export default function PostDetailPanel({
         })()}
 
         <div style={{ color: "#666", fontSize: 13, marginBottom: 12 }}>
-          {formatRelativeTime(post.created_at)}
+          {formatRelativeTime(currentPost.created_at)}
         </div>
 
         <div
@@ -367,18 +377,18 @@ export default function PostDetailPanel({
           }}
         >
           <span style={{ color: "#888", fontSize: 13 }}>
-            {post.likes_count ?? post.like_count ?? 0} Likes
+            {currentPost.likes_count ?? currentPost.like_count ?? 0} Likes
           </span>
           <span style={{ color: "#888", fontSize: 13 }}>
-            {post.replies_count ?? post.reply_count ?? 0}{" "}
+            {currentPost.replies_count ?? currentPost.reply_count ?? 0}{" "}
             {t("post.replies")}
           </span>
           <span style={{ color: "#888", fontSize: 13 }}>
-            {post.repost_count ?? 0} Reposts
+            {currentPost.repost_count ?? 0} Reposts
           </span>
         </div>
 
-        {replies.length === 0 ? (
+        {currentReplies.length === 0 ? (
           <div
             style={{
               color: "#555",
@@ -390,7 +400,7 @@ export default function PostDetailPanel({
             No replies yet. Be the first!
           </div>
         ) : (
-          replies.map((reply: any) => (
+          currentReplies.map((reply: any) => (
             <div
               key={
                 reply.id ??
@@ -412,13 +422,11 @@ export default function PostDetailPanel({
                 try {
                   const data = await getPost(reply.id);
                   if (data?.post) {
-                    // Replace current view with reply as main post
-                    Object.assign(post, data.post);
-                    onRepliesChange?.(data.replies ?? []);
+                    setCurrentPost(data.post);
+                    setCurrentReplies(data.replies ?? []);
                     setReplyToId(data.post.id);
                     setReplyContent("");
                     setNestedReplies({});
-                    // Force re-render by updating state
                     setLikedIds(new Set());
                     setLocalLikeCounts({});
                     setRepostedIds(new Set());
@@ -631,7 +639,7 @@ export default function PostDetailPanel({
             borderTop: "1px solid rgba(255,255,255,0.1)",
           }}
         >
-          {replyToId !== post.id && (
+          {replyToId !== currentPost.id && (
             <div
               style={{
                 fontSize: 12,
@@ -642,7 +650,7 @@ export default function PostDetailPanel({
               Replying to comment —{" "}
               <button
                 type="button"
-                onClick={() => setReplyToId(post.id)}
+                onClick={() => setReplyToId(currentPost.id)}
                 style={{
                   background: "none",
                   border: "none",
@@ -658,11 +666,11 @@ export default function PostDetailPanel({
           )}
           <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
             <UserAvatar
-              avatarUrl={post.avatar_url ?? null}
-              avatarType={post.avatar_type ?? null}
-              avatarIsAnimated={post.avatar_is_animated ?? false}
-              handle={post.handle ?? null}
-              wallet={post.wallet ?? null}
+              avatarUrl={currentPost.avatar_url ?? null}
+              avatarType={currentPost.avatar_type ?? null}
+              avatarIsAnimated={currentPost.avatar_is_animated ?? false}
+              handle={currentPost.handle ?? null}
+              wallet={currentPost.wallet ?? null}
               size={32}
             />
             <div style={{ flex: 1 }}>
