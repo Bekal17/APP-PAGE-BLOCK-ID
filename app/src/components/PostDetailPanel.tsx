@@ -405,6 +405,107 @@ export default function PostDetailPanel({
             padding: "0 20px 20px 20px",
           }}
         >
+          <div
+            style={{
+              marginTop: 16,
+              paddingTop: 16,
+              borderTop: "1px solid rgba(255,255,255,0.1)",
+            }}
+          >
+            {replyToId !== currentPost.id && (
+              <div
+                style={{
+                  fontSize: 12,
+                  color: "hsl(var(--primary))",
+                  marginBottom: 6,
+                }}
+              >
+                Replying to comment —{" "}
+                <button
+                  type="button"
+                  onClick={() => setReplyToId(currentPost.id)}
+                  style={{
+                    background: "none",
+                    border: "none",
+                    color: "#666",
+                    fontSize: 12,
+                    cursor: "pointer",
+                    textDecoration: "underline",
+                  }}
+                >
+                  {t("common.cancel")}
+                </button>
+              </div>
+            )}
+            <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+              <UserAvatar
+                avatarUrl={currentPost.avatar_url ?? null}
+                avatarType={currentPost.avatar_type ?? null}
+                avatarIsAnimated={currentPost.avatar_is_animated ?? false}
+                handle={currentPost.handle ?? null}
+                wallet={currentPost.wallet ?? null}
+                size={32}
+              />
+              <div style={{ flex: 1 }}>
+                <textarea
+                  value={replyContent}
+                  onChange={(e) => setReplyContent(e.target.value)}
+                  placeholder={t("post.placeholder_reply")}
+                  maxLength={280}
+                  rows={2}
+                  style={{
+                    width: "100%",
+                    background: "transparent",
+                    border: "none",
+                    outline: "none",
+                    color: "#fff",
+                    fontSize: 14,
+                    resize: "none",
+                    fontFamily: "inherit",
+                    lineHeight: 1.5,
+                  }}
+                />
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginTop: 8,
+                    paddingTop: 8,
+                    borderTop: "1px solid rgba(255,255,255,0.08)",
+                  }}
+                >
+                  <span style={{ color: "#666", fontSize: 12 }}>
+                    {replyContent.length}/280
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => void handleSubmitReply()}
+                    disabled={
+                      !replyContent.trim() || replyLoading || !publicKey
+                    }
+                    style={{
+                      padding: "6px 18px",
+                      borderRadius: 20,
+                      background: "hsl(var(--primary))",
+                      border: "none",
+                      color: "#fff",
+                      fontSize: 13,
+                      fontWeight: "bold",
+                      cursor: "pointer",
+                      opacity:
+                        !replyContent.trim() || replyLoading || !publicKey
+                          ? 0.5
+                          : 1,
+                    }}
+                  >
+                    {replyLoading ? t("post.replying") : t("post.reply")}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {currentReplies.length === 0 ? (
             <div
               style={{
@@ -649,106 +750,6 @@ export default function PostDetailPanel({
             ))
           )}
 
-          <div
-            style={{
-              marginTop: 16,
-              paddingTop: 16,
-              borderTop: "1px solid rgba(255,255,255,0.1)",
-            }}
-          >
-            {replyToId !== currentPost.id && (
-              <div
-                style={{
-                  fontSize: 12,
-                  color: "hsl(var(--primary))",
-                  marginBottom: 6,
-                }}
-              >
-                Replying to comment —{" "}
-                <button
-                  type="button"
-                  onClick={() => setReplyToId(currentPost.id)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    color: "#666",
-                    fontSize: 12,
-                    cursor: "pointer",
-                    textDecoration: "underline",
-                  }}
-                >
-                  {t("common.cancel")}
-                </button>
-              </div>
-            )}
-            <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-              <UserAvatar
-                avatarUrl={currentPost.avatar_url ?? null}
-                avatarType={currentPost.avatar_type ?? null}
-                avatarIsAnimated={currentPost.avatar_is_animated ?? false}
-                handle={currentPost.handle ?? null}
-                wallet={currentPost.wallet ?? null}
-                size={32}
-              />
-              <div style={{ flex: 1 }}>
-                <textarea
-                  value={replyContent}
-                  onChange={(e) => setReplyContent(e.target.value)}
-                  placeholder={t("post.placeholder_reply")}
-                  maxLength={280}
-                  rows={2}
-                  style={{
-                    width: "100%",
-                    background: "transparent",
-                    border: "none",
-                    outline: "none",
-                    color: "#fff",
-                    fontSize: 14,
-                    resize: "none",
-                    fontFamily: "inherit",
-                    lineHeight: 1.5,
-                  }}
-                />
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginTop: 8,
-                    paddingTop: 8,
-                    borderTop: "1px solid rgba(255,255,255,0.08)",
-                  }}
-                >
-                  <span style={{ color: "#666", fontSize: 12 }}>
-                    {replyContent.length}/280
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => void handleSubmitReply()}
-                    disabled={
-                      !replyContent.trim() || replyLoading || !publicKey
-                    }
-                    style={{
-                      padding: "6px 18px",
-                      borderRadius: 20,
-                      background: "hsl(var(--primary))",
-                      border: "none",
-                      color: "#fff",
-                      fontSize: 13,
-                      fontWeight: "bold",
-                      cursor: "pointer",
-                      opacity:
-                        !replyContent.trim() || replyLoading || !publicKey
-                          ? 0.5
-                          : 1,
-                    }}
-                  >
-                    {replyLoading ? t("post.replying") : t("post.reply")}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
