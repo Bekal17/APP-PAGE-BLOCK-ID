@@ -347,12 +347,13 @@ export async function reportPost(
 export async function likePost(wallet: string, postId: number) {
   const res = await fetch(buildSocialUrl("/social/like"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: getAuthHeaders(),
     body: JSON.stringify({
       wallet,
       post_id: postId,
       signed_message: "BlockID Like",
       signature: "devtest_signature_bypass",
+      session_token: getSessionToken(),
     }),
   });
   if (!res.ok) throw new Error("Failed to like post");
