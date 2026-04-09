@@ -380,21 +380,120 @@ export default function PostDetailPanel({
           <div
             style={{
               display: "flex",
-              gap: 16,
+              gap: 20,
               paddingBottom: 12,
               marginBottom: 12,
             }}
           >
-            <span style={{ color: "#888", fontSize: 13 }}>
-              {currentPost.likes_count ?? currentPost.like_count ?? 0} Likes
-            </span>
-            <span style={{ color: "#888", fontSize: 13 }}>
+            <button
+              type="button"
+              onClick={() => {
+                if (!publicKey) return;
+                const id = currentPost.id;
+                const isLiked = likedIds.has(id);
+                setLikedIds((prev) => {
+                  const n = new Set(prev);
+                  if (isLiked) n.delete(id);
+                  else n.add(id);
+                  return n;
+                });
+                setLocalLikeCounts((prev) => ({
+                  ...prev,
+                  [id]: isLiked
+                    ? Math.max(
+                        (prev[id] ??
+                          currentPost.like_count ??
+                          currentPost.likes_count ??
+                          0) - 1,
+                        0
+                      )
+                    : (prev[id] ??
+                        currentPost.like_count ??
+                        currentPost.likes_count ??
+                        0) + 1,
+                }));
+                (
+                  isLiked
+                    ? unlikePost(publicKey.toBase58(), id)
+                    : likePost(publicKey.toBase58(), id)
+                ).catch(console.error);
+              }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: likedIds.has(currentPost.id) ? "#f87171" : "#888",
+                fontSize: 13,
+              }}
+            >
+              <Heart
+                className={`w-4 h-4 ${
+                  likedIds.has(currentPost.id)
+                    ? "fill-red-400 text-red-400"
+                    : "text-zinc-500"
+                }`}
+              />
+              {localLikeCounts[currentPost.id] ??
+                currentPost.likes_count ??
+                currentPost.like_count ??
+                0}{" "}
+              Likes
+            </button>
+
+            <span
+              style={{
+                color: "#888",
+                fontSize: 13,
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
+              <MessageSquare className="w-4 h-4 text-zinc-500" />
               {currentPost.replies_count ?? currentPost.reply_count ?? 0}{" "}
               {t("post.replies")}
             </span>
-            <span style={{ color: "#888", fontSize: 13 }}>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (!publicKey) return;
+                void (async () => {
+                  try {
+                    await repostPost(publicKey.toBase58(), currentPost.id);
+                    setRepostedIds((prev) => {
+                      const n = new Set(prev);
+                      n.add(currentPost.id);
+                      return n;
+                    });
+                  } catch (e) {
+                    console.error(e);
+                  }
+                })();
+              }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                color: repostedIds.has(currentPost.id) ? "#4ade80" : "#888",
+                fontSize: 13,
+              }}
+            >
+              <Repeat2
+                className={`w-4 h-4 ${
+                  repostedIds.has(currentPost.id)
+                    ? "text-green-400"
+                    : "text-zinc-500"
+                }`}
+              />
               {currentPost.repost_count ?? 0} Reposts
-            </span>
+            </button>
           </div>
         </div>
 
