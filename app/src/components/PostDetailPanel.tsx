@@ -462,7 +462,7 @@ export default function PostDetailPanel({
                     marginBottom: 8,
                   }}
                 >
-                  {reply.content}
+                  {linkifyContent(reply.content)}
                 </p>
 
                 <div style={{ display: "flex", gap: 16, marginBottom: 4 }}>
@@ -592,7 +592,7 @@ export default function PostDetailPanel({
                         marginLeft: 30,
                       }}
                     >
-                      {nested.content}
+                      {linkifyContent(nested.content)}
                     </p>
                   </div>
                 ))}
