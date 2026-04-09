@@ -1525,6 +1525,15 @@ const Dashboard = () => {
                       [selectedPost.id]: newReplies,
                     }))
                   }
+                  onReplySuccess={(postId) => {
+                    setFeed((prev) =>
+                      prev.map((p) =>
+                        p.id === postId
+                          ? { ...p, reply_count: (p.reply_count ?? 0) + 1 }
+                          : p
+                      )
+                    );
+                  }}
                 />
               </div>
             </div>

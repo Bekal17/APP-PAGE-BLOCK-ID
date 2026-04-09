@@ -79,6 +79,7 @@ type Props = {
   replies: any[];
   onClose?: () => void;
   onRepliesChange?: (replies: any[]) => void;
+  onReplySuccess?: (postId: number) => void;
 };
 
 export default function PostDetailPanel({
@@ -86,6 +87,7 @@ export default function PostDetailPanel({
   replies,
   onClose,
   onRepliesChange,
+  onReplySuccess,
 }: Props) {
   const { t } = useTranslation();
   const { publicKey } = useWallet();
@@ -213,6 +215,7 @@ export default function PostDetailPanel({
       setReplyToId(currentPost.id);
       const data = await getPost(currentPost.id);
       onRepliesChange?.(data.replies ?? []);
+      onReplySuccess?.(currentPost.id);
     } catch (e) {
       console.error(e);
     } finally {
