@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   AreaChart,
   Area,
@@ -123,6 +124,7 @@ interface Props {
 }
 
 export default function WalletActivityChart({ wallet, activity }: Props = {}) {
+  const { t } = useTranslation();
   const [range, setRange] = useState<RangeKey>("30D");
   const [chartMode, setChartMode] = useState<ChartMode>("volume");
   const [selectedToken, setSelectedToken] = useState<string | null>(null);
@@ -227,7 +229,9 @@ export default function WalletActivityChart({ wallet, activity }: Props = {}) {
     <div className="rounded-2xl border border-border bg-card/40 backdrop-blur p-6 transition-shadow hover:shadow-[0_0_20px_rgba(0,255,200,0.15)] col-span-1 md:col-span-2 lg:col-span-12">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
         <div className="flex flex-wrap items-center gap-4">
-          <h2 className="text-lg font-semibold text-foreground">Wallet Activity</h2>
+          <h2 className="text-lg font-semibold text-foreground">
+            {t("profile.wallet_activity", "Wallet Activity")}
+          </h2>
           <div className="flex rounded-lg bg-muted/50 p-0.5">
             <button
               type="button"
@@ -238,7 +242,7 @@ export default function WalletActivityChart({ wallet, activity }: Props = {}) {
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              Volume
+              {t("profile.volume", "Volume")}
             </button>
             <button
               type="button"
@@ -249,7 +253,7 @@ export default function WalletActivityChart({ wallet, activity }: Props = {}) {
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
-              Inflow/Outflow
+              {t("profile.inflow_outflow", "Inflow/Outflow")}
             </button>
           </div>
         </div>
@@ -279,14 +283,14 @@ export default function WalletActivityChart({ wallet, activity }: Props = {}) {
               className="w-2.5 h-2.5 rounded-full shrink-0"
               style={{ backgroundColor: INFLOW_COLOR }}
             />
-            Inflow
+            {t("profile.chart_inflow", "Inflow")}
           </span>
           <span className="inline-flex items-center gap-2 text-xs font-medium text-muted-foreground">
             <span
               className="w-2.5 h-2.5 rounded-full shrink-0"
               style={{ backgroundColor: OUTFLOW_COLOR }}
             />
-            Outflow
+            {t("profile.chart_outflow", "Outflow")}
           </span>
         </div>
       ) : (
@@ -319,7 +323,11 @@ export default function WalletActivityChart({ wallet, activity }: Props = {}) {
                 style={{ backgroundColor: color }}
               />
               {token}
-              {isActive && <span className="text-muted-foreground">(filtered)</span>}
+              {isActive && (
+                <span className="text-muted-foreground">
+                  ({t("profile.chart_filtered", "filtered")})
+                </span>
+              )}
             </button>
           );
         })}
@@ -331,7 +339,10 @@ export default function WalletActivityChart({ wallet, activity }: Props = {}) {
                 type="button"
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-muted/50 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               >
-                +{othersCount} others
+                {t("profile.chart_others_more", {
+                  count: othersCount,
+                  defaultValue: "+{{count}} others",
+                })}
                 <ChevronDown className="w-3.5 h-3.5" />
               </button>
             </PopoverTrigger>
@@ -355,7 +366,11 @@ export default function WalletActivityChart({ wallet, activity }: Props = {}) {
                         style={{ backgroundColor: color }}
                       />
                       {token}
-                      {isActive && <span className="text-muted-foreground ml-1">(filtered)</span>}
+                      {isActive && (
+                        <span className="text-muted-foreground ml-1">
+                          ({t("profile.chart_filtered", "filtered")})
+                        </span>
+                      )}
                     </button>
                   );
                 })}
@@ -370,7 +385,7 @@ export default function WalletActivityChart({ wallet, activity }: Props = {}) {
             onClick={() => setSelectedToken(null)}
             className="text-xs text-muted-foreground hover:text-foreground underline"
           >
-            Show all
+            {t("profile.chart_show_all", "Show all")}
           </button>
         )}
       </div>
@@ -411,8 +426,18 @@ export default function WalletActivityChart({ wallet, activity }: Props = {}) {
                   color: "hsl(210, 20%, 92%)",
                   fontSize: "12px",
                 }}
-                formatter={(value: number, name: string) => [`${value}`, name === "inflow" ? "Inflow" : "Outflow"]}
-                labelFormatter={(label) => `Period: ${label}`}
+                formatter={(value: number, name: string) => [
+                  `${value}`,
+                  name === "inflow"
+                    ? t("profile.chart_inflow", "Inflow")
+                    : t("profile.chart_outflow", "Outflow"),
+                ]}
+                labelFormatter={(label) =>
+                  t("profile.chart_period_label", {
+                    label,
+                    defaultValue: "Period: {{label}}",
+                  })
+                }
               />
               <Area
                 type="monotone"
@@ -460,8 +485,19 @@ export default function WalletActivityChart({ wallet, activity }: Props = {}) {
                   color: "hsl(210, 20%, 92%)",
                   fontSize: "12px",
                 }}
-                formatter={(value: number) => [`${value} txns`, selectedToken ?? "Total"]}
-                labelFormatter={(label) => `Period: ${label}`}
+                formatter={(value: number) => [
+                  t("profile.chart_txns_value", {
+                    value,
+                    defaultValue: "{{value}} txns",
+                  }),
+                  selectedToken ?? t("profile.chart_total", "Total"),
+                ]}
+                labelFormatter={(label) =>
+                  t("profile.chart_period_label", {
+                    label,
+                    defaultValue: "Period: {{label}}",
+                  })
+                }
               />
               <Area
                 type="monotone"

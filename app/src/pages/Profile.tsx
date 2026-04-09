@@ -129,35 +129,6 @@ const getStatusMessage = (riskColor: string, riskTier: string) => {
   return "Safe";
 };
 
-const buildRiskAlerts = (data: {
-  primary_risk_driver?: string | null;
-  propagation_signal?: string;
-  cluster?: { cluster_id?: string; size?: number } | null;
-  badges?: string[];
-}) => {
-  const alerts: string[] = [];
-  const sig = (data.propagation_signal ?? "").toUpperCase();
-  if (sig === "HIGH" || sig === "MEDIUM") {
-    alerts.push("Interaction with high-risk wallet");
-  }
-  if (data.cluster) {
-    alerts.push("Cluster exposure detected");
-  }
-  if (data.primary_risk_driver) {
-    if (data.primary_risk_driver.includes("SCAM") || data.primary_risk_driver.includes("CLUSTER")) {
-      if (!alerts.some((a) => a.includes("Cluster"))) {
-        alerts.push("Cluster exposure detected");
-      }
-    } else {
-      alerts.push("Suspicious token interaction");
-    }
-  }
-  if (data.badges?.some((b) => b.includes("SCAM") || b.includes("RISK"))) {
-    alerts.push("Suspicious token interaction");
-  }
-  return [...new Set(alerts)];
-};
-
 interface DashboardData {
   risk_level?: string;
   risk_tier?: string;
@@ -275,6 +246,49 @@ const Profile = () => {
   const { walletParam } = useParams<{ walletParam: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  const buildRiskAlerts = (riskData: {
+    primary_risk_driver?: string | null;
+    propagation_signal?: string;
+    cluster?: { cluster_id?: string; size?: number } | null;
+    badges?: string[];
+  }) => {
+    const alerts: string[] = [];
+    const sig = (riskData.propagation_signal ?? "").toUpperCase();
+    if (sig === "HIGH" || sig === "MEDIUM") {
+      alerts.push(
+        t("profile.alert_high_risk_wallet", "Interaction with high-risk wallet")
+      );
+    }
+    const clusterExposure = t(
+      "profile.alert_cluster_exposure",
+      "Cluster exposure detected"
+    );
+    if (riskData.cluster) {
+      alerts.push(clusterExposure);
+    }
+    if (riskData.primary_risk_driver) {
+      if (
+        riskData.primary_risk_driver.includes("SCAM") ||
+        riskData.primary_risk_driver.includes("CLUSTER")
+      ) {
+        if (!alerts.includes(clusterExposure)) {
+          alerts.push(clusterExposure);
+        }
+      } else {
+        alerts.push(
+          t("profile.alert_suspicious_token", "Suspicious token interaction")
+        );
+      }
+    }
+    if (riskData.badges?.some((b) => b.includes("SCAM") || b.includes("RISK"))) {
+      alerts.push(
+        t("profile.alert_suspicious_token", "Suspicious token interaction")
+      );
+    }
+    return [...new Set(alerts)];
+  };
+
   const [profile, setProfile] = useState<any | null>(null);
   const [posts, setPosts] = useState<any[]>([]);
   const [activeProfileTab, setActiveProfileTab] = useState<
@@ -773,14 +787,16 @@ const Profile = () => {
     )
     .slice(0, 5)
     .map((c) => ({
-      label: `Unknown wallet transfer — ${(c.risk_tier ?? "MEDIUM").toUpperCase()} risk`,
+      label: t("profile.suspicious_unknown_transfer", {
+        tier: (c.risk_tier ?? "MEDIUM").toUpperCase(),
+      }),
       wallet: c.wallet,
       risk: c.risk_tier,
     }));
   const evidenceItems = (data?.evidence ?? [])
     .slice(0, Math.max(0, 5 - counterpartyItems.length))
     .map((e) => ({
-      label: `${e.reason} — HIGH risk`,
+      label: t("profile.evidence_high_risk_line", { reason: e.reason }),
       wallet: "",
       risk: "HIGH",
     }));
@@ -791,7 +807,7 @@ const Profile = () => {
     new Set(data?.counterparties?.map((c) => c.wallet) ?? []).size;
 
   const getBehaviorPatterns = (data: DashboardData | null, score: number): string[] => {
-    if (!data) return ["No pattern detected"];
+    if (!data) return [t("profile.no_pattern_detected", "No pattern detected")];
 
     // Priority 1: use reasons from backend if available
     const reasons: string[] = walletDashboard?.reasons ?? [];
@@ -802,13 +818,13 @@ const Profile = () => {
 
       // === HIGH RISK PATTERNS ===
       if (reasonSet.has("MEGA_DRAINER") || reasonSet.has("DRAINER_FLOW") || reasonSet.has("DRAINER_FLOW_DETECTED")) {
-        patterns.push("Drainer pattern detected");
-        patterns.push("Elevated propagation risk");
+        patterns.push(t("profile.bh_drainer", "Drainer pattern detected"));
+        patterns.push(t("profile.bh_propagation", "Elevated propagation risk"));
         return patterns;
       }
       if (reasonSet.has("RUG_PULL_DEPLOYER")) {
-        patterns.push("Rug pull deployer");
-        patterns.push("Elevated propagation risk");
+        patterns.push(t("profile.bh_rug_pull", "Rug pull deployer"));
+        patterns.push(t("profile.bh_propagation", "Elevated propagation risk"));
         return patterns;
       }
       if (
@@ -816,69 +832,69 @@ const Profile = () => {
         reasonSet.has("SCAM_CLUSTER_MEMBER_SMALL") ||
         reasonSet.has("SCAM_CLUSTER_MEMBER_LARGE")
       ) {
-        patterns.push("Cluster-linked wallet");
-        patterns.push("Elevated risk exposure");
+        patterns.push(t("profile.bh_cluster_linked", "Cluster-linked wallet"));
+        patterns.push(t("profile.bh_elevated_risk", "Elevated risk exposure"));
         return patterns;
       }
       if (reasonSet.has("HIGH_RISK_TOKEN_INTERACTION") || reasonSet.has("SUSPICIOUS_TOKEN_MINT")) {
-        patterns.push("Suspicious token activity");
-        patterns.push("Elevated risk exposure");
+        patterns.push(t("profile.bh_suspicious_token_act", "Suspicious token activity"));
+        patterns.push(t("profile.bh_elevated_risk", "Elevated risk exposure"));
         return patterns;
       }
       if (reasonSet.has("BLACKLISTED_CREATOR")) {
-        patterns.push("Blacklisted creator");
-        patterns.push("Elevated risk exposure");
+        patterns.push(t("profile.bh_blacklisted", "Blacklisted creator"));
+        patterns.push(t("profile.bh_elevated_risk", "Elevated risk exposure"));
         return patterns;
       }
 
       // === MEDIUM RISK PATTERNS ===
       if (reasonSet.has("HIGH_VALUE_OUTFLOW")) {
-        patterns.push("High value outflow detected");
+        patterns.push(t("profile.bh_high_outflow", "High value outflow detected"));
         return patterns;
       }
       if (reasonSet.has("VICTIM_OF_SCAM")) {
-        patterns.push("Previous scam victim");
-        patterns.push("Monitor interactions");
+        patterns.push(t("profile.bh_prev_scam_victim", "Previous scam victim"));
+        patterns.push(t("profile.bh_monitor_interactions", "Monitor interactions"));
         return patterns;
       }
 
       // === LOW RISK / INFO PATTERNS ===
       if (reasonSet.has("LOW_ACTIVITY")) {
-        patterns.push("Low on-chain activity");
-        patterns.push("Insufficient data for full analysis");
+        patterns.push(t("profile.bh_low_onchain", "Low on-chain activity"));
+        patterns.push(t("profile.bh_insufficient_data", "Insufficient data for full analysis"));
         return patterns;
       }
       if (reasonSet.has("NEW_WALLET")) {
-        patterns.push("New wallet");
-        patterns.push("No history available");
+        patterns.push(t("profile.bh_new_wallet", "New wallet"));
+        patterns.push(t("profile.bh_no_history", "No history available"));
         return patterns;
       }
 
       // === POSITIVE PATTERNS ===
       if (reasonSet.has("MEGA_DRAINER") === false) {
         if (reasonSet.has("DEX_TRADER") || reasonSet.has("DEX_TRADER_10_PLUS") || reasonSet.has("DEX_TRADER_50_PLUS")) {
-          patterns.push("Active DEX trader");
+          patterns.push(t("profile.bh_active_dex", "Active DEX trader"));
         }
         if (reasonSet.has("NFT_COLLECTOR") || reasonSet.has("NFT_10_PLUS")) {
-          patterns.push("NFT collector");
+          patterns.push(t("profile.bh_nft_collector", "NFT collector"));
         }
         if (reasonSet.has("LONG_HISTORY") || reasonSet.has("MULTI_YEAR_ACTIVITY") || reasonSet.has("AGE_3Y") || reasonSet.has("AGE_5Y")) {
-          patterns.push("Long-term holder");
+          patterns.push(t("profile.bh_long_term", "Long-term holder"));
         }
         if (reasonSet.has("LOW_RISK_CLUSTER") || reasonSet.has("FAR_FROM_SCAM_CLUSTER")) {
-          patterns.push("Low-risk network");
+          patterns.push(t("profile.bh_low_risk_net", "Low-risk network"));
         }
         if (reasonSet.has("CLEAN_HISTORY") || reasonSet.has("NO_SCAM_HISTORY")) {
-          patterns.push("No drainer pattern");
+          patterns.push(t("profile.bh_no_drainer", "No drainer pattern"));
         }
         if (reasonSet.has("VERIFIED_WALLET_LINK")) {
-          patterns.push("Multi-wallet identity verified");
+          patterns.push(t("profile.bh_multi_verified", "Multi-wallet identity verified"));
         }
         if (reasonSet.has("MULTI_WALLET_IDENTITY")) {
-          patterns.push("Aggregated trust from linked wallets");
+          patterns.push(t("profile.bh_agg_trust", "Aggregated trust from linked wallets"));
         }
         if (reasonSet.has("DAO_MEMBER")) {
-          patterns.push("DAO participant");
+          patterns.push(t("profile.bh_dao", "DAO participant"));
         }
         if (patterns.length > 0) return patterns;
       }
@@ -886,15 +902,28 @@ const Profile = () => {
 
     // Priority 2: fallback to score-based if no reasons
     if (score > 80) {
-      return ["Long-term holder", "Low-risk network", "No drainer pattern"];
+      return [
+        t("profile.bh_long_term", "Long-term holder"),
+        t("profile.bh_low_risk_net", "Low-risk network"),
+        t("profile.bh_no_drainer", "No drainer pattern"),
+      ];
     }
     if (score >= 40) {
-      return ["Active trader", "Moderate exposure"];
+      return [
+        t("profile.bh_active_trader", "Active trader"),
+        t("profile.bh_moderate_exp", "Moderate exposure"),
+      ];
     }
     if (score >= 20) {
-      return ["Elevated risk exposure", "Review recommended"];
+      return [
+        t("profile.bh_elevated_risk", "Elevated risk exposure"),
+        t("profile.bh_review_rec", "Review recommended"),
+      ];
     }
-    return ["Cluster-linked wallet", "Elevated risk exposure"];
+    return [
+      t("profile.bh_cluster_linked", "Cluster-linked wallet"),
+      t("profile.bh_elevated_risk", "Elevated risk exposure"),
+    ];
   };
 
   const behaviorPatterns = getBehaviorPatterns(data, score);
@@ -1691,7 +1720,7 @@ const Profile = () => {
                     {balance.tokens?.length === 0 &&
                       (balance.sol_balance ?? 0) === 0 && (
                         <p className="text-xs text-muted-foreground text-center py-2 mt-2">
-                          No assets found
+                          {t("profile.no_assets_found", "No assets found")}
                         </p>
                       )}
                   </>
@@ -1727,7 +1756,9 @@ const Profile = () => {
                     onClick={handleRecalculate}
                     className="rounded-lg bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white px-4 py-2 transition"
                   >
-                    {analyzing ? "Analyzing..." : t("profile.recalculate_score")}
+                    {analyzing
+                      ? t("profile.analyzing", "Analyzing...")
+                      : t("profile.recalculate", "Recalculate Score")}
                   </Button>
                   <a
                     href="https://daemonprotocol.com"
@@ -1743,7 +1774,7 @@ const Profile = () => {
               {walletLoading ? (
                 <div className="flex items-center justify-center py-12">
                   <div className="animate-pulse text-muted-foreground">
-                    Loading...
+                    {t("common.loading", "Loading...")}
                   </div>
                 </div>
               ) : error ? (
@@ -1822,7 +1853,7 @@ const Profile = () => {
                       </p>
                       <ul className="space-y-1.5">
                         {(walletLoading
-                          ? ["No pattern detected"]
+                          ? [t("profile.no_pattern_detected", "No pattern detected")]
                           : getBehaviorPatterns(data, score)
                         ).map((pattern, i) => (
                           <li
@@ -1856,8 +1887,8 @@ const Profile = () => {
                             }`} />
                             <span className="text-xs text-foreground">
                               {cyclops.is_sanctioned
-                                ? "SANCTIONED"
-                                : `${t("profile.sanctions")}: Clean`}
+                                ? t("profile.sanctioned_status", "SANCTIONED")
+                                : `${t("profile.sanctions")}: ${t("profile.sanctions_clean", "Clean")}`}
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
@@ -1875,7 +1906,7 @@ const Profile = () => {
                             </span>
                           </div>
                           <p className="text-[10px] text-muted-foreground/50 mt-1">
-                            Powered by Daemon Protocol
+                            {t("profile.powered_by_daemon", "Powered by Daemon Protocol")}
                           </p>
                         </div>
                       </div>
@@ -1893,7 +1924,9 @@ const Profile = () => {
                 {t("profile.risk_alerts")}
               </h2>
               {walletLoading ? (
-                <p className="text-sm text-muted-foreground">Loading...</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("common.loading", "Loading...")}
+                </p>
               ) : riskAlerts.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   {t("profile.no_risk_alerts")}
@@ -1921,7 +1954,9 @@ const Profile = () => {
                 {t("profile.suspicious_interactions")}
               </h2>
               {walletLoading ? (
-                <p className="text-sm text-muted-foreground">Loading...</p>
+                <p className="text-sm text-muted-foreground">
+                  {t("common.loading", "Loading...")}
+                </p>
               ) : suspiciousItems.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   {t("profile.no_suspicious")}
@@ -1953,13 +1988,18 @@ const Profile = () => {
                 className={`${cardClass} col-span-1 md:col-span-2 lg:col-span-6`}
               >
                 <h2 className="text-lg font-semibold text-foreground mb-4">
-                  Trust Improvement Tips
+                  {t("profile.trust_tips", "Trust Improvement Tips")}
                 </h2>
                 {walletLoading ? (
-                  <p className="text-sm text-muted-foreground">Loading...</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("common.loading", "Loading...")}
+                  </p>
                 ) : recommendedActions.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
-                    No recommendations at this time.
+                    {t(
+                      "profile.no_recommendations_tips",
+                      "No recommendations at this time."
+                    )}
                   </p>
                 ) : (
                   <ul className="space-y-2">
@@ -1993,7 +2033,9 @@ const Profile = () => {
                     </p>
                   </div>
                   <div>
-                    <p className="stat-label">Unique Counterparties</p>
+                    <p className="stat-label">
+                      {t("profile.unique_counterparties", "Unique Counterparties")}
+                    </p>
                     <p className="stat-value mt-1">
                       {walletLoading ? "—" : uniqueCounterparties}
                     </p>
@@ -2016,11 +2058,11 @@ const Profile = () => {
           <div className="space-y-3 mt-4">
             {activityLoading ? (
               <div className="glass-card p-4 text-center text-sm text-muted-foreground">
-                Loading activity...
+                {t("profile.loading_activity", "Loading activity...")}
               </div>
             ) : activityFeed.length === 0 ? (
               <div className="glass-card p-6 text-center text-sm text-muted-foreground">
-                No activity yet.
+                {t("profile.no_activity_yet", "No activity yet.")}
               </div>
             ) : (
               activityFeed.map((item, idx) => (
@@ -2072,9 +2114,12 @@ const Profile = () => {
 
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p className="text-sm text-foreground font-medium mb-1">
-                      {item.activity_type === "liked" && "Liked a post"}
-                      {item.activity_type === "reposted" && "Reposted"}
-                      {item.activity_type === "commented" && "Replied to a post"}
+                      {item.activity_type === "liked" &&
+                        t("profile.activity_liked_post", "Liked a post")}
+                      {item.activity_type === "reposted" &&
+                        t("profile.activity_reposted", "Reposted")}
+                      {item.activity_type === "commented" &&
+                        t("profile.activity_replied", "Replied to a post")}
                     </p>
                     <p className="text-xs text-muted-foreground line-clamp-2">
                       {item.activity_type === "commented"
@@ -2123,7 +2168,7 @@ const Profile = () => {
               </>
             ) : posts.length === 0 ? (
               <div className="glass-card p-6 text-center text-sm text-muted-foreground">
-                No posts yet.
+                {t("profile.no_posts_yet", "No posts yet.")}
               </div>
             ) : (
               posts.map((post: any) => {
