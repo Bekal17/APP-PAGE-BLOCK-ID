@@ -1887,8 +1887,8 @@ const Profile = () => {
                             }`} />
                             <span className="text-xs text-foreground">
                               {cyclops.is_sanctioned
-                                ? t("profile.sanctioned_status", "SANCTIONED")
-                                : `${t("profile.sanctions")}: ${t("profile.sanctions_clean", "Clean")}`}
+                                ? `Sanctions: ${cyclops.sanctions_status ?? "SANCTIONED"}`
+                                : `Sanctions: ${cyclops.sanctions_status ?? "Clean"}`}
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
