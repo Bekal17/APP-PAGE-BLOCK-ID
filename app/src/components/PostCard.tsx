@@ -169,6 +169,7 @@ function RepostMenu({
   onQuote,
 }: RepostMenuProps) {
   const p = post as SocialPost & { repost_of?: number | null };
+  const { t } = useTranslation();
   return (
     <div className="relative">
       <button
