@@ -171,6 +171,13 @@ const Dashboard = () => {
   selectedPostIdRef.current = selectedPost?.id ?? null;
 
   useEffect(() => {
+    document.body.style.overflow = selectedPost ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [selectedPost]);
+
+  useEffect(() => {
     if (!selectedPost?.id) return;
     getPost(selectedPost.id)
       .then((data) => {
@@ -1488,9 +1495,11 @@ const Dashboard = () => {
               role="dialog"
               aria-modal="true"
               onClick={() => {
+                document.body.style.overflow = "";
                 setReplyToId(null);
                 setSelectedPost(null);
               }}
+              onWheel={(e) => e.stopPropagation()}
               style={{
                 position: "fixed",
                 inset: 0,
@@ -1516,6 +1525,7 @@ const Dashboard = () => {
                   post={selectedPost}
                   replies={replies[selectedPost.id] ?? []}
                   onClose={() => {
+                    document.body.style.overflow = "";
                     setReplyToId(null);
                     setSelectedPost(null);
                   }}
