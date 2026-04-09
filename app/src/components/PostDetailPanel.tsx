@@ -403,6 +403,29 @@ export default function PostDetailPanel({
                 flexDirection: "row",
                 gap: 0,
                 alignItems: "stretch",
+                cursor: "pointer",
+              }}
+              onClick={async (e) => {
+                // Don't navigate if clicking on a button or link
+                if ((e.target as HTMLElement).closest("button, a")) return;
+                if (!reply.id) return;
+                try {
+                  const data = await getPost(reply.id);
+                  if (data?.post) {
+                    // Replace current view with reply as main post
+                    Object.assign(post, data.post);
+                    onRepliesChange?.(data.replies ?? []);
+                    setReplyToId(data.post.id);
+                    setReplyContent("");
+                    setNestedReplies({});
+                    // Force re-render by updating state
+                    setLikedIds(new Set());
+                    setLocalLikeCounts({});
+                    setRepostedIds(new Set());
+                  }
+                } catch (err) {
+                  console.error("Failed to load reply thread:", err);
+                }
               }}
             >
               <div
