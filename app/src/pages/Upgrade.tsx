@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import {
   PublicKey,
@@ -49,6 +50,7 @@ const PLANS: Record<
 
 export default function Upgrade() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
   const sub = useSubscription();
@@ -820,6 +822,7 @@ export default function Upgrade() {
                 type="button"
                 onClick={() => {
                   setShowWelcome(null);
+                  navigate("/premium");
                   window.location.reload();
                 }}
                 className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-colors"
