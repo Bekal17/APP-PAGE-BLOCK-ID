@@ -11,6 +11,7 @@ import Explore from "./pages/Explore";
 import SmartRouter from "./pages/SmartRouter";
 import Profile from "./pages/Profile";
 import Upgrade from "./pages/Upgrade";
+import PremiumHub from "./pages/PremiumHub";
 import PrivacySettings from "@/pages/settings/Privacy";
 import Notifications from "./pages/Notifications";
 import Messages from "./pages/Messages";
@@ -51,6 +52,7 @@ const App = () => (
             <Route path="/settings" element={<PrivacySettings />} />
             <Route path="/settings/privacy" element={<PrivacySettings />} />
             <Route path="/upgrade" element={<Upgrade />} />
+            <Route path="/premium" element={<PremiumHub />} />
             <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/login-email" element={<LoginEmail />} />
             <Route path="*" element={<NotFound />} />
