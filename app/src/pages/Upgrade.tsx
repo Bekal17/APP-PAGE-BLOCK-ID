@@ -61,6 +61,10 @@ export default function Upgrade() {
   const [solPrice, setSolPrice] = useState<number>(0);
   const [loading, setLoading] = useState<string | null>(null); // "explorer" | "pro"
   const [paying, setPaying] = useState<string | null>(null);
+  const [showWelcome, setShowWelcome] = useState<{
+    plan: string;
+    period: string;
+  } | null>(null);
 
   // Fetch SOL price from Jupiter
   const fetchSolPrice = async () => {
@@ -230,14 +234,8 @@ export default function Upgrade() {
           data.detail ?? t("upgrade.err_upgrade_failed", "Upgrade failed")
         );
 
-      const planLabel = plan === "explorer" ? t("upgrade.explorer") : t("upgrade.pro");
-      toast({
-        title: t("upgrade.upgraded_to_plan", { plan: planLabel }),
-        description: t("upgrade.plan_active", "Your plan is now active."),
-      });
-
-      // Refresh subscription data
-      window.location.reload();
+      // Show welcome modal instead of reload
+      setShowWelcome({ plan, period: billing });
     } catch (err: unknown) {
       const msg =
         err instanceof Error
@@ -640,6 +638,202 @@ export default function Upgrade() {
           {t("upgrade.payment_note")}
         </p>
       </div>
+      {showWelcome && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
+          onClick={() => {
+            setShowWelcome(null);
+            window.location.reload();
+          }}
+        >
+          <div
+            className="bg-card border border-border rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-slide-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative h-40 bg-gradient-to-br from-primary via-primary/80 to-emerald-500 flex items-center justify-center overflow-hidden">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent)]" />
+              <div className="text-center relative z-10">
+                <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
+                  {showWelcome.plan === "pro" ? (
+                    <svg
+                      className="w-8 h-8 text-yellow-300"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5zm14 3c0 .6-.4 1-1 1H6c-.6 0-1-.4-1-1v-1h14v1z" />
+                    </svg>
+                  ) : (
+                    <svg
+                      className="w-8 h-8 text-white"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  )}
+                </div>
+                <h2 className="text-xl font-bold text-white">
+                  {t("upgrade.welcome_title", {
+                    plan: showWelcome.plan === "pro" ? "Pro" : "Explorer",
+                  })}
+                </h2>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-muted-foreground text-center">
+                {t("upgrade.welcome_subtitle")}
+              </p>
+
+              <div className="space-y-3">
+                {(showWelcome.plan === "pro"
+                  ? [
+                      {
+                        icon: "scan",
+                        title: t("upgrade.welcome_unlimited_scans"),
+                        desc: t("upgrade.welcome_unlimited_desc"),
+                      },
+                      {
+                        icon: "handle",
+                        title: t("upgrade.welcome_handles"),
+                        desc: t("upgrade.welcome_handles_desc"),
+                      },
+                      {
+                        icon: "nft",
+                        title: t("upgrade.welcome_nft"),
+                        desc: t("upgrade.welcome_nft_desc"),
+                      },
+                      {
+                        icon: "badge",
+                        title: t("upgrade.welcome_gold_badge"),
+                        desc: t("upgrade.welcome_gold_desc"),
+                      },
+                    ]
+                  : [
+                      {
+                        icon: "scan",
+                        title: t("upgrade.welcome_250_scans"),
+                        desc: t("upgrade.welcome_250_desc"),
+                      },
+                      {
+                        icon: "handle",
+                        title: t("upgrade.welcome_handle"),
+                        desc: t("upgrade.welcome_handle_desc"),
+                      },
+                      {
+                        icon: "nft",
+                        title: t("upgrade.welcome_nft_3"),
+                        desc: t("upgrade.welcome_nft_3_desc"),
+                      },
+                      {
+                        icon: "badge",
+                        title: t("upgrade.welcome_blue_badge"),
+                        desc: t("upgrade.welcome_blue_desc"),
+                      },
+                    ]
+                ).map((item) => (
+                  <div
+                    key={item.title}
+                    className="flex items-center gap-3 p-3 rounded-xl bg-muted/20"
+                  >
+                    <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      {item.icon === "scan" && (
+                        <svg
+                          className="w-4 h-4 text-primary"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                          />
+                        </svg>
+                      )}
+                      {item.icon === "handle" && (
+                        <svg
+                          className="w-4 h-4 text-primary"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                          />
+                        </svg>
+                      )}
+                      {item.icon === "nft" && (
+                        <svg
+                          className="w-4 h-4 text-primary"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                      )}
+                      {item.icon === "badge" && (
+                        <svg
+                          className="w-4 h-4 text-primary"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          strokeWidth={2}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"
+                          />
+                        </svg>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">
+                        {item.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {item.desc}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowWelcome(null);
+                  window.location.reload();
+                }}
+                className="w-full py-3 rounded-xl bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-colors"
+              >
+                {t("upgrade.explore_features")}
+              </button>
+
+              <p className="text-[10px] text-muted-foreground/50 text-center">
+                {t("upgrade.welcome_note")}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }
