@@ -80,6 +80,10 @@ type Props = {
   onClose?: () => void;
   onRepliesChange?: (replies: any[]) => void;
   onReplySuccess?: (postId: number) => void;
+  onLikeChange?: (postId: number, liked: boolean) => void;
+  onRepostChange?: (postId: number) => void;
+  initialLikedIds?: Set<number>;
+  initialRepostedIds?: Set<number>;
 };
 
 export default function PostDetailPanel({
@@ -88,14 +92,22 @@ export default function PostDetailPanel({
   onClose,
   onRepliesChange,
   onReplySuccess,
+  onLikeChange,
+  onRepostChange,
+  initialLikedIds,
+  initialRepostedIds,
 }: Props) {
   const { t } = useTranslation();
   const { publicKey } = useWallet();
-  const [likedIds, setLikedIds] = useState<Set<number>>(new Set());
+  const [likedIds, setLikedIds] = useState<Set<number>>(
+    initialLikedIds ?? new Set()
+  );
   const [localLikeCounts, setLocalLikeCounts] = useState<
     Record<number, number>
   >({});
-  const [repostedIds, setRepostedIds] = useState<Set<number>>(new Set());
+  const [repostedIds, setRepostedIds] = useState<Set<number>>(
+    initialRepostedIds ?? new Set()
+  );
   const [replyContent, setReplyContent] = useState("");
   const [replyToId, setReplyToId] = useState<number>(post.id);
   const [replyLoading, setReplyLoading] = useState(false);
@@ -417,6 +429,7 @@ export default function PostDetailPanel({
                     ? unlikePost(publicKey.toBase58(), id)
                     : likePost(publicKey.toBase58(), id)
                 ).catch(console.error);
+                onLikeChange?.(id, !isLiked);
               }}
               style={{
                 display: "flex",
@@ -469,6 +482,7 @@ export default function PostDetailPanel({
                       n.add(currentPost.id);
                       return n;
                     });
+                    onRepostChange?.(currentPost.id);
                   } catch (e) {
                     console.error(e);
                   }
