@@ -29,9 +29,14 @@ import {
   endorseWallet,
   getPrivacySettings,
   repostPost,
+  unrepostPost,
+  reportPost,
+  bookmarkPost,
+  getBookmarkIds,
+  getLikedIds,
+  getRepostedIds,
   getPost,
   getWalletNames,
-  deletePost,
   incrementScan,
   updateProfile,
   getSessionToken,
@@ -40,7 +45,7 @@ import {
 import { normalizeGraphResponse } from "@/components/investigation/WalletGraph";
 import DashboardLayout from "@/components/DashboardLayout";
 import PostDetailPanel from "@/components/PostDetailPanel";
-import UserAvatar from "@/components/UserAvatar";
+import PostCard from "@/components/PostCard";
 import DashboardOnboarding from "@/components/DashboardOnboarding";
 import ScoreRing from "@/components/blockid/ScoreRing";
 import RiskBadge from "@/components/blockid/RiskBadge";
@@ -64,7 +69,6 @@ import {
   FileText,
   Heart,
   MessageSquare,
-  MessageSquareQuote,
   Shield,
   Camera,
   Image,
@@ -72,16 +76,10 @@ import {
   X,
   ExternalLink,
   Repeat2,
-  MoreHorizontal,
-  Flag,
-  UserPlus,
   MapPin,
   Link2,
 } from "lucide-react";
-import WalletHoverCard from "@/components/WalletHoverCard";
 import ImageCropModal from "@/components/ImageCropModal";
-import LinkPreviewCard from "@/components/LinkPreviewCard";
-import { linkifyContent } from "@/utils/linkify";
 import {
   InvestigatorProgress,
   type InvestigatorStep,
@@ -324,6 +322,15 @@ const Profile = () => {
   const [likeLoading, setLikeLoading] = useState<
     Record<string | number, boolean>
   >({});
+  const [bookmarkedIds, setBookmarkedIds] = useState<Set<number>>(new Set());
+  const [bookmarkLoading, setBookmarkLoading] = useState<
+    Record<number, boolean>
+  >({});
+  const [followedWallets, setFollowedWallets] = useState<Set<string>>(
+    new Set()
+  );
+  const [reportModalId, setReportModalId] = useState<number | null>(null);
+  const [reportReason, setReportReason] = useState("SPAM_SCAM");
   const [repostedPostIds, setRepostedPostIds] = useState<Set<number>>(
     new Set()
   );
@@ -399,6 +406,33 @@ const Profile = () => {
     setTimeout(() => document.addEventListener("click", handleClick), 0);
     return () => document.removeEventListener("click", handleClick);
   }, [postMenuId]);
+
+  useEffect(() => {
+    if (!publicKey) return;
+    getBookmarkIds(publicKey.toString())
+      .then((data) => {
+        setBookmarkedIds(new Set(data.post_ids ?? []));
+      })
+      .catch(() => {});
+    getLikedIds(publicKey.toString())
+      .then((data) => {
+        setLikedPostIds(new Set(data.post_ids ?? []));
+      })
+      .catch(() => {});
+    getRepostedIds(publicKey.toString())
+      .then((data) => {
+        setRepostedPostIds(new Set(data.post_ids ?? []));
+      })
+      .catch(() => {});
+    getFollowing(publicKey.toString())
+      .then((data) => {
+        const wallets = (data.following ?? data ?? [])
+          .map((f: any) => f.wallet ?? f.following_wallet)
+          .filter(Boolean);
+        setFollowedWallets(new Set(wallets));
+      })
+      .catch(() => {});
+  }, [publicKey]);
 
   useEffect(() => {
     if (!modalBannerMenu) return;
@@ -1114,6 +1148,26 @@ const Profile = () => {
     } finally {
       setLikeLoading((prev) => ({ ...prev, [post.id]: false }));
     }
+  };
+
+  const handleBookmark = async (post: any) => {
+    if (!publicKey || !post?.id) return;
+    setBookmarkLoading((prev) => ({ ...prev, [post.id]: true }));
+    try {
+      const res = await bookmarkPost(publicKey.toString(), post.id);
+      setBookmarkedIds((prev) => {
+        const next = new Set(prev);
+        if (res.bookmarked) {
+          next.add(post.id);
+        } else {
+          next.delete(post.id);
+        }
+        return next;
+      });
+    } catch (e) {
+      console.error(e);
+    }
+    setBookmarkLoading((prev) => ({ ...prev, [post.id]: false }));
   };
 
   const handleQuoteSubmit = async () => {
@@ -2171,423 +2225,137 @@ const Profile = () => {
                 {t("profile.no_posts_yet", "No posts yet.")}
               </div>
             ) : (
-              posts.map((post: any) => {
-                const isRepost = post.is_repost === true;
-                const originalPost = isRepost
-                  ? (post as any).original_post ?? null
-                  : null;
-                const displayWallet =
-                  isRepost && originalPost
-                    ? originalPost.wallet
-                    : post.wallet ?? wallet;
-
-                return (
-                  <div
-                    key={post.id}
-                    className="glass-card overflow-hidden
-                      cursor-pointer hover:bg-muted/5
-                      transition-colors"
-                    onClick={() => {
-                      // Don't open modal if user is selecting text
-                      if (isSelectingText()) return;
+              posts.map((post: any) => (
+                <div
+                  key={post.id}
+                  style={{ overflow: "visible", position: "relative" }}
+                >
+                  <PostCard
+                    post={post}
+                    profile={{
+                      wallet: post.wallet,
+                      handle:
+                        post.handle ?? profile?.handle ?? null,
+                      trust_score: post.trust_score,
+                    }}
+                    publicKey={publicKey}
+                    activeTab="explore"
+                    likedPostIds={likedPostIds}
+                    repostedPostIds={repostedPostIds}
+                    bookmarkedIds={bookmarkedIds}
+                    bookmarkLoading={bookmarkLoading}
+                    followedWallets={followedWallets}
+                    likeLoading={likeLoading}
+                    menuOpenId={postMenuId}
+                    repostDropdownId={repostDropdownId}
+                    repostTargetId={repostTargetId}
+                    onPostClick={(p) => {
                       sessionStorage.setItem(
                         "profile_scroll",
                         window.scrollY.toString()
                       );
-                      setSelectedPost(post);
+                      setSelectedPost(p);
                     }}
-                  >
-                    {/* Repost header */}
-                    {isRepost && (
-                      <div
-                        className="flex items-center gap-2 px-4 pt-3 pb-1 text-xs
-                          text-muted-foreground"
-                      >
-                        <Repeat2 className="w-3.5 h-3.5 text-green-400" />
-                        <span>
-                          {profile?.handle
-                            ? `@${profile.handle}`
-                            : `${wallet.slice(0, 4)}...${wallet.slice(-4)}`}
-                          {" "}reposted
-                        </span>
-                      </div>
-                    )}
-
-                    <div className="p-4 flex flex-col gap-3">
-                      {/* Author row */}
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-start gap-3">
-                          {/* Avatar */}
-                          <UserAvatar
-                            avatarUrl={(post as any).avatar_url}
-                            avatarType={(post as any).avatar_type}
-                            avatarIsAnimated={(post as any).avatar_is_animated}
-                            handle={
-                              isRepost && originalPost
-                                ? originalPost.handle
-                                : profile?.handle ?? null
-                            }
-                            wallet={displayWallet}
-                            size={36}
-                          />
-
-                          <div>
-                            <div className="flex items-center gap-2">
-                              {/* Name */}
-                              <span className="text-sm font-semibold text-foreground inline-flex items-center gap-1">
-                                {isRepost && originalPost
-                                  ? originalPost.handle
-                                    ? `@${originalPost.handle}`
-                                    : `${originalPost.wallet?.slice(0, 4)}...${originalPost.wallet?.slice(-4)}`
-                                  : profile?.handle
-                                    ? `@${profile.handle}`
-                                    : wallet.length > 16
-                                      ? `${wallet.slice(0, 8)}...${wallet.slice(-8)}`
-                                      : wallet}
-                                <SubscriptionBadge
-                                  plan={
-                                    (isRepost && originalPost
-                                      ? (originalPost as any)?.plan
-                                      : (post as any)?.plan) ?? (profile as any)?.plan ?? "free"
-                                  }
-                                  size="sm"
-                                />
-                              </span>
-
-                              {/* Trust score */}
-                              {(() => {
-                                const score =
-                                  isRepost && originalPost
-                                    ? originalPost.trust_score
-                                    : post.trust_score;
-                                return score != null ? (
-                                  <span
-                                    className={`px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1 ${
-                                      score >= 70
-                                        ? "bg-emerald-500/10 text-emerald-400"
-                                        : score >= 40
-                                          ? "bg-amber-500/10 text-amber-400"
-                                          : "bg-rose-500/10 text-rose-400"
-                                    }`}
-                                  >
-                                    <Shield className="w-3 h-3" />
-                                    {Math.round(score)}
-                                  </span>
-                                ) : null;
-                              })()}
-                            </div>
-
-                            {/* Timestamp */}
-                            <div
-                              className="flex items-center gap-1 text-[11px] text-muted-foreground"
-                            >
-                              <Clock className="w-3 h-3" />
-                              <span>
-                                {formatRelativeTime(
-                                  isRepost && originalPost
-                                    ? originalPost.created_at
-                                    : post.created_at
-                                )}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Hidden badge */}
-                        {post.is_hidden && (
-                          <span
-                            className="px-2 py-0.5 rounded-full
-                              bg-red-500/10 text-red-400 text-xs"
-                          >
-                            Hidden
-                          </span>
-                        )}
-
-                        {/* Three-dot menu */}
-                        <div className="relative" onClick={(e) => e.stopPropagation()}>
-                          <button
-                            className="p-1 rounded-full hover:bg-muted/30 text-muted-foreground
-                              hover:text-foreground transition-colors"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setPostMenuId(postMenuId === post.id ? null : post.id);
-                            }}
-                          >
-                            <MoreHorizontal className="w-4 h-4" />
-                          </button>
-
-                          {postMenuId === post.id && (
-                            <div className="absolute right-0 top-full mt-1 bg-zinc-900 border
-                              border-zinc-700 rounded-xl shadow-2xl py-1 w-44 z-50">
-                              {/* Own post → Delete */}
-                              {isOwnProfile && (
-                                <button
-                                  onClick={async (e) => {
-                                    e.stopPropagation();
-                                    setPostMenuId(null);
-                                    if (!address) return;
-                                    try {
-                                      await deletePost(address, post.id);
-                                      setPosts((prev) => prev.filter((p) => p.id !== post.id));
-                                      toast({ title: "Post deleted" });
-                                    } catch {
-                                      toast({ title: "Failed to delete post", variant: "destructive" });
-                                    }
-                                  }}
-                                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm
-                                    text-red-400 hover:bg-zinc-800 transition-colors"
-                                >
-                                  <Trash2 className="w-4 h-4" />
-                                  Delete Post
-                                </button>
-                              )}
-
-                              {/* Other's post → Follow + Report */}
-                              {!isOwnProfile && (
-                                <>
-                                  <button
-                                    onClick={async (e) => {
-                                      e.stopPropagation();
-                                      if (!address) return;
-                                      const targetWallet = isRepost && originalPost
-                                        ? originalPost.wallet
-                                        : post.wallet;
-                                      if (!targetWallet) return;
-                                      try {
-                                        await followWallet(address, targetWallet);
-                                        toast({ title: "Followed!" });
-                                      } catch {
-                                        toast({ title: "Already following", variant: "destructive" });
-                                      }
-                                      setPostMenuId(null);
-                                    }}
-                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm
-                                      text-zinc-100 hover:bg-zinc-800 transition-colors"
-                                  >
-                                    <UserPlus className="w-4 h-4 text-primary" />
-                                    {t("profile.follow")}{" "}
-                                    {isRepost && originalPost
-                                      ? (originalPost.handle ? `@${originalPost.handle}` : "User")
-                                      : (post.handle ? `@${post.handle}` : "User")}
-                                  </button>
-
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setPostMenuId(null);
-                                      toast({ title: "Report submitted" });
-                                    }}
-                                    className="w-full flex items-center gap-2.5 px-3 py-2 text-sm
-                                      text-red-400 hover:bg-zinc-800 transition-colors"
-                                  >
-                                    <Flag className="w-4 h-4" />
-                                    Report Post
-                                  </button>
-                                </>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Content */}
-                      <p className="text-sm text-foreground whitespace-pre-wrap">
-                        {linkifyContent(
-                          isRepost && originalPost ? originalPost.content : post.content
-                        )}
-                      </p>
-                      {(() => {
-                        const linkData = isRepost && originalPost
-                          ? originalPost
-                          : post;
-                        return (linkData as any)?.link_url ? (
-                          <LinkPreviewCard
-                            url={(linkData as any).link_url}
-                            title={(linkData as any).link_title}
-                            description={(linkData as any).link_description}
-                            image={(linkData as any).link_image}
-                          />
-                        ) : null;
-                      })()}
-
-                      {/* Post image */}
-                      {(() => {
-                        const imgUrl =
-                          isRepost && originalPost
-                            ? (originalPost as any).image_url
-                            : (post as any).image_url;
-                        return imgUrl ? (
-                          <div
-                            className="mt-2 rounded-xl overflow-hidden"
-                            style={{
-                              width: "100%",
-                              maxWidth: "100%",
-                              backgroundColor: "transparent",
-                            }}
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <img
-                              src={imgUrl}
-                              alt="Post image"
-                              style={{
-                                width: "100%",
-                                height: "auto",
-                                maxHeight: 600,
-                                objectFit: "contain",
-                                borderRadius: 12,
-                                display: "block",
-                                backgroundColor: "transparent",
-                              }}
-                              onError={(e) => {
-                                e.currentTarget.style.display = "none";
-                              }}
-                            />
-                          </div>
-                        ) : null;
-                      })()}
-
-                      {/* Loading state for original post */}
-                      {isRepost && !originalPost && (
-                        <div className="h-4 bg-muted/30 rounded animate-pulse w-2/3" />
-                      )}
-
-                      {/* Action bar */}
-                      <div
-                        className="flex items-center gap-4 pt-1 text-xs text-muted-foreground
-                          border-t border-border/30"
-                      >
-                        {/* Like button */}
-                        <button
-                          className={`flex items-center gap-1 transition-colors disabled:opacity-60 ${
-                            likedPostIds.has(post.id)
-                              ? "text-red-400 hover:text-red-300"
-                              : "hover:text-red-400"
-                          }`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleLikePost(post);
-                          }}
-                          disabled={likeLoading[post.id]}
-                        >
-                          <Heart
-                            className={`w-3.5 h-3.5 ${
-                              likedPostIds.has(post.id) ? "fill-red-400" : ""
-                            }`}
-                          />
-                          <span>{post.likes_count ?? post.like_count ?? 0}</span>
-                        </button>
-
-                        {/* Comment button */}
-                        <button
-                          className="flex items-center gap-1 hover:text-primary transition-colors"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // Don't open modal if user is selecting text
-                            if (isSelectingText()) return;
-                            setSelectedPost(post);
-                          }}
-                        >
-                          <MessageSquare className="w-3.5 h-3.5" />
-                          <span>{post.replies_count ?? post.reply_count ?? 0}</span>
-                        </button>
-
-                        {/* Repost button with dropdown */}
-                        <div className="relative">
-                          <button
-                            className={`flex items-center gap-1 transition-colors text-sm ${
-                              repostedPostIds.has(post.repost_of ?? post.id ?? 0)
-                                ? "text-green-400 hover:text-green-300"
-                                : "text-muted-foreground hover:text-green-400"
-                            }`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (!publicKey) return;
-                              const targetId =
-                                post.is_repost && post.repost_of ? post.repost_of : post.id ?? null;
-                              setRepostDropdownId(
-                                repostDropdownId === post.id ? null : post.id ?? null
-                              );
-                              setRepostTargetId(targetId);
-                            }}
-                          >
-                            <Repeat2 className="w-3.5 h-3.5" />
-                            <span>{post.repost_count ?? 0}</span>
-                          </button>
-
-                          {repostDropdownId === post.id && (
-                            <div
-                              className="absolute bottom-full left-0 mb-2 bg-zinc-900 border border-zinc-700
-                                rounded-xl shadow-2xl py-1 w-44 z-50"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              {repostedPostIds.has(repostTargetId ?? repostDropdownId ?? 0) && (
-                                <button
-                                  onClick={() => {
-                                    setRepostedPostIds((prev) => {
-                                      const next = new Set(prev);
-                                      next.delete(repostTargetId ?? repostDropdownId ?? 0);
-                                      return next;
-                                    });
-                                    setRepostDropdownId(null);
-                                    setRepostTargetId(null);
-                                  }}
-                                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm
-                                    text-green-400 hover:bg-zinc-800 transition-colors"
-                                >
-                                  <Repeat2 className="w-4 h-4" />
-                                  Undo Repost
-                                </button>
-                              )}
-
-                              <button
-                                onClick={async () => {
-                                  if (!publicKey) return;
-                                  try {
-                                    await repostPost(
-                                      publicKey.toString(),
-                                      repostTargetId ?? repostDropdownId!
-                                    );
-
-                                    setRepostedPostIds((prev) => {
-                                      const next = new Set(prev);
-                                      next.add(repostTargetId ?? repostDropdownId ?? 0);
-                                      return next;
-                                    });
-
-                                    setRepostDropdownId(null);
-                                    setRepostTargetId(null);
-                                  } catch (e) {
-                                    console.error(e);
-                                  }
-                                }}
-                                className="w-full flex items-center gap-2.5 px-3 py-2 text-sm
-                                  text-zinc-100 hover:bg-zinc-800 transition-colors"
-                              >
-                                <Repeat2 className="w-4 h-4 text-green-400" />
-                                Repost
-                              </button>
-
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setQuoteModalPost(post);
-                                  setRepostDropdownId(null);
-                                  setQuoteModalText("");
-                                }}
-                                className="w-full flex items-center gap-2.5 px-3 py-2 text-sm
-                                  text-zinc-100 hover:bg-zinc-800 transition-colors"
-                              >
-                                <MessageSquareQuote className="w-4 h-4 text-blue-400" />
-                                Quote
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })
+                    onLike={handleLikePost}
+                    onReply={(postId) => {
+                      const target = posts.find((x: any) => x.id === postId);
+                      if (!target || !publicKey) return;
+                      sessionStorage.setItem(
+                        "profile_scroll",
+                        window.scrollY.toString()
+                      );
+                      setSelectedPost(target);
+                    }}
+                    onRepost={async (_postId, targetId) => {
+                      if (!publicKey) return;
+                      try {
+                        await repostPost(publicKey.toString(), targetId);
+                        setRepostedPostIds((prev) => {
+                          const n = new Set(prev);
+                          n.add(targetId);
+                          return n;
+                        });
+                        setRepostDropdownId(null);
+                        setRepostTargetId(null);
+                      } catch (e) {
+                        console.error(e);
+                      }
+                    }}
+                    onQuote={(p) => {
+                      setQuoteModalPost(p);
+                      setRepostDropdownId(null);
+                      setQuoteModalText("");
+                    }}
+                    onBookmark={handleBookmark}
+                    onReport={(postId) => {
+                      setReportModalId(postId);
+                      setPostMenuId(null);
+                    }}
+                    onMenuOpen={setPostMenuId}
+                    onRepostDropdown={(postId, targetId) => {
+                      setRepostDropdownId(postId);
+                      setRepostTargetId(targetId);
+                    }}
+                    onUndoRepost={(targetId) => {
+                      if (publicKey) {
+                        unrepostPost(publicKey.toString(), targetId).catch(
+                          console.error
+                        );
+                      }
+                      setRepostedPostIds((prev) => {
+                        const n = new Set(prev);
+                        n.delete(targetId);
+                        return n;
+                      });
+                      setPosts((prev: any[]) =>
+                        prev.map((p) => {
+                          const match =
+                            (p as any).repost_of === targetId ||
+                            p.id === targetId;
+                          return match
+                            ? {
+                                ...p,
+                                repost_count: Math.max(
+                                  (p.repost_count ?? 0) - 1,
+                                  0
+                                ),
+                              }
+                            : p;
+                        })
+                      );
+                      setRepostDropdownId(null);
+                      setRepostTargetId(null);
+                    }}
+                    onTopReplyClick={(reply) => {
+                      if (!reply) return;
+                      sessionStorage.setItem(
+                        "profile_scroll",
+                        window.scrollY.toString()
+                      );
+                      setSelectedPost(reply as any);
+                    }}
+                    onTopReplyLike={(replyId) => {
+                      if (!publicKey) return;
+                      likePost(publicKey.toString(), replyId).catch(
+                        console.error
+                      );
+                    }}
+                    onTopReplyRepost={(replyId) => {
+                      if (!publicKey) return;
+                      repostPost(publicKey.toString(), replyId).catch(
+                        console.error
+                      );
+                    }}
+                    onTopReplyComment={(p, replyId) => {
+                      sessionStorage.setItem(
+                        "profile_scroll",
+                        window.scrollY.toString()
+                      );
+                      setSelectedPost(p);
+                    }}
+                  />
+                </div>
+              ))
             )}
           </div>
         )}
@@ -3072,6 +2840,82 @@ const Profile = () => {
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {reportModalId !== null && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+          onClick={() => setReportModalId(null)}
+        >
+          <div
+            className="bg-zinc-900 border border-zinc-700 rounded-xl p-6
+              w-full max-w-sm mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-bold text-foreground">
+                Report Post
+              </h3>
+              <button onClick={() => setReportModalId(null)}>
+                <X className="w-5 h-5 text-muted-foreground hover:text-foreground" />
+              </button>
+            </div>
+
+            <p className="text-xs text-muted-foreground mb-4">
+              Pilih alasan laporan. Laporan yang valid akan ditinjau oleh
+              komunitas. Post dengan cukup laporan akan otomatis disembunyikan.
+            </p>
+
+            <div className="space-y-2 mb-5">
+              {[
+                { value: "SPAM_SCAM", label: "Spam / Scam" },
+                { value: "HATE_SPEECH", label: "Hate Speech / Kata Kasar" },
+                { value: "HARMFUL_CONTENT", label: "Konten Berbahaya" },
+                { value: "MISINFORMATION", label: "Informasi Palsu / Hoax" },
+              ].map((r) => (
+                <button
+                  key={r.value}
+                  onClick={() => setReportReason(r.value)}
+                  className={`w-full text-left px-4 py-2.5 rounded-lg text-sm
+                    border transition-colors ${
+                      reportReason === r.value
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-zinc-700 text-foreground hover:bg-zinc-800"
+                    }`}
+                >
+                  {r.label}
+                </button>
+              ))}
+            </div>
+
+            <button
+              onClick={async () => {
+                if (!publicKey) return;
+                try {
+                  await reportPost(
+                    publicKey.toString(),
+                    reportModalId,
+                    reportReason
+                  );
+                  toast({ title: "Report submitted" });
+                  setReportModalId(null);
+                  setReportReason("SPAM_SCAM");
+                } catch (e) {
+                  console.error(e);
+                  toast({
+                    title: "Failed to submit report",
+                    variant: "destructive",
+                  });
+                }
+              }}
+              disabled={!reportReason}
+              className="w-full py-2.5 rounded-lg bg-red-500 hover:bg-red-600
+                disabled:opacity-40 text-white text-sm font-medium transition-colors"
+            >
+              Submit Report
+            </button>
           </div>
         </div>
       )}
