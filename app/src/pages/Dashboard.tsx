@@ -1630,8 +1630,10 @@ const Dashboard = () => {
                       })
                     );
                   }}
-                  onQuote={(p) => {
-                    setQuoteModalPost(p);
+                  onQuote={(post) => {
+                    setSelectedPost(null);
+                    document.body.style.overflow = "";
+                    setQuoteModalPost(post);
                     setQuoteModalText("");
                   }}
                   onClose={() => {
