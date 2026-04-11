@@ -38,6 +38,7 @@ const MobileNav = ({ open, onClose }: MobileNavProps) => {
   const location = useLocation();
   const { publicKey, connected } = useWallet();
   const { setVisible } = useWalletModal();
+  const { t } = useTranslation();
   const displayAddress = publicKey ? formatSolanaAddress(publicKey.toBase58()) : null;
 
   if (!open) return null;
