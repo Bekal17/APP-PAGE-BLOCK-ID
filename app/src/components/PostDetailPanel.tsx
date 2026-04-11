@@ -121,6 +121,9 @@ export default function PostDetailPanel({
   const [currentPost, setCurrentPost] = useState<SocialPost>(post);
   const [currentReplies, setCurrentReplies] = useState<any[]>(replies);
   const [repostMenuOpen, setRepostMenuOpen] = useState(false);
+  const [localRepostCount, setLocalRepostCount] = useState<number>(
+    post.repost_count ?? 0
+  );
 
   useEffect(() => {
     setReplyToId(post.id);
@@ -167,6 +170,10 @@ export default function PostDetailPanel({
     setTimeout(() => document.addEventListener("click", handler), 0);
     return () => document.removeEventListener("click", handler);
   }, [repostMenuOpen]);
+
+  useEffect(() => {
+    setLocalRepostCount(post.repost_count ?? 0);
+  }, [post.id, post.repost_count]);
 
   const originalPost = currentPost.original_post ?? null;
   const isRepost = originalPost != null || !!currentPost.is_repost;
@@ -508,7 +515,7 @@ export default function PostDetailPanel({
                       : "text-zinc-500"
                   }`}
                 />
-                {currentPost.repost_count ?? 0} Reposts
+                {localRepostCount} Reposts
               </button>
 
               {repostMenuOpen && (
@@ -537,6 +544,7 @@ export default function PostDetailPanel({
                           n.delete(currentPost.id);
                           return n;
                         });
+                        setLocalRepostCount((c) => Math.max(c - 1, 0));
                         onRepostUndo?.(currentPost.id);
                         setRepostMenuOpen(false);
                       }}
@@ -574,6 +582,7 @@ export default function PostDetailPanel({
                             return n;
                           });
                           onRepostChange?.(currentPost.id);
+                          setLocalRepostCount((c) => c + 1);
                         } catch (e) {
                           console.error(e);
                         }
