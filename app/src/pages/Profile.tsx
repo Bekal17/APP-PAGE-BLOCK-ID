@@ -3186,8 +3186,15 @@ const Profile = () => {
                     toast({ title: "Profile updated!" });
                   } catch (err: any) {
                     console.error("Update profile error:", err);
+                    const msg =
+                      typeof err === "string"
+                        ? err
+                        : (err?.message ??
+                          (typeof err?.detail === "string"
+                            ? err.detail
+                            : "Failed to update profile"));
                     toast({
-                      title: err?.message ?? "Failed to update",
+                      title: String(msg),
                       variant: "destructive",
                     });
                   } finally {
