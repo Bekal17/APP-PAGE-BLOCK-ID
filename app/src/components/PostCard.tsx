@@ -286,25 +286,37 @@ export default function PostCard({
   const trustScore =
     profile?.trust_score ?? post?.trust_score ?? undefined;
   const originalPost = (post as SocialPost).original_post ?? null;
-  const isRepost =
-    originalPost != null ||
-    (!!post.is_repost && post.is_repost !== false);
-
-  const displayWallet =
-    isRepost && originalPost ? originalPost.wallet : post.wallet ?? "";
-
-  const displayHandle =
-    isRepost && originalPost
-      ? originalPost.handle
-      : profile?.handle ?? post.handle ?? null;
+  const isRepost = originalPost != null || !!post.is_repost;
 
   const isQuoteRepost = isRepost && !!post.quote_content;
 
+  const displayWallet =
+    isQuoteRepost
+      ? post.wallet ?? ""
+      : isRepost && originalPost
+        ? originalPost.wallet
+        : post.wallet ?? "";
+
+  const displayHandle =
+    isQuoteRepost
+      ? post.handle ?? null
+      : isRepost && originalPost
+        ? originalPost.handle ?? null
+        : profile?.handle ?? post.handle ?? null;
+
   const displayContent =
-    isRepost && originalPost ? originalPost.content : post.content;
+    isQuoteRepost
+      ? post.quote_content ?? ""
+      : isRepost && originalPost
+        ? originalPost.content
+        : post.content;
 
   const displayTrustScore =
-    isRepost && originalPost ? originalPost.trust_score : trustScore;
+    isQuoteRepost
+      ? post.trust_score
+      : isRepost && originalPost
+        ? originalPost.trust_score
+        : trustScore;
 
   const trustColor = getTrustColor(displayTrustScore);
 
@@ -354,19 +366,28 @@ export default function PostCard({
           >
             <UserAvatar
               avatarUrl={
-                isRepost && originalPost
-                  ? (originalPost as any).avatar_url
-                  : (post as any).avatar_url
+                isQuoteRepost
+                  ? (post as any).avatar_url
+                  : isRepost && originalPost
+                    ? (originalPost as any).avatar_url ??
+                      (post as any).avatar_url
+                    : (post as any).avatar_url
               }
               avatarType={
-                isRepost && originalPost
-                  ? (originalPost as any).avatar_type
-                  : (post as any).avatar_type
+                isQuoteRepost
+                  ? (post as any).avatar_type
+                  : isRepost && originalPost
+                    ? (originalPost as any).avatar_type ??
+                      (post as any).avatar_type
+                    : (post as any).avatar_type
               }
               avatarIsAnimated={
-                isRepost && originalPost
-                  ? (originalPost as any).avatar_is_animated
-                  : (post as any).avatar_is_animated
+                isQuoteRepost
+                  ? (post as any).avatar_is_animated
+                  : isRepost && originalPost
+                    ? (originalPost as any).avatar_is_animated ??
+                      (post as any).avatar_is_animated
+                    : (post as any).avatar_is_animated
               }
               handle={displayHandle}
               wallet={displayWallet}
@@ -380,34 +401,46 @@ export default function PostCard({
                 <div className="flex items-center gap-2">
                   <WalletHoverCard
                     wallet={
-                      isRepost && originalPost
-                        ? originalPost.wallet
-                        : post.wallet ?? ""
+                      isQuoteRepost
+                        ? post.wallet ?? ""
+                        : isRepost && originalPost
+                          ? originalPost.wallet
+                          : post.wallet ?? ""
                     }
                     handle={
-                      isRepost && originalPost
-                        ? (originalPost.handle ?? undefined)
-                        : (profile?.handle ?? post.handle ?? undefined)
+                      isQuoteRepost
+                        ? (post.handle ?? undefined)
+                        : isRepost && originalPost
+                          ? (originalPost.handle ?? undefined)
+                          : (profile?.handle ?? post.handle ?? undefined)
                     }
                     isFollowing={followedWallets.has(
-                      isRepost && originalPost
-                        ? originalPost.wallet
-                        : post.wallet ?? ""
+                      isQuoteRepost
+                        ? post.wallet ?? ""
+                        : isRepost && originalPost
+                          ? originalPost.wallet
+                          : post.wallet ?? ""
                     )}
                   >
                     <span className="text-sm font-semibold text-foreground inline-flex items-center gap-1">
-                      {isRepost && originalPost
-                        ? originalPost.handle
-                          ? `@${originalPost.handle}`
-                          : truncateWallet(originalPost.wallet ?? "")
-                        : displayHandle
-                          ? `@${displayHandle}`
-                          : truncateWallet(post?.wallet ?? "")}
+                      {isQuoteRepost
+                        ? post.handle
+                          ? `@${post.handle}`
+                          : truncateWallet(post.wallet ?? "")
+                        : isRepost && originalPost
+                          ? originalPost.handle
+                            ? `@${originalPost.handle}`
+                            : truncateWallet(originalPost.wallet ?? "")
+                          : displayHandle
+                            ? `@${displayHandle}`
+                            : truncateWallet(post?.wallet ?? "")}
                       <SubscriptionBadge
                         plan={
-                          (isRepost && originalPost
-                            ? (originalPost as { plan?: string })?.plan
-                            : (post as { plan?: string })?.plan) ?? "free"
+                          (isQuoteRepost
+                            ? (post as { plan?: string })?.plan
+                            : isRepost && originalPost
+                              ? (originalPost as { plan?: string })?.plan
+                              : (post as { plan?: string })?.plan) ?? "free"
                         }
                         size="sm"
                       />
@@ -431,7 +464,15 @@ export default function PostCard({
               <div className="flex items-center gap-2">
                 <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
                   <Clock className="w-3 h-3" />
-                  <span>{formatRelativeTime(post?.created_at)}</span>
+                  <span>
+                    {formatRelativeTime(
+                      isQuoteRepost
+                        ? post.created_at
+                        : isRepost && originalPost
+                          ? originalPost.created_at
+                          : post.created_at
+                    )}
+                  </span>
                 </div>
                 <div className="relative">
                   <button
@@ -492,15 +533,6 @@ export default function PostCard({
               </div>
             </div>
 
-            {isQuoteRepost && (
-              <div className="mt-1 p-3 rounded-xl border border-border bg-muted/20">
-                <p className="text-xs text-muted-foreground mb-1">Quote</p>
-                <p className="text-sm text-foreground whitespace-pre-wrap">
-                  {linkifyContent(post.quote_content ?? "")}
-                </p>
-              </div>
-            )}
-
             {isRepost && !originalPost ? (
               <div className="h-4 bg-muted/30 rounded animate-pulse w-2/3" />
             ) : (
@@ -508,10 +540,49 @@ export default function PostCard({
                 {linkifyContent(displayContent)}
               </p>
             )}
+
+            {isQuoteRepost && originalPost && (
+              <div
+                className="mt-2 p-3 rounded-xl border border-border/50 bg-muted/10
+                  hover:bg-muted/20 transition-colors"
+              >
+                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                  <UserAvatar
+                    avatarUrl={(originalPost as any).avatar_url ?? null}
+                    avatarType={(originalPost as any).avatar_type ?? null}
+                    avatarIsAnimated={
+                      (originalPost as any).avatar_is_animated ?? false
+                    }
+                    handle={originalPost.handle ?? null}
+                    wallet={originalPost.wallet}
+                    size={20}
+                  />
+                  <span className="text-xs font-semibold text-foreground inline-flex items-center gap-1">
+                    {originalPost.handle
+                      ? `@${originalPost.handle}`
+                      : `${originalPost.wallet?.slice(0, 4)}...${originalPost.wallet?.slice(-4)}`}
+                    <SubscriptionBadge
+                      plan={(originalPost as any)?.plan ?? "free"}
+                      size="sm"
+                    />
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {formatRelativeTime(originalPost.created_at)}
+                  </span>
+                </div>
+                <p
+                  className="text-sm text-foreground/80 whitespace-pre-wrap
+                    line-clamp-3"
+                >
+                  {linkifyContent(originalPost.content)}
+                </p>
+              </div>
+            )}
+
             {(() => {
-              const linkData = isRepost && originalPost
-                ? originalPost
-                : post;
+              if (isQuoteRepost) return null;
+              const linkData =
+                isRepost && originalPost ? originalPost : post;
               return (linkData as any)?.link_url ? (
                 <LinkPreviewCard
                   url={(linkData as any).link_url}
@@ -523,9 +594,11 @@ export default function PostCard({
             })()}
             {(() => {
               const imgUrl =
-                isRepost && originalPost
+                isQuoteRepost && originalPost
                   ? originalPost.image_url
-                  : post.image_url;
+                  : isRepost && originalPost
+                    ? originalPost.image_url
+                    : post.image_url;
               return imgUrl ? (
                 <div
                   style={{
