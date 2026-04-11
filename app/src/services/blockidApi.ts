@@ -480,6 +480,22 @@ export async function getBookmarkIds(wallet: string) {
   return res.json();
 }
 
+export async function getLikedIds(wallet: string) {
+  const res = await fetch(
+    buildSocialUrl(`/social/liked/${encodeURIComponent(wallet)}/ids`)
+  );
+  if (!res.ok) return { post_ids: [] };
+  return res.json();
+}
+
+export async function getRepostedIds(wallet: string) {
+  const res = await fetch(
+    buildSocialUrl(`/social/reposted/${encodeURIComponent(wallet)}/ids`)
+  );
+  if (!res.ok) return { post_ids: [] };
+  return res.json();
+}
+
 export async function getWalletPosts(wallet: string) {
   const res = await fetch(
     buildSocialUrl(`/social/posts/${encodeURIComponent(wallet)}`)

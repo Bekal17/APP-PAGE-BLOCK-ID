@@ -37,6 +37,8 @@ import {
   getSessionToken,
   bookmarkPost,
   getBookmarkIds,
+  getLikedIds,
+  getRepostedIds,
   getFollowing,
   getPost,
 } from "@/services/blockidApi";
@@ -212,6 +214,16 @@ const Dashboard = () => {
     getBookmarkIds(publicKey.toString())
       .then((data) => {
         setBookmarkedIds(new Set(data.post_ids ?? []));
+      })
+      .catch(() => {});
+    getLikedIds(publicKey.toString())
+      .then((data) => {
+        setLikedPostIds(new Set(data.post_ids ?? []));
+      })
+      .catch(() => {});
+    getRepostedIds(publicKey.toString())
+      .then((data) => {
+        setRepostedPostIds(new Set(data.post_ids ?? []));
       })
       .catch(() => {});
     getFollowing(publicKey.toString())
