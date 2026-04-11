@@ -188,7 +188,8 @@
     "image_upload": "Upload Image",
     "identity_nft_required": "Identity NFT required to post",
     "placeholder_reply": "Post your reply...",
-    "replying": "Replying..."
+    "replying": "Replying...",
+    "undo_repost": "Undo Repost"
   },
   "explore": {
     "title": "Explore",

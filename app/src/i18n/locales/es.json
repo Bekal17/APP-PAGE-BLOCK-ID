@@ -186,7 +186,8 @@
     "no_posts": "Aún no hay publicaciones",
     "post_button": "Publicar",
     "image_upload": "Subir Imagen",
-    "identity_nft_required": "Se requiere NFT de identidad para publicar"
+    "identity_nft_required": "Se requiere NFT de identidad para publicar",
+    "undo_repost": "Deshacer Repost"
   },
   "explore": {
     "title": "Explorar",

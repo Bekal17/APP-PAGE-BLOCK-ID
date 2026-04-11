@@ -188,7 +188,8 @@
     "image_upload": "Unggah Gambar",
     "identity_nft_required": "NFT Identitas diperlukan untuk posting",
     "placeholder_reply": "Tulis balasan kamu...",
-    "replying": "Mengirim balasan..."
+    "replying": "Mengirim balasan...",
+    "undo_repost": "Batalkan Repost"
   },
   "explore": {
     "title": "Jelajahi",
