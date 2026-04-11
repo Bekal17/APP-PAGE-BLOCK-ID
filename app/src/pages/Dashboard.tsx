@@ -1632,6 +1632,8 @@ const Dashboard = () => {
                   }}
                   onQuote={(post) => {
                     setSelectedPost(null);
+                    setReplyToId(null);
+                    setReplyContent("");
                     document.body.style.overflow = "";
                     setQuoteModalPost(post);
                     setQuoteModalText("");
