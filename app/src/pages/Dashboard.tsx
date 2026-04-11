@@ -32,6 +32,7 @@ import {
   likePost,
   unlikePost,
   repostPost,
+  unrepostPost,
   reportPost,
   createPost,
   getSessionToken,
@@ -1135,6 +1136,11 @@ const Dashboard = () => {
                     setRepostTargetId(targetId);
                   }}
                   onUndoRepost={(targetId) => {
+                    if (publicKey) {
+                      unrepostPost(publicKey.toString(), targetId).catch(
+                        console.error
+                      );
+                    }
                     setRepostedPostIds((prev) => {
                       const n = new Set(prev);
                       n.delete(targetId);
@@ -1597,6 +1603,11 @@ const Dashboard = () => {
                     );
                   }}
                   onRepostUndo={(postId) => {
+                    if (publicKey) {
+                      unrepostPost(publicKey.toString(), postId).catch(
+                        console.error
+                      );
+                    }
                     setRepostedPostIds((prev) => {
                       const n = new Set(prev);
                       n.delete(postId);

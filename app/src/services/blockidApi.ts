@@ -310,6 +310,20 @@ export async function repostPost(
   return res.json();
 }
 
+export async function unrepostPost(wallet: string, postId: number) {
+  const res = await fetch(buildSocialUrl("/social/repost"), {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({
+      wallet,
+      post_id: postId,
+      session_token: getSessionToken(),
+    }),
+  });
+  if (!res.ok) throw new Error("Failed to undo repost");
+  return res.json();
+}
+
 export async function deletePost(wallet: string, postId: number) {
   const apiBase = (import.meta.env.VITE_SOCIAL_API_URL ?? "").replace(/\/$/, "");
   const res = await fetch(
