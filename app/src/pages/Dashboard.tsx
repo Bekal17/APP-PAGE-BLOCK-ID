@@ -1522,8 +1522,68 @@ const Dashboard = () => {
                 }}
               >
                 <PostDetailPanel
+                  key={selectedPost.id}
                   post={selectedPost}
                   replies={replies[selectedPost.id] ?? []}
+                  initialLikedIds={likedPostIds}
+                  initialRepostedIds={repostedPostIds}
+                  onLikeChange={(postId, liked) => {
+                    if (liked) {
+                      setLikedPostIds((prev) => {
+                        const n = new Set(prev);
+                        n.add(postId);
+                        return n;
+                      });
+                      setFeed((prev) =>
+                        prev.map((p) =>
+                          p.id === postId
+                            ? {
+                                ...p,
+                                like_count: (p.like_count ?? 0) + 1,
+                                likes_count: (p.likes_count ?? 0) + 1,
+                              }
+                            : p
+                        )
+                      );
+                    } else {
+                      setLikedPostIds((prev) => {
+                        const n = new Set(prev);
+                        n.delete(postId);
+                        return n;
+                      });
+                      setFeed((prev) =>
+                        prev.map((p) =>
+                          p.id === postId
+                            ? {
+                                ...p,
+                                like_count: Math.max((p.like_count ?? 0) - 1, 0),
+                                likes_count: Math.max(
+                                  (p.likes_count ?? 0) - 1,
+                                  0
+                                ),
+                              }
+                            : p
+                        )
+                      );
+                    }
+                  }}
+                  onRepostChange={(postId) => {
+                    setRepostedPostIds((prev) => {
+                      const n = new Set(prev);
+                      n.add(postId);
+                      return n;
+                    });
+                    setFeed((prev) =>
+                      prev.map((p) =>
+                        p.id === postId
+                          ? {
+                              ...p,
+                              repost_count: (p.repost_count ?? 0) + 1,
+                            }
+                          : p
+                      )
+                    );
+                  }}
                   onClose={() => {
                     document.body.style.overflow = "";
                     setReplyToId(null);
