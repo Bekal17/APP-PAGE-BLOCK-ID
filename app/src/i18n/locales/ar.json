@@ -188,7 +188,8 @@
     "image_upload": "رفع صورة",
     "identity_nft_required": "يلزم NFT الهوية للنشر",
     "placeholder_reply": "اكتب ردك...",
-    "replying": "جاري الإرسال..."
+    "replying": "جاري الإرسال...",
+    "undo_repost": "تراجع عن إعادة النشر"
   },
   "explore": {
     "title": "استكشاف",

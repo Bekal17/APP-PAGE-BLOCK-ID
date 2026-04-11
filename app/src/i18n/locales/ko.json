@@ -186,7 +186,8 @@
     "no_posts": "아직 게시물이 없습니다",
     "post_button": "게시",
     "image_upload": "이미지 업로드",
-    "identity_nft_required": "게시하려면 아이덴티티 NFT가 필요합니다"
+    "identity_nft_required": "게시하려면 아이덴티티 NFT가 필요합니다",
+    "undo_repost": "리포스트 취소"
   },
   "explore": {
     "title": "탐색",

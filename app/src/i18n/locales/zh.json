@@ -188,7 +188,8 @@
     "image_upload": "上传图片",
     "identity_nft_required": "发布需要身份NFT",
     "placeholder_reply": "发表你的回复...",
-    "replying": "发送中..."
+    "replying": "发送中...",
+    "undo_repost": "撤销转发"
   },
   "explore": {
     "title": "探索",

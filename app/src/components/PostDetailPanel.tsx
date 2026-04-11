@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Heart, MessageSquare, Repeat2 } from "lucide-react";
+import { Heart, MessageSquare, MessageSquareQuote, Repeat2 } from "lucide-react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import {
   likePost,
@@ -82,6 +82,8 @@ type Props = {
   onReplySuccess?: (postId: number) => void;
   onLikeChange?: (postId: number, liked: boolean) => void;
   onRepostChange?: (postId: number) => void;
+  onRepostUndo?: (postId: number) => void;
+  onQuote?: (post: SocialPost) => void;
   initialLikedIds?: Set<number>;
   initialRepostedIds?: Set<number>;
 };
@@ -94,6 +96,8 @@ export default function PostDetailPanel({
   onReplySuccess,
   onLikeChange,
   onRepostChange,
+  onRepostUndo,
+  onQuote,
   initialLikedIds,
   initialRepostedIds,
 }: Props) {
@@ -116,6 +120,7 @@ export default function PostDetailPanel({
   );
   const [currentPost, setCurrentPost] = useState<SocialPost>(post);
   const [currentReplies, setCurrentReplies] = useState<any[]>(replies);
+  const [repostMenuOpen, setRepostMenuOpen] = useState(false);
 
   useEffect(() => {
     setReplyToId(post.id);
@@ -155,6 +160,13 @@ export default function PostDetailPanel({
     };
     if (currentReplies.length > 0) void loadNestedReplies();
   }, [currentReplies.length]);
+
+  useEffect(() => {
+    if (!repostMenuOpen) return;
+    const handler = () => setRepostMenuOpen(false);
+    setTimeout(() => document.addEventListener("click", handler), 0);
+    return () => document.removeEventListener("click", handler);
+  }, [repostMenuOpen]);
 
   const originalPost = currentPost.original_post ?? null;
   const isRepost = originalPost != null || !!currentPost.is_repost;
@@ -470,44 +482,149 @@ export default function PostDetailPanel({
               {t("post.replies")}
             </span>
 
-            <button
-              type="button"
-              onClick={() => {
-                if (!publicKey) return;
-                void (async () => {
-                  try {
-                    await repostPost(publicKey.toBase58(), currentPost.id);
-                    setRepostedIds((prev) => {
-                      const n = new Set(prev);
-                      n.add(currentPost.id);
-                      return n;
-                    });
-                    onRepostChange?.(currentPost.id);
-                  } catch (e) {
-                    console.error(e);
-                  }
-                })();
-              }}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                color: repostedIds.has(currentPost.id) ? "#4ade80" : "#888",
-                fontSize: 13,
-              }}
-            >
-              <Repeat2
-                className={`w-4 h-4 ${
-                  repostedIds.has(currentPost.id)
-                    ? "text-green-400"
-                    : "text-zinc-500"
-                }`}
-              />
-              {currentPost.repost_count ?? 0} Reposts
-            </button>
+            <div style={{ position: "relative" }}>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!publicKey) return;
+                  setRepostMenuOpen(!repostMenuOpen);
+                }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: repostedIds.has(currentPost.id) ? "#4ade80" : "#888",
+                  fontSize: 13,
+                }}
+              >
+                <Repeat2
+                  className={`w-4 h-4 ${
+                    repostedIds.has(currentPost.id)
+                      ? "text-green-400"
+                      : "text-zinc-500"
+                  }`}
+                />
+                {currentPost.repost_count ?? 0} Reposts
+              </button>
+
+              {repostMenuOpen && (
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: "100%",
+                    left: 0,
+                    marginBottom: 8,
+                    background: "#18181b",
+                    border: "1px solid #3f3f46",
+                    borderRadius: 12,
+                    boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+                    padding: "4px 0",
+                    width: 180,
+                    zIndex: 50,
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {repostedIds.has(currentPost.id) && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRepostedIds((prev) => {
+                          const n = new Set(prev);
+                          n.delete(currentPost.id);
+                          return n;
+                        });
+                        onRepostUndo?.(currentPost.id);
+                        setRepostMenuOpen(false);
+                      }}
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        padding: "8px 12px",
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        color: "#4ade80",
+                        fontSize: 13,
+                      }}
+                    >
+                      <Repeat2 className="w-4 h-4" />
+                      {t("post.undo_repost", "Undo Repost")}
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!publicKey) return;
+                      void (async () => {
+                        try {
+                          await repostPost(
+                            publicKey.toBase58(),
+                            currentPost.id
+                          );
+                          setRepostedIds((prev) => {
+                            const n = new Set(prev);
+                            n.add(currentPost.id);
+                            return n;
+                          });
+                          onRepostChange?.(currentPost.id);
+                        } catch (e) {
+                          console.error(e);
+                        }
+                      })();
+                      setRepostMenuOpen(false);
+                    }}
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      padding: "8px 12px",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      color: "#f4f4f5",
+                      fontSize: 13,
+                    }}
+                  >
+                    <Repeat2 className="w-4 h-4 text-green-400" />
+                    {t("post.repost", "Repost")}
+                  </button>
+
+                  {onQuote && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onQuote(currentPost);
+                        setRepostMenuOpen(false);
+                      }}
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        padding: "8px 12px",
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        color: "#f4f4f5",
+                        fontSize: 13,
+                      }}
+                    >
+                      <MessageSquareQuote className="w-4 h-4 text-blue-400" />
+                      {t("post.quote", "Quote")}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

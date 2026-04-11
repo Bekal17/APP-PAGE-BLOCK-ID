@@ -1584,6 +1584,33 @@ const Dashboard = () => {
                       )
                     );
                   }}
+                  onRepostUndo={(postId) => {
+                    setRepostedPostIds((prev) => {
+                      const n = new Set(prev);
+                      n.delete(postId);
+                      return n;
+                    });
+                    setFeed((prev) =>
+                      prev.map((p) => {
+                        const match =
+                          (p as { repost_of?: number }).repost_of ===
+                            postId || p.id === postId;
+                        return match
+                          ? {
+                              ...p,
+                              repost_count: Math.max(
+                                (p.repost_count ?? 0) - 1,
+                                0
+                              ),
+                            }
+                          : p;
+                      })
+                    );
+                  }}
+                  onQuote={(p) => {
+                    setQuoteModalPost(p);
+                    setQuoteModalText("");
+                  }}
                   onClose={() => {
                     document.body.style.overflow = "";
                     setReplyToId(null);

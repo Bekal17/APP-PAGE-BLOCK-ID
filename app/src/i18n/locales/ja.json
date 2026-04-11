@@ -188,7 +188,8 @@
     "image_upload": "画像をアップロード",
     "identity_nft_required": "投稿にはアイデンティティNFTが必要です",
     "placeholder_reply": "返信を入力...",
-    "replying": "送信中..."
+    "replying": "送信中...",
+    "undo_repost": "リポスト取消"
   },
   "explore": {
     "title": "探索",
