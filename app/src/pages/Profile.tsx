@@ -51,7 +51,6 @@ import ScoreRing from "@/components/blockid/ScoreRing";
 import RiskBadge from "@/components/blockid/RiskBadge";
 import WalletActivityChart from "@/components/blockid/WalletActivityChart";
 import SubscriptionBadge from "@/components/blockid/SubscriptionBadge";
-import WalletAnalyzingLoader from "@/components/WalletAnalyzingLoader";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useSubscription } from "@/hooks/useSubscription";
@@ -303,7 +302,6 @@ const Profile = () => {
   const [investigatorStep, setInvestigatorStep] =
     useState<InvestigatorStep | null>(null);
   const [investigatorDone, setInvestigatorDone] = useState(false);
-  const [analyzing, setAnalyzing] = useState(false);
   const [showNFTModal, setShowNFTModal] = useState<"avatar" | "banner" | null>(
     null
   );
@@ -1015,31 +1013,6 @@ const Profile = () => {
       walletUrl
     )}&text=${encodeURIComponent(twitterReportText)}`;
     window.open(url, "_blank", "noopener,noreferrer");
-  };
-
-  const handleRecalculate = async () => {
-    const targetWallet = walletParam ?? address;
-    if (!targetWallet) return;
-    try {
-      setAnalyzing(true);
-      const res = await fetch(
-        `${API_BASE}/wallet/recalculate/${encodeURIComponent(targetWallet)}`,
-        {
-          method: "POST",
-        }
-      );
-      if (!res.ok) throw new Error("Recalculate failed");
-      await loadDashboardData();
-      toast({ title: "Score recalculated successfully" });
-    } catch (err) {
-      console.error("Recalculate error", err);
-      toast({
-        title: "Failed to recalculate score",
-        variant: "destructive",
-      });
-    } finally {
-      setAnalyzing(false);
-    }
   };
 
   const cardClass =
@@ -1804,16 +1777,6 @@ const Profile = () => {
                       {t("profile.share_score")}
                     </Button>
                   )}
-                  <Button
-                    size="sm"
-                    disabled={analyzing || !address}
-                    onClick={handleRecalculate}
-                    className="rounded-lg bg-purple-600 hover:bg-purple-700 disabled:opacity-50 text-white px-4 py-2 transition"
-                  >
-                    {analyzing
-                      ? t("profile.analyzing", "Analyzing...")
-                      : t("profile.recalculate", "Recalculate Score")}
-                  </Button>
                   <a
                     href="https://daemonprotocol.com"
                     target="_blank"
@@ -2359,8 +2322,6 @@ const Profile = () => {
             )}
           </div>
         )}
-
-        {analyzing && <WalletAnalyzingLoader />}
 
         {investigationReportProps && (
           <ShareInvestigationModal
