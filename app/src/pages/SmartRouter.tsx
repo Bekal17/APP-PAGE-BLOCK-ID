@@ -9,6 +9,13 @@ import {
   SystemProgram,
   LAMPORTS_PER_SOL,
 } from "@solana/web3.js";
+import {
+  getAssociatedTokenAddressSync,
+  createTransferInstruction,
+  createAssociatedTokenAccountInstruction,
+  TOKEN_PROGRAM_ID,
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+} from "@solana/spl-token";
 import DashboardLayout from "@/components/DashboardLayout";
 import UserAvatar from "@/components/UserAvatar";
 import { getWalletBalance } from "@/services/blockidApi";
@@ -54,6 +61,14 @@ const POPULAR_TOKENS = [
     mint: "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm",
   },
 ];
+
+const TOKEN_DECIMALS: Record<string, { mint: string; decimals: number }> = {
+  USDC: { mint: "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v", decimals: 6 },
+  USDT: { mint: "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB", decimals: 6 },
+  BONK: { mint: "DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263", decimals: 5 },
+  JUP: { mint: "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN", decimals: 6 },
+  WIF: { mint: "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm", decimals: 6 },
+};
 
 interface ParseResult {
   intent: string;
@@ -347,9 +362,77 @@ const SmartRouter = () => {
             .catch(() => {});
         }
       } else {
-        throw new Error(
-          "SPL token transfers coming soon. Only SOL supported for now.",
+        // SPL Token Transfer
+        const tokenInfo = TOKEN_DECIMALS[token];
+        if (!tokenInfo) {
+          throw new Error(`Token ${token} is not supported for transfers.`);
+        }
+
+        const mintPubkey = new PublicKey(tokenInfo.mint);
+        const senderATA = getAssociatedTokenAddressSync(mintPubkey, publicKey);
+        const recipientATA = getAssociatedTokenAddressSync(
+          mintPubkey,
+          recipientPubkey,
         );
+
+        const { blockhash, lastValidBlockHeight } =
+          await connection.getLatestBlockhash();
+
+        const transaction = new Transaction({
+          recentBlockhash: blockhash,
+          feePayer: publicKey,
+        });
+
+        // Check if recipient ATA exists; if not, create it (sender pays rent).
+        const recipientATAInfo = await connection.getAccountInfo(recipientATA);
+        if (!recipientATAInfo) {
+          transaction.add(
+            createAssociatedTokenAccountInstruction(
+              publicKey,
+              recipientATA,
+              recipientPubkey,
+              mintPubkey,
+              TOKEN_PROGRAM_ID,
+              ASSOCIATED_TOKEN_PROGRAM_ID,
+            ),
+          );
+        }
+
+        // Calculate raw amount using token decimals
+        const rawAmount = BigInt(Math.round(amount * 10 ** tokenInfo.decimals));
+
+        transaction.add(
+          createTransferInstruction(
+            senderATA,
+            recipientATA,
+            publicKey,
+            rawAmount,
+            [],
+            TOKEN_PROGRAM_ID,
+          ),
+        );
+
+        if (!signTransaction) {
+          throw new Error("Wallet does not support signing. Please reconnect.");
+        }
+
+        const signed = await signTransaction(transaction);
+        const signature = await connection.sendRawTransaction(
+          signed.serialize(),
+        );
+
+        await connection.confirmTransaction(
+          { signature, blockhash, lastValidBlockHeight },
+          "confirmed",
+        );
+
+        setTxSignature(signature);
+        setStep("input");
+        if (publicKey) {
+          getWalletBalance(publicKey.toString())
+            .then(setBalance)
+            .catch(() => {});
+        }
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Transaction failed";
@@ -369,6 +452,13 @@ const SmartRouter = () => {
         setTxError("Transaction expired. Please try again.");
       } else if (message.includes("does not support signing")) {
         setTxError("Wallet not connected. Please reconnect and try again.");
+      } else if (
+        message.includes("TokenAccountNotFoundError") ||
+        message.includes("could not find account")
+      ) {
+        setTxError(
+          `You don't have any ${parseResult?.token ?? "token"} in your wallet.`,
+        );
       } else {
         setTxError(
           message.length > 150 ? message.slice(0, 150) + "..." : message,
