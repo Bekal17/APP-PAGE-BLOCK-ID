@@ -3,8 +3,6 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
-import { OAuthProvider } from "@openfort/openfort-js";
-import { openfortClient } from "@/providers/OpenfortProvider";
 
 export default function CustomWalletModal() {
   const { t } = useTranslation();
@@ -35,21 +33,6 @@ export default function CustomWalletModal() {
   const handleWalletSelect = (walletName: string) => {
     select(walletName as any);
     setShow(false);
-  };
-
-  const handleGoogleLogin = async () => {
-    setShow(false);
-    try {
-      await openfortClient.waitForInitialization();
-      const url = await openfortClient.auth.initOAuth({
-        provider: OAuthProvider.GOOGLE,
-        redirectTo: `${window.location.origin}/auth/callback`,
-        options: { skipBrowserRedirect: true },
-      });
-      if (url) window.location.assign(url);
-    } catch (e) {
-      console.error("Google login error:", e);
-    }
   };
 
   return (
@@ -124,8 +107,8 @@ export default function CustomWalletModal() {
 
           {/* Google */}
           <button
-            onClick={handleGoogleLogin}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800 hover:border-zinc-700 transition-all text-sm font-medium text-zinc-200"
+            disabled
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-900/50 transition-all text-sm font-medium text-zinc-200 opacity-50 cursor-not-allowed"
           >
             <svg width="18" height="18" viewBox="0 0 24 24">
               <path
@@ -146,15 +129,15 @@ export default function CustomWalletModal() {
               />
             </svg>
             {t("onboarding.continue_google")}
+            <span className="ml-2 text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full font-medium">
+              Soon
+            </span>
           </button>
 
           {/* Email */}
           <button
-            onClick={() => {
-              setShow(false);
-              window.location.href = "/login-email";
-            }}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800 hover:border-zinc-700 transition-all text-sm font-medium text-zinc-200"
+            disabled
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-900/50 transition-all text-sm font-medium text-zinc-200 opacity-50 cursor-not-allowed"
           >
             <svg
               width="18"
@@ -168,6 +151,9 @@ export default function CustomWalletModal() {
               <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
             </svg>
             {t("auth.continue_with_email")}
+            <span className="ml-2 text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded-full font-medium">
+              Soon
+            </span>
           </button>
 
           <p className="text-center text-xs text-zinc-600 pt-1">
