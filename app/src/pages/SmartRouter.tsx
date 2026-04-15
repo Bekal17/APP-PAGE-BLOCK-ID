@@ -18,7 +18,10 @@ import {
 } from "@solana/spl-token";
 import DashboardLayout from "@/components/DashboardLayout";
 import UserAvatar from "@/components/UserAvatar";
+import { CashtagPill } from "@/components/CashtagPill";
 import { getWalletBalance } from "@/services/blockidApi";
+import { useTokenList } from "@/hooks/useTokenList";
+import { useCashtagPrice } from "@/hooks/useCashtagPrice";
 import {
   Zap,
   Send,
@@ -98,6 +101,7 @@ const SmartRouter = () => {
   const { t } = useTranslation();
   const { publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
+  const { getByTicker } = useTokenList();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [input, setInput] = useState("");
@@ -116,6 +120,12 @@ const SmartRouter = () => {
   const [swapStep, setSwapStep] = useState<"idle" | "quoted" | "signing">("idle");
   const [balance, setBalance] = useState<any>(null);
   const [balanceLoading, setBalanceLoading] = useState(false);
+
+  const routerToken = parseResult?.token ?? null;
+  const routerTokenData = routerToken ? getByTicker(routerToken) : null;
+  const routerMint = routerTokenData?.address ?? undefined;
+  const { prices: routerPrices } = useCashtagPrice(routerMint ? [routerMint] : []);
+  const routerPrice = routerMint ? routerPrices[routerMint] : undefined;
 
   useEffect(() => {
     if (!publicKey) {
@@ -684,9 +694,22 @@ const SmartRouter = () => {
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
                     Amount
                   </p>
-                  <p className="text-sm font-semibold text-foreground">
-                    {parseResult.amount} {parseResult.token ?? ""}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-semibold text-foreground">
+                      {parseResult.amount}
+                    </p>
+                    {parseResult.token ? (
+                      <CashtagPill
+                        ticker={parseResult.token}
+                        mintAddress={routerMint}
+                        price={routerPrice?.price}
+                        change24h={routerPrice?.change24h}
+                        isVerified={!!routerTokenData}
+                      />
+                    ) : (
+                      <span className="text-sm text-muted-foreground">—</span>
+                    )}
+                  </div>
                 </div>
               )}
               {parseResult.output_token && parseResult.intent === "swap" && (
