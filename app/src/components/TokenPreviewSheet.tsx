@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import type { JupiterToken } from "@/hooks/useTokenList";
@@ -11,6 +12,19 @@ interface TokenPreviewSheetProps {
   price?: number;
   change24h?: number;
   isVerified: boolean;
+}
+
+interface CashtagStats {
+  trusted_wallet_count: number;
+  post_count_today: number;
+  wallets: Array<{
+    wallet: string;
+    handle: string | null;
+    trust_score: number;
+    avatar_url: string | null;
+    avatar_type: string | null;
+    avatar_is_animated: boolean;
+  }>;
 }
 
 function formatPrice(price?: number): string {
@@ -41,6 +55,22 @@ export function TokenPreviewSheet({
   change24h,
   isVerified,
 }: TokenPreviewSheetProps) {
+  const [cashtagStats, setCashtagStats] = useState<CashtagStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!open || !ticker) return;
+    setStatsLoading(true);
+    setCashtagStats(null);
+    fetch(
+      `https://blockid-backend-production.up.railway.app/social/cashtag/${ticker}/stats`,
+    )
+      .then((r) => r.json())
+      .then((data) => setCashtagStats(data))
+      .catch(() => setCashtagStats(null))
+      .finally(() => setStatsLoading(false));
+  }, [open, ticker]);
+
   const normalizedTicker = ticker.startsWith("$") ? ticker : `$${ticker}`;
   const changeText = formatChange(change24h);
   const changeColorClass =
@@ -101,14 +131,63 @@ export function TokenPreviewSheet({
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Posts today</p>
-            <p className="text-sm font-medium">0</p>
-            <p className="text-xs text-muted-foreground">Coming soon</p>
+            <p className="text-sm font-medium">
+              {statsLoading ? "..." : (cashtagStats?.post_count_today ?? 0)}
+            </p>
           </div>
         </div>
 
         <div className="border-t pt-3 mt-3">
-          <p className="text-sm font-medium">Discussed by 0 wallets with Trust Score &gt;70</p>
-          <p className="text-xs text-muted-foreground">Coming soon</p>
+          {statsLoading ? (
+            <div style={{ fontSize: 12, color: "var(--color-text-tertiary)" }}>
+              Loading...
+            </div>
+          ) : cashtagStats && cashtagStats.trusted_wallet_count > 0 ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ display: "flex" }}>
+                {cashtagStats.wallets.slice(0, 3).map((w, i) => (
+                  <div
+                    key={w.wallet}
+                    style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: "50%",
+                      marginLeft: i === 0 ? 0 : -5,
+                      border: "1.5px solid var(--color-background-primary)",
+                      background: "var(--color-background-secondary)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 9,
+                      fontWeight: 500,
+                      color: "var(--color-text-secondary)",
+                      overflow: "hidden",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {w.avatar_url ? (
+                      <img
+                        src={w.avatar_url}
+                        alt={w.handle ?? w.wallet}
+                        style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      />
+                    ) : (
+                      (w.handle ?? w.wallet)[0]?.toUpperCase()
+                    )}
+                  </div>
+                ))}
+              </div>
+              <span style={{ fontSize: 12, color: "var(--color-text-secondary)" }}>
+                Discussed by {cashtagStats.trusted_wallet_count} wallet
+                {cashtagStats.trusted_wallet_count !== 1 ? "s" : ""} with Trust
+                Score &gt;50
+              </span>
+            </div>
+          ) : (
+            <span style={{ fontSize: 12, color: "var(--color-text-tertiary)" }}>
+              No trusted wallets discussing this token yet
+            </span>
+          )}
         </div>
 
         <Button
