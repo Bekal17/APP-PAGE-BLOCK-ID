@@ -1,4 +1,4 @@
-import { type CSSProperties } from "react";
+import { type CSSProperties, type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { type PublicKey } from "@solana/web3.js";
 import {
@@ -16,7 +16,11 @@ import WalletHoverCard from "@/components/WalletHoverCard";
 import UserAvatar from "@/components/UserAvatar";
 import SubscriptionBadge from "@/components/blockid/SubscriptionBadge";
 import LinkPreviewCard from "@/components/LinkPreviewCard";
+import { CashtagPill } from "@/components/CashtagPill";
+import { TokenPreviewSheet } from "@/components/TokenPreviewSheet";
 import { linkifyContent } from "@/utils/linkify";
+import { useTokenList } from "@/hooks/useTokenList";
+import { useCashtagPrice } from "@/hooks/useCashtagPrice";
 import { likePost, unlikePost, repostPost } from "@/services/blockidApi";
 
 export type SocialPost = {
@@ -283,6 +287,57 @@ export default function PostCard({
   onTopReplyRepost,
   onTopReplyComment,
 }: PostCardProps) {
+  const { getByTicker } = useTokenList();
+  const [previewTicker, setPreviewTicker] = useState<string | null>(null);
+  const [previewMint, setPreviewMint] = useState<string | null>(null);
+
+  const cashtagRegex = /\$([A-Z]{2,10})/g;
+
+  const extractedTickers = Array.from(
+    new Set(
+      [...(post.content?.matchAll(cashtagRegex) ?? []), ...(post.quote_content?.matchAll(cashtagRegex) ?? [])].map(
+        (match) => match[1],
+      ),
+    ),
+  );
+
+  const resolvedMints = extractedTickers
+    .map((ticker) => getByTicker(ticker))
+    .filter(Boolean)
+    .map((token) => token!.address);
+
+  const { prices } = useCashtagPrice(resolvedMints);
+
+  const parseCashtags = (text: string): ReactNode[] => {
+    const parts = text.split(/(\$[A-Z]{2,10})/g);
+    return parts.map((part, i) => {
+      const match = part.match(/^\$([A-Z]{2,10})$/);
+      if (match) {
+        const ticker = match[1];
+        const token = getByTicker(ticker);
+        const mintAddress = token?.address;
+        const priceData = mintAddress ? prices[mintAddress] : undefined;
+        return (
+          <CashtagPill
+            key={i}
+            ticker={ticker}
+            mintAddress={mintAddress}
+            price={priceData?.price}
+            change24h={priceData?.change24h}
+            isVerified={!!token}
+            onClick={() => {
+              if (mintAddress) {
+                setPreviewTicker(ticker);
+                setPreviewMint(mintAddress);
+              }
+            }}
+          />
+        );
+      }
+      return <span key={i}>{linkifyContent(part)}</span>;
+    });
+  };
+
   const trustScore =
     profile?.trust_score ?? post?.trust_score ?? undefined;
   const originalPost = (post as SocialPost).original_post ?? null;
@@ -537,7 +592,7 @@ export default function PostCard({
               <div className="h-4 bg-muted/30 rounded animate-pulse w-2/3" />
             ) : (
               <p className="text-sm text-foreground whitespace-pre-wrap">
-                {linkifyContent(displayContent)}
+                {parseCashtags(displayContent)}
               </p>
             )}
 
@@ -574,7 +629,7 @@ export default function PostCard({
                   className="text-sm text-foreground/80 whitespace-pre-wrap
                     line-clamp-3"
                 >
-                  {linkifyContent(originalPost.content)}
+                  {parseCashtags(originalPost.content)}
                 </p>
               </div>
             )}
@@ -693,17 +748,32 @@ export default function PostCard({
       </div>
   );
 
+  const previewToken = previewTicker ? getByTicker(previewTicker) : null;
   const normalCard = (
     <>
       {repostLabel}
       {mainPostCard}
+      <TokenPreviewSheet
+        open={!!previewTicker && !!previewMint}
+        onClose={() => {
+          setPreviewTicker(null);
+          setPreviewMint(null);
+        }}
+        ticker={previewTicker ?? ""}
+        mintAddress={previewMint ?? ""}
+        token={previewToken}
+        price={previewMint ? prices[previewMint]?.price : undefined}
+        change24h={previewMint ? prices[previewMint]?.change24h : undefined}
+        isVerified={!!previewTicker && !!getByTicker(previewTicker)}
+      />
     </>
   );
 
   if (activeTab === "following" && post.top_reply) {
     const tr = post.top_reply;
     return (
-      <div style={{ position: "relative" }}>
+      <>
+        <div style={{ position: "relative" }}>
         <div
           style={{
             position: "absolute",
@@ -868,7 +938,21 @@ export default function PostCard({
             </div>
           </div>
         </div>
-      </div>
+        </div>
+        <TokenPreviewSheet
+          open={!!previewTicker && !!previewMint}
+          onClose={() => {
+            setPreviewTicker(null);
+            setPreviewMint(null);
+          }}
+          ticker={previewTicker ?? ""}
+          mintAddress={previewMint ?? ""}
+          token={previewToken}
+          price={previewMint ? prices[previewMint]?.price : undefined}
+          change24h={previewMint ? prices[previewMint]?.change24h : undefined}
+          isVerified={!!previewTicker && !!getByTicker(previewTicker)}
+        />
+      </>
     );
   }
 
