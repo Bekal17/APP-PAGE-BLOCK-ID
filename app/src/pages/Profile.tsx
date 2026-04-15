@@ -41,6 +41,7 @@ import {
   updateProfile,
   getSessionToken,
   getWalletActivity,
+  deletePost,
 } from "@/services/blockidApi";
 import { normalizeGraphResponse } from "@/components/investigation/WalletGraph";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -2250,6 +2251,16 @@ const Profile = () => {
                       setQuoteModalText("");
                     }}
                     onBookmark={handleBookmark}
+                    onDeletePost={isOwnProfile ? async (postId) => {
+                      if (!address) return;
+                      try {
+                        await deletePost(address, postId);
+                        setPosts((prev) => prev.filter((p) => p.id !== postId));
+                        toast({ title: "Post deleted" });
+                      } catch {
+                        toast({ title: "Failed to delete post", variant: "destructive" });
+                      }
+                    } : undefined}
                     onReport={(postId) => {
                       setReportModalId(postId);
                       setPostMenuId(null);
@@ -3784,6 +3795,10 @@ const Profile = () => {
                 setQuoteModalPost(p);
                 setQuoteModalText("");
               }}
+              onDeletePost={isOwnProfile ? (postId) => {
+                setPosts((prev) => prev.filter((p) => p.id !== postId));
+                setSelectedPost(null);
+              } : undefined}
               onClose={() => setSelectedPost(null)}
               onRepliesChange={setSelectedPostReplies}
             />

@@ -106,6 +106,7 @@ export type PostCardProps = {
   onTopReplyLike: (replyId: number) => void;
   onTopReplyRepost: (replyId: number) => void;
   onTopReplyComment: (post: SocialPost, replyId: number) => void;
+  onDeletePost?: (postId: number) => void | Promise<void>;
 };
 
 const truncateWallet = (wallet: string) =>
@@ -286,6 +287,7 @@ export default function PostCard({
   onTopReplyLike,
   onTopReplyRepost,
   onTopReplyComment,
+  onDeletePost,
 }: PostCardProps) {
   const { getByTicker, isLoading } = useTokenList();
   const [previewTicker, setPreviewTicker] = useState<string | null>(null);
@@ -578,6 +580,20 @@ export default function PostCard({
                           ? "Remove Bookmark"
                           : "Bookmark"}
                       </button>
+
+                      {publicKey && post?.wallet === walletPk && onDeletePost && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            void onDeletePost(post.id);
+                            onMenuOpen(null);
+                          }}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-zinc-800 transition-colors"
+                        >
+                          <Flag className="w-4 h-4" />
+                          Delete Post
+                        </button>
+                      )}
 
                       {publicKey && post?.wallet !== walletPk && (
                         <button

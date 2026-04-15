@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Heart, MessageSquare, MessageSquareQuote, Repeat2 } from "lucide-react";
+import { Heart, MessageSquare, MessageSquareQuote, Repeat2, Trash2 } from "lucide-react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import {
   likePost,
@@ -84,6 +84,7 @@ type Props = {
   onRepostChange?: (postId: number) => void;
   onRepostUndo?: (postId: number) => void;
   onQuote?: (post: SocialPost) => void;
+  onDeletePost?: (postId: number) => void;
   initialLikedIds?: Set<number>;
   initialRepostedIds?: Set<number>;
 };
@@ -98,6 +99,7 @@ export default function PostDetailPanel({
   onRepostChange,
   onRepostUndo,
   onQuote,
+  onDeletePost,
   initialLikedIds,
   initialRepostedIds,
 }: Props) {
@@ -634,6 +636,31 @@ export default function PostDetailPanel({
                 </div>
               )}
             </div>
+
+            {publicKey &&
+              currentPost.wallet === publicKey.toBase58() &&
+              onDeletePost && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onDeletePost(currentPost.id);
+                    onClose?.();
+                  }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    color: "#f87171",
+                    fontSize: 13,
+                  }}
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Delete
+                </button>
+              )}
           </div>
         </div>
 
