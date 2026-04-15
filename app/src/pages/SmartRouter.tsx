@@ -158,6 +158,18 @@ const SmartRouter = () => {
   const routerOutputPrice = routerOutputMint
     ? routerOutputPrices[routerOutputMint]
     : undefined;
+  const usdEquivalent = (() => {
+    if (!parseResult?.amount || !routerPrice?.price) return null;
+    const usd = parseFloat(String(parseResult.amount)) * routerPrice.price;
+    if (isNaN(usd)) return null;
+    return usd >= 1 ? `≈ $${usd.toFixed(2)}` : `≈ $${usd.toFixed(4)}`;
+  })();
+  const usdOutputEquivalent = (() => {
+    if (!parseResult?.amount || !routerOutputPrice?.price) return null;
+    const usd = parseFloat(String(parseResult.amount)) * routerOutputPrice.price;
+    if (isNaN(usd)) return null;
+    return usd >= 1 ? `≈ $${usd.toFixed(2)}` : `≈ $${usd.toFixed(4)}`;
+  })();
 
   useEffect(() => {
     if (!publicKey) {
@@ -726,20 +738,14 @@ const SmartRouter = () => {
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
                     Amount
                   </p>
-                  <div className="flex items-center gap-2">
+                  <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                     <p className="text-sm font-semibold text-foreground">
-                      {parseResult.amount}
+                      {parseResult.amount} {parseResult.token ?? ""}
                     </p>
-                    {parseResult.token ? (
-                      <CashtagPill
-                        ticker={parseResult.token}
-                        mintAddress={routerMint}
-                        price={routerPrice?.price}
-                        change24h={routerPrice?.change24h}
-                        isVerified={!!routerTokenData}
-                      />
-                    ) : (
-                      <span className="text-sm text-muted-foreground">—</span>
+                    {usdEquivalent && (
+                      <p className="text-xs text-muted-foreground">
+                        {usdEquivalent}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -851,6 +857,11 @@ const SmartRouter = () => {
                       />
                     )}
                   </div>
+                  {usdEquivalent && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {usdEquivalent}
+                    </p>
+                  )}
                 </div>
                 <ArrowRight className="w-5 h-5 text-muted-foreground" />
                 <div className="text-right">
@@ -871,6 +882,11 @@ const SmartRouter = () => {
                       />
                     )}
                   </div>
+                  {usdOutputEquivalent && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {usdOutputEquivalent}
+                    </p>
+                  )}
                 </div>
               </div>
               {quoteResult.price_impact_pct != null && (
@@ -1007,18 +1023,14 @@ const SmartRouter = () => {
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
                     {t("smart_router.amount_label", "Amount")}
                   </p>
-                  <div className="flex items-center gap-2">
-                    <p className="text-lg font-bold text-foreground">
-                      {parseResult.amount}
-                    </p>
-                    {parseResult.token && (
-                      <CashtagPill
-                        ticker={parseResult.token}
-                        mintAddress={routerMint}
-                        price={routerPrice?.price}
-                        change24h={routerPrice?.change24h}
-                        isVerified={!!routerTokenData}
-                      />
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
+                    <span className="text-sm font-medium text-foreground">
+                      {parseResult.amount} {parseResult.token ?? ""}
+                    </span>
+                    {usdEquivalent && (
+                      <span className="text-xs text-muted-foreground">
+                        {usdEquivalent}
+                      </span>
                     )}
                   </div>
                 </div>
