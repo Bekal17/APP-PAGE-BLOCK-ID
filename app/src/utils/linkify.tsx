@@ -30,8 +30,8 @@ export function linkifyContent(text: string): React.ReactNode[] {
       <a
         key={key++}
         href={url}
-        target="_blank"
-        rel="noopener noreferrer"
+        target={url.includes("app.blockidscore.fun") ? undefined : "_blank"}
+        rel={url.includes("app.blockidscore.fun") ? undefined : "noopener noreferrer"}
         onClick={(e) => e.stopPropagation()}
         className="text-primary hover:underline break-all"
       >

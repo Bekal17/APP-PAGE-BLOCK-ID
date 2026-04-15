@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, type KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useSearchParams } from "react-router-dom";
 import { Buffer } from "buffer";
 import {
   PublicKey,
@@ -122,8 +123,10 @@ const SmartRouter = () => {
   const { t } = useTranslation();
   const { publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
+  const [searchParams] = useSearchParams();
   const { getByTicker } = useTokenList();
   const inputRef = useRef<HTMLInputElement>(null);
+  const hasAutoParsedFromUrlRef = useRef(false);
 
   const [input, setInput] = useState("");
   const [parsing, setParsing] = useState(false);
@@ -183,8 +186,8 @@ const SmartRouter = () => {
       .finally(() => setBalanceLoading(false));
   }, [publicKey]);
 
-  const handleParse = async () => {
-    const text = input.trim();
+  const handleParse = async (overrideInput?: string) => {
+    const text = (overrideInput ?? input).trim();
     if (!text) return;
 
     setParsing(true);
@@ -214,6 +217,37 @@ const SmartRouter = () => {
       setParsing(false);
     }
   };
+
+  useEffect(() => {
+    if (hasAutoParsedFromUrlRef.current) return;
+    hasAutoParsedFromUrlRef.current = true;
+
+    const intent = searchParams.get("intent");
+    const amount = searchParams.get("amount");
+    const token = searchParams.get("token");
+    const to = searchParams.get("to");
+    const outputToken = searchParams.get("output_token");
+
+    if (intent && amount && token) {
+      let query = "";
+      if (intent === "send" && to) {
+        query = `send ${amount} ${token} to @${to.replace(/^@/, "")}`;
+      } else if (intent === "swap" && outputToken) {
+        query = `swap ${amount} ${token} to ${outputToken}`;
+      } else if (intent === "send") {
+        query = `send ${amount} ${token}`;
+      }
+
+      if (query) {
+        setInput(query);
+        const timeout = window.setTimeout(() => {
+          void handleParse(query);
+        }, 500);
+        return () => window.clearTimeout(timeout);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleContinue = async () => {
     if (!parseResult?.handle) return;
