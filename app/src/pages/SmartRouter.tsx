@@ -73,6 +73,27 @@ const TOKEN_DECIMALS: Record<string, { mint: string; decimals: number }> = {
   WIF: { mint: "EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm", decimals: 6 },
 };
 
+const TOKEN_PILL_COLORS: Record<string, {
+  bg: string;
+  text: string;
+  border: string;
+  dot: string;
+}> = {
+  SOL:  { bg: "rgba(56,189,248,0.10)",  text: "#38bdf8", border: "rgba(56,189,248,0.25)",  dot: "#38bdf8" },
+  USDC: { bg: "rgba(74,222,128,0.10)",  text: "#4ade80", border: "rgba(74,222,128,0.25)",  dot: "#4ade80" },
+  USDT: { bg: "rgba(74,222,128,0.08)",  text: "#4ade80", border: "rgba(74,222,128,0.20)",  dot: "#86efac" },
+  BONK: { bg: "rgba(251,191,36,0.10)",  text: "#fbbf24", border: "rgba(251,191,36,0.25)",  dot: "#fbbf24" },
+  JUP:  { bg: "rgba(167,139,250,0.10)", text: "#a78bfa", border: "rgba(167,139,250,0.25)", dot: "#a78bfa" },
+  WIF:  { bg: "rgba(248,113,113,0.10)", text: "#f87171", border: "rgba(248,113,113,0.25)", dot: "#f87171" },
+};
+
+const DEFAULT_PILL = {
+  bg: "rgba(113,113,122,0.15)",
+  text: "#a1a1aa",
+  border: "rgba(113,113,122,0.20)",
+  dot: "#71717a",
+};
+
 interface ParseResult {
   intent: string;
   handle: string | null;
@@ -1190,7 +1211,30 @@ const SmartRouter = () => {
                       <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-[10px] font-bold text-white">
                         ◎
                       </div>
-                      <span className="text-xs font-medium text-foreground">
+                      <span
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "5px",
+                          padding: "2px 9px",
+                          borderRadius: "20px",
+                          fontSize: "12px",
+                          fontWeight: 500,
+                          background: TOKEN_PILL_COLORS.SOL.bg,
+                          color: TOKEN_PILL_COLORS.SOL.text,
+                          border: `1px solid ${TOKEN_PILL_COLORS.SOL.border}`,
+                        }}
+                      >
+                        <span
+                          style={{
+                            width: 5,
+                            height: 5,
+                            borderRadius: "50%",
+                            background: TOKEN_PILL_COLORS.SOL.dot,
+                            flexShrink: 0,
+                            display: "inline-block",
+                          }}
+                        />
                         SOL
                       </span>
                     </div>
@@ -1217,6 +1261,11 @@ const SmartRouter = () => {
                   </div>
 
                   {getMergedTokens().map((token: any, i: number) => (
+                      (() => {
+                        const colors =
+                          TOKEN_PILL_COLORS[token.symbol?.toUpperCase()] ??
+                          DEFAULT_PILL;
+                        return (
                       <div
                         key={token.mint ?? token.symbol ?? i}
                         className="flex items-center justify-between py-2 border-t border-border/30"
@@ -1225,7 +1274,30 @@ const SmartRouter = () => {
                           <div className="w-6 h-6 rounded-full bg-zinc-700 flex items-center justify-center text-[10px] font-bold text-foreground">
                             {token.symbol?.[0] ?? "?"}
                           </div>
-                          <span className="text-xs font-medium text-foreground">
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "5px",
+                              padding: "2px 9px",
+                              borderRadius: "20px",
+                              fontSize: "12px",
+                              fontWeight: 500,
+                              background: colors.bg,
+                              color: colors.text,
+                              border: `1px solid ${colors.border}`,
+                            }}
+                          >
+                            <span
+                              style={{
+                                width: 5,
+                                height: 5,
+                                borderRadius: "50%",
+                                background: colors.dot,
+                                flexShrink: 0,
+                                display: "inline-block",
+                              }}
+                            />
                             {token.symbol}
                           </span>
                         </div>
@@ -1250,6 +1322,8 @@ const SmartRouter = () => {
                           )}
                         </div>
                       </div>
+                        );
+                      })()
                     ))}
 
                   {getMergedTokens().length === 0 &&
