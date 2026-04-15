@@ -1,50 +1,75 @@
 import React from "react";
 
 const URL_REGEX = /https?:\/\/[^\s<>"')\]]+/gi;
+const HANDLE_REGEX = /@([a-zA-Z0-9_]{1,50})/g;
 
-/**
- * Convert plain text to React elements with clickable links.
- * URLs become <a> tags, rest stays as text.
- */
 export function linkifyContent(text: string): React.ReactNode[] {
   const parts: React.ReactNode[] = [];
+
+  const combined = new RegExp(
+    `(${URL_REGEX.source})|(${HANDLE_REGEX.source})`,
+    "gi"
+  );
+
   let lastIndex = 0;
   let match: RegExpExecArray | null;
   let key = 0;
 
-  const regex = new RegExp(URL_REGEX.source, "gi");
-
-  while ((match = regex.exec(text)) !== null) {
-    // Text before the URL
+  while ((match = combined.exec(text)) !== null) {
     if (match.index > lastIndex) {
-      parts.push(text.slice(lastIndex, match.index));
+      parts.push(
+        <span key={key++}>{text.slice(lastIndex, match.index)}</span>
+      );
     }
 
-    let url = match[0];
-    // Clean trailing punctuation
-    while (url && /[.,;:!?)>\]}]$/.test(url)) {
-      url = url.slice(0, -1);
+    const fullMatch = match[0];
+
+    if (fullMatch.startsWith("http")) {
+      let url = fullMatch;
+      while (url && /[.,;:!?)>\]}]$/.test(url)) {
+        url = url.slice(0, -1);
+      }
+      parts.push(
+        <a
+          key={key++}
+          href={url}
+          target={url.includes("app.blockidscore.fun") ? undefined : "_blank"}
+          rel={
+            url.includes("app.blockidscore.fun")
+              ? undefined
+              : "noopener noreferrer"
+          }
+          onClick={(e) => e.stopPropagation()}
+          className="text-primary hover:underline break-all"
+        >
+          {url}
+        </a>
+      );
+      lastIndex = match.index + fullMatch.length;
+    } else if (fullMatch.startsWith("@")) {
+      const handle = fullMatch.slice(1);
+      parts.push(
+        <a
+          key={key++}
+          href={`/profile/${handle}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            window.location.href = `/profile/${handle}`;
+          }}
+          className="text-primary font-medium hover:underline cursor-pointer"
+        >
+          @{handle}
+        </a>
+      );
+      lastIndex = match.index + fullMatch.length;
     }
-
-    parts.push(
-      <a
-        key={key++}
-        href={url}
-        target={url.includes("app.blockidscore.fun") ? undefined : "_blank"}
-        rel={url.includes("app.blockidscore.fun") ? undefined : "noopener noreferrer"}
-        onClick={(e) => e.stopPropagation()}
-        className="text-primary hover:underline break-all"
-      >
-        {url}
-      </a>
-    );
-
-    lastIndex = match.index + match[0].length;
   }
 
-  // Remaining text after last URL
   if (lastIndex < text.length) {
-    parts.push(text.slice(lastIndex));
+    parts.push(
+      <span key={key++}>{text.slice(lastIndex)}</span>
+    );
   }
 
   return parts.length > 0 ? parts : [text];
