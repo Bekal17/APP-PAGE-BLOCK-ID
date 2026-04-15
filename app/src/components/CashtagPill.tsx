@@ -36,20 +36,20 @@ export function CashtagPill({
   const normalizedTicker = ticker.startsWith("$") ? ticker : `$${ticker}`;
 
   if (mintAddress && price === undefined) {
-    return <div className="w-20 h-5 rounded-full animate-pulse bg-muted" />;
+    return <div className="w-20 h-5 rounded-full animate-pulse bg-zinc-700/50" />;
   }
 
   if (isVerified === false) {
     return (
       <button
         type="button"
-        className={`${BASE_CLASSES} bg-amber-50 text-amber-800 border border-amber-300`}
+        className={`${BASE_CLASSES} bg-purple-500/10 text-purple-400 border border-purple-500/25`}
         onClick={(e) => {
           e.stopPropagation();
           onClick?.(e);
         }}
       >
-        <AlertTriangle className="w-3 h-3 flex-shrink-0" />
+        <AlertTriangle className="w-3 h-3 flex-shrink-0 text-purple-400" />
         <span>{`${normalizedTicker} · unverified`}</span>
       </button>
     );
@@ -61,12 +61,12 @@ export function CashtagPill({
   const isDown = typeof change24h === "number" && change24h < 0;
 
   const toneClasses = isUp
-    ? "bg-green-50 text-green-800 border border-green-300"
+    ? "bg-green-500/10 text-green-400 border border-green-500/25"
     : isDown
-      ? "bg-red-50 text-red-800 border border-red-300"
-      : "bg-muted text-muted-foreground border border-border";
+      ? "bg-red-500/10 text-red-400 border border-red-500/25"
+      : "bg-zinc-500/15 text-zinc-400 border border-zinc-500/20";
 
-  const dotColorClass = isUp ? "bg-green-500" : isDown ? "bg-red-500" : "bg-gray-400";
+  const dotColorClass = isUp ? "bg-green-400" : isDown ? "bg-red-400" : "bg-zinc-500";
 
   return (
     <button
