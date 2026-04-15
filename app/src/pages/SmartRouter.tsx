@@ -733,6 +733,22 @@ const SmartRouter = () => {
                   </p>
                 </div>
               )}
+              {parseResult.token && (
+                <div className="p-3 rounded-lg bg-muted/20">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
+                    Token
+                  </p>
+                  <div className="mt-1">
+                    <CashtagPill
+                      ticker={parseResult.token}
+                      mintAddress={routerMint}
+                      price={routerPrice?.price}
+                      change24h={routerPrice?.change24h}
+                      isVerified={!!routerTokenData}
+                    />
+                  </div>
+                </div>
+              )}
               {parseResult.amount != null && parseResult.amount !== "" && (
                 <div className="p-3 rounded-lg bg-muted/20">
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
@@ -740,7 +756,7 @@ const SmartRouter = () => {
                   </p>
                   <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                     <p className="text-sm font-semibold text-foreground">
-                      {parseResult.amount} {parseResult.token ?? ""}
+                      {parseResult.amount}
                     </p>
                     {usdEquivalent && (
                       <p className="text-xs text-muted-foreground">
@@ -1024,9 +1040,20 @@ const SmartRouter = () => {
                     {t("smart_router.amount_label", "Amount")}
                   </p>
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
-                    <span className="text-sm font-medium text-foreground">
-                      {parseResult.amount} {parseResult.token ?? ""}
-                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span className="text-sm font-medium text-foreground">
+                        {parseResult.amount}
+                      </span>
+                      {parseResult.token && (
+                        <CashtagPill
+                          ticker={parseResult.token}
+                          mintAddress={routerMint}
+                          price={routerPrice?.price}
+                          change24h={routerPrice?.change24h}
+                          isVerified={!!routerTokenData}
+                        />
+                      )}
+                    </div>
                     {usdEquivalent && (
                       <span className="text-xs text-muted-foreground">
                         {usdEquivalent}
