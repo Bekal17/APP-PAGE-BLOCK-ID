@@ -19,6 +19,7 @@ const SEARCH_URL = "https://api.jup.ag/tokens/v2/search";
 const STRICT_CACHE_KEY = "blockid_jup_tokens";
 const ALL_CACHE_KEY = "blockid_jup_tokens_all";
 const TTL_MS = 24 * 60 * 60 * 1000;
+const FETCH_TIMEOUT_MS = 10_000;
 
 function normalizeTicker(ticker: string): string {
   return ticker.trim().replace(/^\$/, "").toUpperCase();
@@ -107,8 +108,16 @@ function mapV2Token(item: JupiterV2Token): JupiterToken | null {
 }
 
 async function fetchTokenList(url: string): Promise<JupiterToken[]> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        "x-api-key": import.meta.env.VITE_JUPITER_API_KEY ?? "",
+      },
+    });
     if (!response.ok) {
       return [];
     }
@@ -116,23 +125,30 @@ async function fetchTokenList(url: string): Promise<JupiterToken[]> {
     const data = (await response.json()) as JupiterV2Token[];
     if (!Array.isArray(data)) return [];
 
-    const mapped = data
+    return data
+      .filter(isTokenVerified)
       .map(mapV2Token)
       .filter((token): token is JupiterToken => token !== null);
-
-    return mapped.filter((token) => {
-      const source = data.find((item) => item.id === token.address);
-      return source ? isTokenVerified(source) : false;
-    });
   } catch {
     return [];
+  } finally {
+    clearTimeout(timeout);
   }
 }
 
 async function fetchTokensBySearch(ticker: string): Promise<JupiterToken[]> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
   try {
     const response = await fetch(
       `${SEARCH_URL}?query=${encodeURIComponent(ticker)}`,
+      {
+        signal: controller.signal,
+        headers: {
+          "x-api-key": import.meta.env.VITE_JUPITER_API_KEY ?? "",
+        },
+      },
     );
     if (!response.ok) {
       return [];
@@ -154,6 +170,8 @@ async function fetchTokensBySearch(ticker: string): Promise<JupiterToken[]> {
       .filter((token): token is JupiterToken => token !== null);
   } catch {
     return [];
+  } finally {
+    clearTimeout(timeout);
   }
 }
 

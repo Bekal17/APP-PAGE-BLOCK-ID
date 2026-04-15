@@ -287,7 +287,7 @@ export default function PostCard({
   onTopReplyRepost,
   onTopReplyComment,
 }: PostCardProps) {
-  const { getByTicker } = useTokenList();
+  const { getByTicker, isLoading } = useTokenList();
   const [previewTicker, setPreviewTicker] = useState<string | null>(null);
   const [previewMint, setPreviewMint] = useState<string | null>(null);
 
@@ -315,6 +315,15 @@ export default function PostCard({
       if (match) {
         const ticker = match[1];
         const token = getByTicker(ticker);
+
+        if (!token && isLoading) {
+          return (
+            <span key={i} style={{ opacity: 0.6 }}>
+              ${ticker}
+            </span>
+          );
+        }
+
         const mintAddress = token?.address;
         const priceData = mintAddress ? prices[mintAddress] : undefined;
         return (
