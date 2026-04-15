@@ -126,6 +126,17 @@ const SmartRouter = () => {
   const routerMint = routerTokenData?.address ?? undefined;
   const { prices: routerPrices } = useCashtagPrice(routerMint ? [routerMint] : []);
   const routerPrice = routerMint ? routerPrices[routerMint] : undefined;
+  const routerOutputToken = parseResult?.output_token ?? null;
+  const routerOutputTokenData = routerOutputToken
+    ? getByTicker(routerOutputToken)
+    : null;
+  const routerOutputMint = routerOutputTokenData?.address ?? undefined;
+  const { prices: routerOutputPrices } = useCashtagPrice(
+    routerOutputMint ? [routerOutputMint] : [],
+  );
+  const routerOutputPrice = routerOutputMint
+    ? routerOutputPrices[routerOutputMint]
+    : undefined;
 
   useEffect(() => {
     if (!publicKey) {
@@ -805,20 +816,40 @@ const SmartRouter = () => {
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
                     You Pay
                   </p>
-                  <p className="text-lg font-bold text-foreground">
-                    {quoteResult.input_amount ?? parseResult.amount}{" "}
-                    {quoteResult.input_token ?? parseResult.token}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-lg font-bold text-foreground">
+                      {quoteResult.input_amount ?? parseResult.amount}
+                    </p>
+                    {(quoteResult.input_token ?? parseResult.token) && (
+                      <CashtagPill
+                        ticker={quoteResult.input_token ?? parseResult.token ?? ""}
+                        mintAddress={routerMint}
+                        price={routerPrice?.price}
+                        change24h={routerPrice?.change24h}
+                        isVerified={!!routerTokenData}
+                      />
+                    )}
+                  </div>
                 </div>
                 <ArrowRight className="w-5 h-5 text-muted-foreground" />
                 <div className="text-right">
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
                     You Receive
                   </p>
-                  <p className="text-lg font-bold text-emerald-400">
-                    {quoteResult.output_amount}{" "}
-                    {quoteResult.output_token ?? parseResult.output_token}
-                  </p>
+                  <div className="flex items-center justify-end gap-2">
+                    <p className="text-lg font-bold text-emerald-400">
+                      {quoteResult.output_amount}
+                    </p>
+                    {parseResult.output_token && (
+                      <CashtagPill
+                        ticker={parseResult.output_token}
+                        mintAddress={routerOutputMint}
+                        price={routerOutputPrice?.price}
+                        change24h={routerOutputPrice?.change24h}
+                        isVerified={!!routerOutputTokenData}
+                      />
+                    )}
+                  </div>
                 </div>
               </div>
               {quoteResult.price_impact_pct != null && (
@@ -955,9 +986,20 @@ const SmartRouter = () => {
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
                     {t("smart_router.amount_label", "Amount")}
                   </p>
-                  <p className="text-lg font-bold text-foreground">
-                    {parseResult.amount} {parseResult.token ?? "SOL"}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-lg font-bold text-foreground">
+                      {parseResult.amount}
+                    </p>
+                    {parseResult.token && (
+                      <CashtagPill
+                        ticker={parseResult.token}
+                        mintAddress={routerMint}
+                        price={routerPrice?.price}
+                        change24h={routerPrice?.change24h}
+                        isVerified={!!routerTokenData}
+                      />
+                    )}
+                  </div>
                 </div>
                 <div className="text-right">
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">
