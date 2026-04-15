@@ -334,7 +334,8 @@ export default function PostCard({
             price={priceData?.price}
             change24h={priceData?.change24h}
             isVerified={!!token}
-            onClick={() => {
+            onClick={(e) => {
+              e?.stopPropagation();
               if (mintAddress) {
                 setPreviewTicker(ticker);
                 setPreviewMint(mintAddress);
