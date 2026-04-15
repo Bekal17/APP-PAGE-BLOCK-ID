@@ -1,3 +1,4 @@
+import { type MouseEvent } from "react";
 import { AlertTriangle } from "lucide-react";
 
 export interface CashtagPillProps {
@@ -6,7 +7,7 @@ export interface CashtagPillProps {
   price?: number;
   change24h?: number;
   isVerified?: boolean;
-  onClick?: () => void;
+  onClick?: (e?: MouseEvent<HTMLButtonElement>) => void;
 }
 
 const BASE_CLASSES =
@@ -40,7 +41,14 @@ export function CashtagPill({
 
   if (isVerified === false) {
     return (
-      <button type="button" className={`${BASE_CLASSES} bg-amber-50 text-amber-800 border border-amber-300`} onClick={onClick}>
+      <button
+        type="button"
+        className={`${BASE_CLASSES} bg-amber-50 text-amber-800 border border-amber-300`}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClick?.(e);
+        }}
+      >
         <AlertTriangle className="w-3 h-3 flex-shrink-0" />
         <span>{`${normalizedTicker} · unverified`}</span>
       </button>
@@ -61,7 +69,14 @@ export function CashtagPill({
   const dotColorClass = isUp ? "bg-green-500" : isDown ? "bg-red-500" : "bg-gray-400";
 
   return (
-    <button type="button" className={`${BASE_CLASSES} ${toneClasses}`} onClick={onClick}>
+    <button
+      type="button"
+      className={`${BASE_CLASSES} ${toneClasses}`}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick?.(e);
+      }}
+    >
       <span className={`${DOT_CLASSES} ${dotColorClass}`} />
       <span>
         {normalizedTicker}
