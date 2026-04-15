@@ -7,6 +7,9 @@ export interface JupiterToken {
   decimals: number;
   logoURI?: string;
   tags?: string[];
+  usdPrice?: number;
+  change24h?: number;
+  isVerified?: boolean;
 }
 
 interface TokenCachePayload {
@@ -75,6 +78,10 @@ interface JupiterV2Token {
   icon?: string;
   tags?: string[];
   isVerified?: boolean;
+  usdPrice?: number;
+  stats24h?: {
+    priceChange?: number;
+  };
 }
 
 function isTokenVerified(item: JupiterV2Token): boolean {
@@ -104,6 +111,12 @@ function mapV2Token(item: JupiterV2Token): JupiterToken | null {
     decimals: item.decimals,
     logoURI: item.icon,
     tags,
+    usdPrice: item.usdPrice ?? undefined,
+    change24h: item.stats24h?.priceChange ?? undefined,
+    isVerified:
+      item.isVerified === true ||
+      (item.tags ?? []).includes("verified") ||
+      (item.tags ?? []).includes("strict"),
   };
 }
 
