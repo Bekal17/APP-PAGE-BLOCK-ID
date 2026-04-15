@@ -14,8 +14,8 @@ interface TokenCachePayload {
   tokens: JupiterToken[];
 }
 
-const STRICT_URL = "https://token.jup.ag/strict";
-const ALL_URL = "https://token.jup.ag/all";
+const STRICT_URL = "https://api.jup.ag/tokens/v2/tag?query=verified";
+const SEARCH_URL = "https://api.jup.ag/tokens/v2/search";
 const STRICT_CACHE_KEY = "blockid_jup_tokens";
 const ALL_CACHE_KEY = "blockid_jup_tokens_all";
 const TTL_MS = 24 * 60 * 60 * 1000;
@@ -66,6 +66,46 @@ function writeCache(key: string, tokens: JupiterToken[]): void {
   }
 }
 
+interface JupiterV2Token {
+  id?: string;
+  symbol?: string;
+  name?: string;
+  decimals?: number;
+  icon?: string;
+  tags?: string[];
+  isVerified?: boolean;
+}
+
+function isTokenVerified(item: JupiterV2Token): boolean {
+  const tags = item.tags ?? [];
+  return (
+    item.isVerified === true ||
+    tags.includes("verified") ||
+    tags.includes("strict")
+  );
+}
+
+function mapV2Token(item: JupiterV2Token): JupiterToken | null {
+  if (
+    !item.id ||
+    !item.symbol ||
+    !item.name ||
+    typeof item.decimals !== "number"
+  ) {
+    return null;
+  }
+
+  const tags = item.tags ?? [];
+  return {
+    address: item.id,
+    symbol: item.symbol,
+    name: item.name,
+    decimals: item.decimals,
+    logoURI: item.icon,
+    tags,
+  };
+}
+
 async function fetchTokenList(url: string): Promise<JupiterToken[]> {
   try {
     const response = await fetch(url);
@@ -73,8 +113,45 @@ async function fetchTokenList(url: string): Promise<JupiterToken[]> {
       return [];
     }
 
-    const data = (await response.json()) as JupiterToken[];
-    return Array.isArray(data) ? data : [];
+    const data = (await response.json()) as JupiterV2Token[];
+    if (!Array.isArray(data)) return [];
+
+    const mapped = data
+      .map(mapV2Token)
+      .filter((token): token is JupiterToken => token !== null);
+
+    return mapped.filter((token) => {
+      const source = data.find((item) => item.id === token.address);
+      return source ? isTokenVerified(source) : false;
+    });
+  } catch {
+    return [];
+  }
+}
+
+async function fetchTokensBySearch(ticker: string): Promise<JupiterToken[]> {
+  try {
+    const response = await fetch(
+      `${SEARCH_URL}?query=${encodeURIComponent(ticker)}`,
+    );
+    if (!response.ok) {
+      return [];
+    }
+
+    const data = (await response.json()) as JupiterV2Token[];
+    if (!Array.isArray(data)) return [];
+
+    return data
+      .map((item) => {
+        const mapped = mapV2Token(item);
+        if (!mapped) return null;
+        const tags = mapped.tags ?? [];
+        if (isTokenVerified(item) && !tags.includes("verified")) {
+          mapped.tags = [...tags, "verified"];
+        }
+        return mapped;
+      })
+      .filter((token): token is JupiterToken => token !== null);
   } catch {
     return [];
   }
@@ -84,7 +161,7 @@ export function useTokenList() {
   const [tokens, setTokens] = useState<JupiterToken[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const allTokensRef = useRef<JupiterToken[] | null>(null);
-  const allFetchPromiseRef = useRef<Promise<JupiterToken[]> | null>(null);
+  const allFetchPromiseRef = useRef<Record<string, Promise<JupiterToken[]>>>({});
 
   useEffect(() => {
     let isMounted = true;
@@ -117,28 +194,46 @@ export function useTokenList() {
     };
   }, []);
 
-  const loadAllTokensOnce = useCallback(async (): Promise<JupiterToken[]> => {
-    if (allTokensRef.current) {
-      return allTokensRef.current;
-    }
-
+  const loadSearchTokensOnce = useCallback(async (ticker: string): Promise<JupiterToken[]> => {
     const cachedAll = readCache(ALL_CACHE_KEY);
-    if (cachedAll) {
+    if (!allTokensRef.current && cachedAll) {
       allTokensRef.current = cachedAll;
-      return cachedAll;
     }
 
-    if (!allFetchPromiseRef.current) {
-      allFetchPromiseRef.current = fetchTokenList(ALL_URL).then((fetchedAll) => {
-        if (fetchedAll.length > 0) {
-          writeCache(ALL_CACHE_KEY, fetchedAll);
-        }
-        allTokensRef.current = fetchedAll;
-        return fetchedAll;
-      });
+    const existingMatch =
+      allTokensRef.current?.filter(
+        (token) => token.symbol.toUpperCase() === ticker.toUpperCase(),
+      ) ?? [];
+    if (existingMatch.length > 0) {
+      return existingMatch;
     }
 
-    return allFetchPromiseRef.current;
+    const key = ticker.toUpperCase();
+    if (!allFetchPromiseRef.current[key]) {
+      allFetchPromiseRef.current[key] = fetchTokensBySearch(key).then(
+        (fetched) => {
+          if (fetched.length > 0) {
+            const existing = allTokensRef.current ?? [];
+            const mergedByAddress = new Map<string, JupiterToken>();
+            for (const token of existing) {
+              mergedByAddress.set(token.address, token);
+            }
+            for (const token of fetched) {
+              mergedByAddress.set(token.address, token);
+            }
+            const merged = Array.from(mergedByAddress.values());
+            allTokensRef.current = merged;
+            writeCache(ALL_CACHE_KEY, merged);
+          } else if (!allTokensRef.current) {
+            allTokensRef.current = [];
+          }
+
+          return fetched;
+        },
+      );
+    }
+
+    return allFetchPromiseRef.current[key];
   }, []);
 
   const getByTicker = useCallback(
@@ -161,10 +256,10 @@ export function useTokenList() {
         );
       }
 
-      void loadAllTokensOnce();
+      void loadSearchTokensOnce(normalized);
       return null;
     },
-    [loadAllTokensOnce, tokens],
+    [loadSearchTokensOnce, tokens],
   );
 
   return { tokens, getByTicker, isLoading };
