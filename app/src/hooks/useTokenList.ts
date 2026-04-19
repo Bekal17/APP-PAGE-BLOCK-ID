@@ -17,8 +17,10 @@ interface TokenCachePayload {
   tokens: JupiterToken[];
 }
 
-const STRICT_URL = "https://api.jup.ag/tokens/v2/tag?query=verified";
-const SEARCH_URL = "https://api.jup.ag/tokens/v2/search";
+const STRICT_URL =
+  "https://blockid-backend-production.up.railway.app/tokens/list";
+const SEARCH_URL_BASE =
+  "https://blockid-backend-production.up.railway.app/tokens/search";
 const STRICT_CACHE_KEY = "blockid_jup_tokens";
 const ALL_CACHE_KEY = "blockid_jup_tokens_all";
 const TTL_MS = 24 * 60 * 60 * 1000;
@@ -127,9 +129,6 @@ async function fetchTokenList(url: string): Promise<JupiterToken[]> {
   try {
     const response = await fetch(url, {
       signal: controller.signal,
-      headers: {
-        "x-api-key": import.meta.env.VITE_JUPITER_API_KEY ?? "",
-      },
     });
     if (!response.ok) {
       return [];
@@ -155,12 +154,9 @@ async function fetchTokensBySearch(ticker: string): Promise<JupiterToken[]> {
 
   try {
     const response = await fetch(
-      `${SEARCH_URL}?query=${encodeURIComponent(ticker)}`,
+      `${SEARCH_URL_BASE}/${encodeURIComponent(ticker)}`,
       {
         signal: controller.signal,
-        headers: {
-          "x-api-key": import.meta.env.VITE_JUPITER_API_KEY ?? "",
-        },
       },
     );
     if (!response.ok) {
