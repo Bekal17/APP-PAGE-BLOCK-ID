@@ -18,9 +18,9 @@ interface TokenCachePayload {
 }
 
 const STRICT_URL =
-  "https://blockid-backend-production.up.railway.app/tokens/list";
+  "https://blockid-backend-production.up.railway.app/social/tokens/list";
 const SEARCH_URL_BASE =
-  "https://blockid-backend-production.up.railway.app/tokens/search";
+  "https://blockid-backend-production.up.railway.app/social/tokens/search";
 const STRICT_CACHE_KEY = "blockid_jup_tokens";
 const ALL_CACHE_KEY = "blockid_jup_tokens_all";
 const TTL_MS = 24 * 60 * 60 * 1000;
