@@ -363,7 +363,7 @@ const Profile = () => {
   const [profile, setProfile] = useState<any | null>(null);
   const [posts, setPosts] = useState<any[]>([]);
   const [activeProfileTab, setActiveProfileTab] = useState<
-    "posts" | "wallet" | "activity"
+    "posts" | "wallet" | "activity" | "linked"
   >("posts");
   const [activityFeed, setActivityFeed] = useState<any[]>([]);
   const [activityLoading, setActivityLoading] = useState(false);
@@ -455,6 +455,12 @@ const Profile = () => {
   const [mintNFTLoading, setMintNFTLoading] = useState(false);
   const [mintNFTName, setMintNFTName] = useState("BlockID Avatar NFT");
   const [mintNFTSuccess, setMintNFTSuccess] = useState(false);
+  const [linkedWallets, setLinkedWallets] = useState<any[]>([]);
+  const [linkedWalletsLoading, setLinkedWalletsLoading] = useState(false);
+  const [linkSuggestions, setLinkSuggestions] = useState<any[]>([]);
+  const [linkSuggestionsLoading, setLinkSuggestionsLoading] = useState(false);
+  const [manualLinkInput, setManualLinkInput] = useState("");
+  const [manualLinkLoading, setManualLinkLoading] = useState(false);
 
   useEffect(() => {
     if (!selectedPost?.id) return;
@@ -550,6 +556,29 @@ const Profile = () => {
     };
     checkFollow();
   }, [address, walletParam]);
+
+  useEffect(() => {
+    if (activeProfileTab !== "linked") return;
+    if (!wallet) return;
+    const isProfileOwner = !walletParam || (!!address && walletParam === address);
+
+    setLinkedWalletsLoading(true);
+    fetch(`${API_BASE}/linking/linked/${wallet}`)
+      .then((r) => r.json())
+      .then((data) => setLinkedWallets(data.linked_wallets ?? data.wallets ?? []))
+      .catch(() => setLinkedWallets([]))
+      .finally(() => setLinkedWalletsLoading(false));
+
+    // Load suggestions only for own profile
+    if (isProfileOwner) {
+      setLinkSuggestionsLoading(true);
+      fetch(`${API_BASE}/linking/suggestions/${wallet}`)
+        .then((r) => r.json())
+        .then((data) => setLinkSuggestions(data.suggestions ?? []))
+        .catch(() => setLinkSuggestions([]))
+        .finally(() => setLinkSuggestionsLoading(false));
+    }
+  }, [activeProfileTab, wallet, walletParam, address]);
 
   useEffect(() => {
     if (activeProfileTab !== "activity") return;
@@ -1704,6 +1733,22 @@ const Profile = () => {
               {t("profile.activity")}
             </button>
           )}
+          <button
+            type="button"
+            onClick={() => setActiveProfileTab("linked")}
+            className={
+              activeProfileTab === "linked"
+                ? "border-b-2 border-primary text-primary font-semibold px-4 py-2 text-sm"
+                : "text-muted-foreground px-4 py-2 text-sm hover:text-foreground"
+            }
+          >
+            Linked Wallets
+            {linkedWallets.length > 0 && (
+              <span className="ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-primary/20 text-primary">
+                {linkedWallets.length}
+              </span>
+            )}
+          </button>
         </div>
 
         {/* Tab content */}
@@ -2168,6 +2213,226 @@ const Profile = () => {
             {/* 6. Wallet Activity Chart - full width */}
             {isOwnProfile && <WalletActivityChart wallet={wallet} activity={walletDashboard?.activity ?? []} />}
 
+          </div>
+        ) : activeProfileTab === "linked" ? (
+          <div className="space-y-4 animate-slide-up mt-4">
+
+            {/* Linked Wallets List */}
+            <div className="glass-card p-5">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-base font-semibold text-foreground flex items-center gap-2">
+                  <span>🔗</span>
+                  Linked Wallets
+                </h2>
+                {linkedWallets.length > 0 && (
+                  <span className="text-xs text-muted-foreground">
+                    {linkedWallets.length} wallet{linkedWallets.length !== 1 ? "s" : ""} linked
+                  </span>
+                )}
+              </div>
+
+              {linkedWalletsLoading ? (
+                <div className="space-y-3">
+                  {[0, 1].map((i) => (
+                    <div key={i} className="h-14 bg-zinc-800/50 rounded-xl animate-pulse" />
+                  ))}
+                </div>
+              ) : linkedWallets.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-sm text-muted-foreground">No linked wallets yet.</p>
+                  {isOwnProfile && (
+                    <p className="text-xs text-muted-foreground/60 mt-1">
+                      Link your other wallets to aggregate your identity and trust score.
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {linkedWallets.map((lw: any, i: number) => {
+                    const linkedAddr = lw.wallet ?? lw.linked_wallet ?? lw.address ?? "";
+                    const confidence = lw.confidence ?? lw.confidence_score ?? null;
+                    const isVerified = lw.verified ?? (lw.status === "VERIFIED");
+                    return (
+                      <div
+                        key={i}
+                        className="flex items-center justify-between p-3 rounded-xl bg-zinc-800/40 border border-zinc-700/50 hover:border-primary/30 transition-colors cursor-pointer"
+                        onClick={() => linkedAddr && navigate(`/profile/${linkedAddr}`)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">
+                            {linkedAddr[0]?.toUpperCase() ?? "?"}
+                          </div>
+                          <div>
+                            <p className="text-sm font-mono text-foreground">
+                              {linkedAddr.length > 16
+                                ? `${linkedAddr.slice(0, 6)}...${linkedAddr.slice(-6)}`
+                                : linkedAddr}
+                            </p>
+                            {confidence != null && (
+                              <p className="text-xs text-muted-foreground">
+                                {Math.round(confidence * 100)}% confidence
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          {isVerified && (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-500/15 text-green-400 border border-green-500/20">
+                              Verified
+                            </span>
+                          )}
+                          <span className="text-xs text-muted-foreground/50">→</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Manual Link Request - owner only */}
+            {isOwnProfile && (
+              <div className="glass-card p-5">
+                <h3 className="text-sm font-semibold text-foreground mb-3">
+                  Link Another Wallet
+                </h3>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Enter a wallet address you own to create a linking request. The other wallet must accept to complete the link.
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={manualLinkInput}
+                    onChange={(e) => setManualLinkInput(e.target.value)}
+                    placeholder="Wallet address..."
+                    className="flex-1 px-3 py-2 bg-zinc-800 border border-zinc-700 rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  />
+                  <button
+                    type="button"
+                    disabled={!manualLinkInput.trim() || manualLinkLoading}
+                    onClick={async () => {
+                      if (!address || !manualLinkInput.trim()) return;
+                      setManualLinkLoading(true);
+                      try {
+                        const res = await fetch(`${API_BASE}/linking/manual`, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            wallet_a: address,
+                            wallet_b: manualLinkInput.trim(),
+                          }),
+                        });
+                        if (res.ok) {
+                          toast({ title: "Link request sent!" });
+                          setManualLinkInput("");
+                        } else {
+                          toast({ title: "Failed to send request", variant: "destructive" });
+                        }
+                      } catch {
+                        toast({ title: "Failed to send request", variant: "destructive" });
+                      } finally {
+                        setManualLinkLoading(false);
+                      }
+                    }}
+                    className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium disabled:opacity-40 hover:bg-primary/90 transition-colors shrink-0"
+                  >
+                    {manualLinkLoading ? "Sending..." : "Send Request"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* AI Suggestions - owner only */}
+            {isOwnProfile && linkSuggestions.length > 0 && (
+              <div className="glass-card p-5">
+                <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center gap-2">
+                  <span>✨</span>
+                  Suggested Links
+                </h3>
+                <p className="text-xs text-muted-foreground mb-3">
+                  BlockID detected these wallets may belong to you based on on-chain behavior.
+                </p>
+                {linkSuggestionsLoading ? (
+                  <div className="h-12 bg-zinc-800/50 rounded-xl animate-pulse" />
+                ) : (
+                  <div className="space-y-2">
+                    {linkSuggestions.map((s: any, i: number) => {
+                      const suggestedAddr = s.wallet_b ?? s.suggested_wallet ?? s.wallet ?? "";
+                      const confidence = s.confidence ?? s.confidence_score ?? 0;
+                      return (
+                        <div
+                          key={i}
+                          className="flex items-center justify-between p-3 rounded-xl bg-zinc-800/40 border border-zinc-700/50"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center text-xs font-bold text-amber-400">
+                              ?
+                            </div>
+                            <div>
+                              <p className="text-sm font-mono text-foreground">
+                                {suggestedAddr.length > 16
+                                  ? `${suggestedAddr.slice(0, 6)}...${suggestedAddr.slice(-6)}`
+                                  : suggestedAddr}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {Math.round(confidence * 100)}% match confidence
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                if (!address) return;
+                                try {
+                                  await fetch(`${API_BASE}/linking/respond`, {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                      wallet: address,
+                                      suggestion_id: s.id,
+                                      accept: true,
+                                    }),
+                                  });
+                                  setLinkSuggestions((prev) => prev.filter((_, idx) => idx !== i));
+                                  toast({ title: "Wallet link accepted!" });
+                                } catch {
+                                  toast({ title: "Failed", variant: "destructive" });
+                                }
+                              }}
+                              className="px-3 py-1.5 rounded-lg bg-green-500/15 text-green-400 text-xs font-medium border border-green-500/20 hover:bg-green-500/25 transition-colors"
+                            >
+                              Accept
+                            </button>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                if (!address) return;
+                                try {
+                                  await fetch(`${API_BASE}/linking/respond`, {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({
+                                      wallet: address,
+                                      suggestion_id: s.id,
+                                      accept: false,
+                                    }),
+                                  });
+                                  setLinkSuggestions((prev) => prev.filter((_, idx) => idx !== i));
+                                } catch {}
+                              }}
+                              className="px-3 py-1.5 rounded-lg bg-zinc-700 text-zinc-300 text-xs font-medium hover:bg-zinc-600 transition-colors"
+                            >
+                              Dismiss
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         ) : activeProfileTab === "activity" ? (
           <div className="space-y-3 mt-4">
