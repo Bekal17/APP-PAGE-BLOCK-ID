@@ -170,6 +170,7 @@ const Dashboard = () => {
   const imgRef = useRef<HTMLImageElement>(null);
   const cropAspectRef = useRef<number | undefined>(undefined);
   const postImageInputRef = useRef<HTMLInputElement>(null);
+  const composeTextareaRef = useRef<HTMLTextAreaElement>(null);
   const postImageBtnRef = useRef<HTMLButtonElement>(null);
   const postImageMenuRef = useRef<HTMLDivElement>(null);
   const [isPosting, setIsPosting] = useState(false);
@@ -241,6 +242,13 @@ const Dashboard = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [postImageDropdownOpen]);
+
+  useEffect(() => {
+    const el = composeTextareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  }, [postContent]);
 
   useEffect(() => {
     if (!publicKey) return;
@@ -938,11 +946,17 @@ const Dashboard = () => {
             )}
             <div className="flex-1">
               <textarea
+                ref={composeTextareaRef}
                 value={postContent}
                 onChange={(e) => setPostContent(e.target.value)}
                 placeholder={t("dashboard.post_placeholder")}
-                className="w-full bg-transparent border-none outline-none text-sm text-foreground placeholder:text-muted-foreground resize-none min-h-[60px]"
-                rows={2}
+                className="w-full bg-transparent border-none outline-none text-sm text-foreground placeholder:text-muted-foreground"
+                style={{
+                  minHeight: "60px",
+                  height: "auto",
+                  overflow: "hidden",
+                  resize: "none",
+                }}
                 maxLength={280}
               />
               {postImagePreview && (
