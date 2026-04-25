@@ -91,6 +91,8 @@ type WalletProfile = {
   wallet: string;
   handle?: string | null;
   trust_score?: number | null;
+  avatar_url?: string | null;
+  avatar_type?: string | null;
 };
 
 const normalizeIso = (iso?: string): string => {
@@ -130,6 +132,10 @@ const Dashboard = () => {
     "explore" | "following" | "newest"
   >("explore");
   const [profiles, setProfiles] = useState<Record<string, WalletProfile>>({});
+  const [composeProfile, setComposeProfile] = useState<{
+    avatar_url?: string | null;
+    avatar_type?: string | null;
+  } | null>(null);
   const [likeLoading, setLikeLoading] = useState<Record<number, boolean>>({});
   const [followLoading, setFollowLoading] = useState<Record<string, boolean>>({});
   const [menuOpenId, setMenuOpenId] = useState<number | null>(null);
@@ -258,6 +264,21 @@ const Dashboard = () => {
       })
       .catch(() => {});
   }, [publicKey]);
+
+  useEffect(() => {
+    if (!address) {
+      setComposeProfile(null);
+      return;
+    }
+    getSocialProfile(address)
+      .then((profile) => {
+        setComposeProfile({
+          avatar_url: profile?.avatar_url ?? null,
+          avatar_type: profile?.avatar_type ?? null,
+        });
+      })
+      .catch(() => setComposeProfile(null));
+  }, [address]);
 
   useEffect(() => {
     const cachedFeed = sessionStorage.getItem("dashboard_feed_cache");
@@ -885,7 +906,32 @@ const Dashboard = () => {
 
         {publicKey && (
           <div className="glass-card p-4 flex gap-3 animate-slide-up">
-            <UserAvatar wallet={publicKey.toString()} size={36} />
+            {composeProfile?.avatar_url ? (
+              <img
+                src={composeProfile.avatar_url}
+                alt="Your avatar"
+                className={composeProfile.avatar_type === "NFT" ? "" : "rounded-full"}
+                style={
+                  composeProfile.avatar_type === "NFT"
+                    ? {
+                        width: 36,
+                        height: 36,
+                        objectFit: "cover",
+                        border: "2px solid gold",
+                        borderRadius: "8px",
+                      }
+                    : {
+                        width: 36,
+                        height: 36,
+                        objectFit: "cover",
+                      }
+                }
+              />
+            ) : (
+              <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary shrink-0">
+                {(address ?? "?")[0]?.toUpperCase() ?? "?"}
+              </div>
+            )}
             <div className="flex-1">
               <textarea
                 value={postContent}
@@ -931,7 +977,7 @@ const Dashboard = () => {
                 <span>{t("dashboard.content_warning")}</span>
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-border/50">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 relative overflow-visible">
                   <div className="relative" ref={postImageMenuRef}>
                     <button
                       type="button"
@@ -980,7 +1026,10 @@ const Dashboard = () => {
                       }}
                     />
                     {postImageDropdownOpen && (
-                      <div className="absolute left-0 top-10 z-50 w-40 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl py-1">
+                      <div
+                        className="absolute left-0 top-10 w-40 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl py-1"
+                        style={{ position: "absolute", zIndex: 9999 }}
+                      >
                         <button
                           type="button"
                           className="w-full text-left px-3 py-2 text-sm text-zinc-100 hover:bg-zinc-800 transition-colors"
