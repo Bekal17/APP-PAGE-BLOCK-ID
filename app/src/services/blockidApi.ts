@@ -679,3 +679,29 @@ export async function getWalletActivity(
   if (!res.ok) throw new Error("Failed to fetch activity");
   return res.json();
 }
+
+export async function getBadgeMetadata(): Promise<
+  Record<
+    string,
+    {
+      display_label: string;
+      color_hex: string;
+      category: string;
+      tier: string | null;
+      icon: string | null;
+    }
+  >
+> {
+  try {
+    const res = await fetch(`${API_BASE}/badges/metadata`);
+    if (!res.ok) return {};
+    const data = await res.json();
+    const map: Record<string, any> = {};
+    for (const item of data.metadata ?? []) {
+      map[item.code] = item;
+    }
+    return map;
+  } catch {
+    return {};
+  }
+}

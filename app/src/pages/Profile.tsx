@@ -234,7 +234,80 @@ const BADGE_LABELS: Record<string, string> = {
   MULTI_WALLET_IDENTITY: "Unified Identity",
   LOW_ACTIVITY: "Early Explorer",
   NO_RISK_DETECTED: "No Risk Detected",
+  // CEX badges
+  BINANCE_WHALE: "Binance Whale",
+  BINANCE_ACTIVE: "Binance Active",
+  BINANCE_CASUAL: "Binance User",
+  OKX_WHALE: "OKX Whale",
+  OKX_ACTIVE: "OKX Active",
+  OKX_CASUAL: "OKX User",
+  COINBASE_WHALE: "Coinbase Whale",
+  COINBASE_ACTIVE: "Coinbase Active",
+  COINBASE_CASUAL: "Coinbase User",
+  BYBIT_WHALE: "Bybit Whale",
+  BYBIT_ACTIVE: "Bybit Active",
+  BYBIT_CASUAL: "Bybit User",
+  KRAKEN_WHALE: "Kraken Whale",
+  KRAKEN_ACTIVE: "Kraken Active",
+  KRAKEN_CASUAL: "Kraken User",
+  KUCOIN_WHALE: "KuCoin Whale",
+  KUCOIN_ACTIVE: "KuCoin Active",
+  KUCOIN_CASUAL: "KuCoin User",
+  UPBIT_WHALE: "Upbit Whale",
+  UPBIT_ACTIVE: "Upbit Active",
+  UPBIT_CASUAL: "Upbit User",
+  GATE_WHALE: "Gate.io Whale",
+  GATE_ACTIVE: "Gate.io Active",
+  GATE_CASUAL: "Gate.io User",
+  MEXC_WHALE: "MEXC Whale",
+  MEXC_ACTIVE: "MEXC Active",
+  MEXC_CASUAL: "MEXC User",
+  BITGET_WHALE: "Bitget Whale",
+  BITGET_ACTIVE: "Bitget Active",
+  BITGET_CASUAL: "Bitget User",
+  CRYPTOCOM_WHALE: "Crypto.com Whale",
+  CRYPTOCOM_ACTIVE: "Crypto.com Active",
+  CRYPTOCOM_CASUAL: "Crypto.com User",
+  ROBINHOOD_WHALE: "Robinhood Whale",
+  ROBINHOOD_ACTIVE: "Robinhood Active",
+  ROBINHOOD_CASUAL: "Robinhood User",
+  BACKPACK_WHALE: "Backpack Whale",
+  BACKPACK_ACTIVE: "Backpack Active",
+  BACKPACK_CASUAL: "Backpack User",
+  BITHUMB_WHALE: "Bithumb Whale",
+  BITHUMB_ACTIVE: "Bithumb Active",
+  BITHUMB_CASUAL: "Bithumb User",
+  BITFINEX_WHALE: "Bitfinex Whale",
+  BITFINEX_ACTIVE: "Bitfinex Active",
+  BITFINEX_CASUAL: "Bitfinex User",
 };
+
+const CEX_BADGE_COLORS: Record<string, string> = {
+  BINANCE: "#F3BA2F",
+  OKX: "#888888",
+  COINBASE: "#0052FF",
+  BYBIT: "#F7A600",
+  KRAKEN: "#5741D9",
+  KUCOIN: "#24AE8F",
+  UPBIT: "#1040C1",
+  GATE: "#2354E6",
+  MEXC: "#2C9CDB",
+  BITGET: "#00CFC0",
+  CRYPTOCOM: "#002D74",
+  ROBINHOOD: "#00C805",
+  BACKPACK: "#E33E3F",
+  BITHUMB: "#FF5C00",
+  BITFINEX: "#16B157",
+};
+
+function getCexBadgeColor(badgeCode: string): string | null {
+  const parts = badgeCode.split("_");
+  if (parts.length < 2) return null;
+  const tier = parts[parts.length - 1];
+  if (!["WHALE", "ACTIVE", "CASUAL"].includes(tier)) return null;
+  const cexKey = parts.slice(0, -1).join("_");
+  return CEX_BADGE_COLORS[cexKey] ?? null;
+}
 
 const Profile = () => {
   const { t } = useTranslation();
@@ -1393,14 +1466,38 @@ const Profile = () => {
                 if (!Array.isArray(list) || list.length === 0) return null;
                 return (
                   <div className="flex flex-wrap gap-1.5 mt-2">
-                    {list.map((badge: string) => (
-                      <span
-                        key={badge}
-                        className="px-2 py-0.5 rounded-full text-xs font-medium bg-primary/15 text-primary border border-primary/20"
-                      >
-                        {BADGE_LABELS[badge] ?? badge}
-                      </span>
-                    ))}
+                    {list.map((badge: string) => {
+                      const cexColor = getCexBadgeColor(badge);
+                      if (cexColor) {
+                        const tierLabel = badge.includes("WHALE")
+                          ? "High-volume CEX user (>$10k)"
+                          : badge.includes("ACTIVE")
+                            ? "Active CEX user ($1k–$10k)"
+                            : "CEX user (<$1k)";
+                        return (
+                          <span
+                            key={badge}
+                            title={tierLabel}
+                            className="px-2 py-0.5 rounded-full text-xs font-medium border"
+                            style={{
+                              backgroundColor: `${cexColor}25`,
+                              color: cexColor,
+                              borderColor: `${cexColor}50`,
+                            }}
+                          >
+                            {BADGE_LABELS[badge] ?? badge}
+                          </span>
+                        );
+                      }
+                      return (
+                        <span
+                          key={badge}
+                          className="px-2 py-0.5 rounded-full text-xs font-medium bg-primary/15 text-primary border border-primary/20"
+                        >
+                          {BADGE_LABELS[badge] ?? badge}
+                        </span>
+                      );
+                    })}
                   </div>
                 );
               })()}
