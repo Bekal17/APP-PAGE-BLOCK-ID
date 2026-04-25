@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import ReactCrop, {
   type Crop,
@@ -231,7 +232,8 @@ const Dashboard = () => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         postImageMenuRef.current &&
-        !postImageMenuRef.current.contains(event.target as Node)
+        !postImageMenuRef.current.contains(event.target as Node) &&
+        !postImageBtnRef.current?.contains(event.target as Node)
       ) {
         setPostImageDropdownOpen(false);
       }
@@ -980,14 +982,17 @@ const Dashboard = () => {
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-border/50">
                 <div className="flex items-center gap-2 relative overflow-visible">
-                  <div className="relative" ref={postImageMenuRef}>
+                  <div className="relative">
                     <button
                       ref={postImageBtnRef}
                       type="button"
                       onClick={() => {
                         const rect = postImageBtnRef.current?.getBoundingClientRect();
                         if (rect) {
-                          setDropdownPos({ top: rect.bottom + 4, left: rect.left });
+                          setDropdownPos({
+                            top: rect.bottom + window.scrollY + 4,
+                            left: rect.left + window.scrollX,
+                          });
                         }
                         setPostImageDropdownOpen((prev) => !prev);
                       }}
@@ -1032,53 +1037,6 @@ const Dashboard = () => {
                         setCropModalOpen(true);
                       }}
                     />
-                    {postImageDropdownOpen && (
-                      <div
-                        className="w-40 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl py-1"
-                        style={{
-                          position: "fixed",
-                          top: dropdownPos.top,
-                          left: dropdownPos.left,
-                          zIndex: 9999,
-                        }}
-                      >
-                        <button
-                          type="button"
-                          className="w-full text-left px-3 py-2 text-sm text-zinc-100 hover:bg-zinc-800 transition-colors"
-                          onClick={() => {
-                            setPostImageDropdownOpen(false);
-                            postImageInputRef.current?.click();
-                          }}
-                        >
-                          Choose Photo
-                        </button>
-                        <button
-                          type="button"
-                          className="w-full text-left px-3 py-2 text-sm text-zinc-100 hover:bg-zinc-800 transition-colors"
-                          onClick={async () => {
-                            if (!address) return;
-                            setPostImageDropdownOpen(false);
-                            setPostNFTsLoading(true);
-                            setPostNFTModalOpen(true);
-                            try {
-                              const data = await getWalletNFTs(address);
-                              const nftsList = data?.nfts ?? data?.items ?? data ?? [];
-                              setPostNFTs(Array.isArray(nftsList) ? nftsList : []);
-                            } catch {
-                              setPostNFTs([]);
-                              toast({
-                                title: "Failed to load NFTs",
-                                variant: "destructive",
-                              });
-                            } finally {
-                              setPostNFTsLoading(false);
-                            }
-                          }}
-                        >
-                          Choose NFT
-                        </button>
-                      </div>
-                    )}
                   </div>
                   <span className="text-xs text-muted-foreground">
                     {postContent.length}/280
@@ -1120,6 +1078,58 @@ const Dashboard = () => {
             </div>
           </div>
         )}
+
+        {postImageDropdownOpen &&
+          createPortal(
+            <div
+              style={{
+                position: "absolute",
+                top: dropdownPos.top,
+                left: dropdownPos.left,
+                zIndex: 9999,
+                width: "160px",
+              }}
+              ref={postImageMenuRef}
+              className="bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl py-1"
+            >
+              <button
+                type="button"
+                className="w-full text-left px-3 py-2 text-sm text-zinc-100 hover:bg-zinc-800 transition-colors"
+                onClick={() => {
+                  setPostImageDropdownOpen(false);
+                  postImageInputRef.current?.click();
+                }}
+              >
+                Choose Photo
+              </button>
+              <button
+                type="button"
+                className="w-full text-left px-3 py-2 text-sm text-zinc-100 hover:bg-zinc-800 transition-colors"
+                onClick={async () => {
+                  if (!address) return;
+                  setPostImageDropdownOpen(false);
+                  setPostNFTsLoading(true);
+                  setPostNFTModalOpen(true);
+                  try {
+                    const data = await getWalletNFTs(address);
+                    const nftsList = data?.nfts ?? data?.items ?? data ?? [];
+                    setPostNFTs(Array.isArray(nftsList) ? nftsList : []);
+                  } catch {
+                    setPostNFTs([]);
+                    toast({
+                      title: "Failed to load NFTs",
+                      variant: "destructive",
+                    });
+                  } finally {
+                    setPostNFTsLoading(false);
+                  }
+                }}
+              >
+                Choose NFT
+              </button>
+            </div>,
+            document.body
+          )}
 
         {cropModalOpen && rawImage && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4">
