@@ -42,6 +42,7 @@ import {
   getRepostedIds,
   getFollowing,
   getPost,
+  getWalletNFTs,
 } from "@/services/blockidApi";
 import { useToast } from "@/hooks/use-toast";
 
@@ -141,6 +142,12 @@ const Dashboard = () => {
   const [postContent, setPostContent] = useState("");
   const [postImage, setPostImage] = useState<File | null>(null);
   const [postImagePreview, setPostImagePreview] = useState<string | null>(null);
+  const [postImageDropdownOpen, setPostImageDropdownOpen] = useState(false);
+  const [postNFTModalOpen, setPostNFTModalOpen] = useState(false);
+  const [postNFTs, setPostNFTs] = useState<any[]>([]);
+  const [postNFTsLoading, setPostNFTsLoading] = useState(false);
+  const [postIsNFT, setPostIsNFT] = useState(false);
+  const [postNFTUrl, setPostNFTUrl] = useState<string | null>(null);
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [rawImage, setRawImage] = useState<string | null>(null);
   const [crop, setCrop] = useState<Crop>({
@@ -155,6 +162,7 @@ const Dashboard = () => {
   const imgRef = useRef<HTMLImageElement>(null);
   const cropAspectRef = useRef<number | undefined>(undefined);
   const postImageInputRef = useRef<HTMLInputElement>(null);
+  const postImageMenuRef = useRef<HTMLDivElement>(null);
   const [isPosting, setIsPosting] = useState(false);
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<number>>(new Set());
   const [bookmarkLoading, setBookmarkLoading] = useState<Record<number, boolean>>({});
@@ -209,6 +217,20 @@ const Dashboard = () => {
     }, 0);
     return () => document.removeEventListener("click", handleClick);
   }, [menuOpenId]);
+
+  useEffect(() => {
+    if (!postImageDropdownOpen) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        postImageMenuRef.current &&
+        !postImageMenuRef.current.contains(event.target as Node)
+      ) {
+        setPostImageDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [postImageDropdownOpen]);
 
   useEffect(() => {
     if (!publicKey) return;
@@ -719,6 +741,8 @@ const Dashboard = () => {
       revokeIfBlob(postImagePreview);
       setPostImage(file);
       setPostImagePreview(URL.createObjectURL(file));
+      setPostIsNFT(false);
+      setPostNFTUrl(null);
       revokeIfBlob(rawImage);
       setRawImage(null);
       setCompletedCrop(null);
@@ -749,17 +773,36 @@ const Dashboard = () => {
       return;
     }
     try {
-      if (postImage) {
+      const API_SOCIAL =
+        import.meta.env.VITE_SOCIAL_API_URL ??
+        "https://blockid-backend-production.up.railway.app";
+
+      if (postIsNFT && postNFTUrl) {
+        const res = await fetch(`${API_SOCIAL}/social/post`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            wallet: publicKey.toString(),
+            content: postContent.trim(),
+            post_type: "PUBLIC",
+            signed_message: "BlockID Post",
+            signature: "devtest_signature_bypass",
+            session_token: getSessionToken() ?? "",
+            image_url: postNFTUrl,
+            media_type: "NFT",
+          }),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail ?? "Failed to post");
+        }
+      } else if (postImage) {
         const formData = new FormData();
         formData.append("wallet", publicKey.toString());
         formData.append("content", postContent.trim());
         formData.append("post_type", "PUBLIC");
         formData.append("session_token", getSessionToken() ?? "");
         formData.append("image", postImage);
-
-        const API_SOCIAL =
-          import.meta.env.VITE_SOCIAL_API_URL ??
-          "https://blockid-backend-production.up.railway.app";
 
         const res = await fetch(`${API_SOCIAL}/social/post/with-image`, {
           method: "POST",
@@ -776,6 +819,11 @@ const Dashboard = () => {
       setPostContent("");
       setPostImage(null);
       setPostImagePreview(null);
+      setPostIsNFT(false);
+      setPostNFTUrl(null);
+      setPostNFTs([]);
+      setPostNFTModalOpen(false);
+      setPostImageDropdownOpen(false);
       const data = await getSocialFeed();
       const posts: SocialPost[] = data.posts ?? data ?? [];
       setFeed(Array.isArray(posts) ? posts : []);
@@ -853,12 +901,24 @@ const Dashboard = () => {
                     src={postImagePreview}
                     alt="Post image"
                     className="w-full object-cover rounded-xl max-h-64"
+                    style={
+                      postIsNFT
+                        ? {
+                            border: "2px solid gold",
+                            boxShadow: "0 0 8px rgba(255,215,0,0.4)",
+                          }
+                        : undefined
+                    }
                   />
                   <button
                     onClick={() => {
                       revokeIfBlob(postImagePreview);
                       setPostImage(null);
                       setPostImagePreview(null);
+                      setPostIsNFT(false);
+                      setPostNFTUrl(null);
+                      setPostNFTs([]);
+                      setPostNFTModalOpen(false);
                     }}
                     className="absolute top-2 right-2 p-1 rounded-full bg-black/60 hover:bg-black/80 text-white transition-colors"
                   >
@@ -872,8 +932,16 @@ const Dashboard = () => {
               </div>
               <div className="flex items-center justify-between pt-2 border-t border-border/50">
                 <div className="flex items-center gap-2">
-                  <label className="cursor-pointer p-1.5 rounded-full hover:bg-muted/30 text-muted-foreground hover:text-foreground transition-colors">
-                    <ImageIcon className="w-4 h-4" />
+                  <div className="relative" ref={postImageMenuRef}>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setPostImageDropdownOpen((prev) => !prev)
+                      }
+                      className="p-1.5 rounded-full hover:bg-muted/30 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      <ImageIcon className="w-4 h-4" />
+                    </button>
                     <input
                       ref={postImageInputRef}
                       type="file"
@@ -891,6 +959,9 @@ const Dashboard = () => {
                           e.target.value = "";
                           return;
                         }
+                        setPostImageDropdownOpen(false);
+                        setPostIsNFT(false);
+                        setPostNFTUrl(null);
                         cropAspectRef.current = undefined;
                         setCropAspect(undefined);
                         setCrop({
@@ -908,7 +979,46 @@ const Dashboard = () => {
                         setCropModalOpen(true);
                       }}
                     />
-                  </label>
+                    {postImageDropdownOpen && (
+                      <div className="absolute left-0 top-10 z-50 w-40 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl py-1">
+                        <button
+                          type="button"
+                          className="w-full text-left px-3 py-2 text-sm text-zinc-100 hover:bg-zinc-800 transition-colors"
+                          onClick={() => {
+                            setPostImageDropdownOpen(false);
+                            postImageInputRef.current?.click();
+                          }}
+                        >
+                          Choose Photo
+                        </button>
+                        <button
+                          type="button"
+                          className="w-full text-left px-3 py-2 text-sm text-zinc-100 hover:bg-zinc-800 transition-colors"
+                          onClick={async () => {
+                            if (!address) return;
+                            setPostImageDropdownOpen(false);
+                            setPostNFTsLoading(true);
+                            setPostNFTModalOpen(true);
+                            try {
+                              const data = await getWalletNFTs(address);
+                              const nftsList = data?.nfts ?? data?.items ?? data ?? [];
+                              setPostNFTs(Array.isArray(nftsList) ? nftsList : []);
+                            } catch {
+                              setPostNFTs([]);
+                              toast({
+                                title: "Failed to load NFTs",
+                                variant: "destructive",
+                              });
+                            } finally {
+                              setPostNFTsLoading(false);
+                            }
+                          }}
+                        >
+                          Choose NFT
+                        </button>
+                      </div>
+                    )}
+                  </div>
                   <span className="text-xs text-muted-foreground">
                     {postContent.length}/280
                   </span>
@@ -1011,6 +1121,79 @@ const Dashboard = () => {
                   {t("common.apply")}
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {postNFTModalOpen && (
+          <div
+            className="fixed inset-0 z-[101] flex items-center justify-center bg-black/70"
+            onClick={() => {
+              setPostNFTModalOpen(false);
+              setPostNFTs([]);
+            }}
+          >
+            <div
+              className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-foreground">
+                  Choose NFT for Post
+                </h3>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPostNFTModalOpen(false);
+                    setPostNFTs([]);
+                  }}
+                >
+                  <X className="w-5 h-5 text-muted-foreground hover:text-foreground" />
+                </button>
+              </div>
+
+              {postNFTsLoading ? (
+                <div className="text-center py-8 text-muted-foreground text-sm">
+                  Loading your NFTs...
+                </div>
+              ) : postNFTs.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground text-sm">
+                  No NFTs found in this wallet.
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 gap-3">
+                  {postNFTs.map((nft: any) => (
+                    <button
+                      key={nft.mint ?? nft.id}
+                      type="button"
+                      onClick={() => {
+                        const nftUrl = nft.image ?? nft.image_url ?? null;
+                        if (!nftUrl) return;
+                        revokeIfBlob(postImagePreview);
+                        setPostNFTUrl(nftUrl);
+                        setPostIsNFT(true);
+                        setPostImagePreview(nftUrl);
+                        setPostImage(null);
+                        setPostNFTModalOpen(false);
+                      }}
+                      className="relative aspect-square rounded-lg overflow-hidden border-2 border-transparent hover:border-yellow-400 transition-all group"
+                    >
+                      {(nft.image ?? nft.image_url) ? (
+                        <img
+                          src={nft.image ?? nft.image_url}
+                          alt={nft.name ?? "NFT"}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-xs text-muted-foreground">
+                          No image
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}
