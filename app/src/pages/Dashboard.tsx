@@ -156,6 +156,16 @@ const Dashboard = () => {
   const [postNFTsLoading, setPostNFTsLoading] = useState(false);
   const [postIsNFT, setPostIsNFT] = useState(false);
   const [postNFTUrl, setPostNFTUrl] = useState<string | null>(null);
+  const [socialLimits, setSocialLimits] = useState<{
+    risk_level: string;
+    score: number;
+    plan: string;
+    limits: {
+      post: { used: number; limit: number; remaining: number };
+      reply: { used: number; limit: number; remaining: number };
+      repost: { used: number; limit: number; remaining: number };
+    };
+  } | null>(null);
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [rawImage, setRawImage] = useState<string | null>(null);
   const [crop, setCrop] = useState<Crop>({
@@ -290,6 +300,17 @@ const Dashboard = () => {
         });
       })
       .catch(() => setComposeProfile(null));
+  }, [address]);
+
+  useEffect(() => {
+    if (!address) return;
+    const API =
+      import.meta.env.VITE_SOCIAL_API_URL ??
+      "https://blockid-backend-production.up.railway.app";
+    fetch(`${API}/social/limits/${address}`)
+      .then((r) => r.json())
+      .then((data) => setSocialLimits(data))
+      .catch(() => {});
   }, [address]);
 
   useEffect(() => {
@@ -799,6 +820,26 @@ const Dashboard = () => {
     if (postImageInputRef.current) postImageInputRef.current.value = "";
   };
 
+  const handleLimitError = (detail: any): boolean => {
+    if (detail?.error === "trust_score_too_low") {
+      toast({
+        title: "Trust score too low",
+        description: "Improve your on-chain activity to unlock posting.",
+        variant: "destructive",
+      });
+      return true;
+    }
+    if (detail?.error === "daily_limit_reached") {
+      toast({
+        title: `Daily limit reached (${detail.used}/${detail.limit})`,
+        description: "Improve your trust score to post more. Resets in 24 hours.",
+        variant: "destructive",
+      });
+      return true;
+    }
+    return false;
+  };
+
   const handlePost = async () => {
     setIsPosting(true);
     if (!publicKey || !postContent.trim()) {
@@ -826,8 +867,11 @@ const Dashboard = () => {
           }),
         });
         if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.detail ?? "Failed to post");
+          const detail = await res.json().catch(() => ({}));
+          if (handleLimitError(detail?.detail ?? detail)) return;
+          throw new Error(
+            (detail?.detail?.message ?? detail?.detail) ?? "Failed to post"
+          );
         }
       } else if (postImage) {
         const formData = new FormData();
@@ -842,8 +886,11 @@ const Dashboard = () => {
           body: formData,
         });
         if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.detail ?? "Failed to post");
+          const detail = await res.json().catch(() => ({}));
+          if (handleLimitError(detail?.detail ?? detail)) return;
+          throw new Error(
+            (detail?.detail?.message ?? detail?.detail) ?? "Failed to post"
+          );
         }
       } else {
         await createPost(publicKey.toString(), postContent.trim());
@@ -857,6 +904,10 @@ const Dashboard = () => {
       setPostNFTs([]);
       setPostNFTModalOpen(false);
       setPostImageDropdownOpen(false);
+      fetch(`${API_SOCIAL}/social/limits/${publicKey.toString()}`)
+        .then((r) => r.json())
+        .then((data) => setSocialLimits(data))
+        .catch(() => {});
       const data = await getSocialFeed();
       const posts: SocialPost[] = data.posts ?? data ?? [];
       setFeed(Array.isArray(posts) ? posts : []);
@@ -1052,14 +1103,36 @@ const Dashboard = () => {
                       }}
                     />
                   </div>
-                  <span className="text-xs text-muted-foreground">
-                    {postContent.length}/280
-                  </span>
+                  {socialLimits && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      {socialLimits.limits.post.limit === -1 ? (
+                        <span className="text-green-400">∞ unlimited</span>
+                      ) : (
+                        <span
+                          className={
+                            socialLimits.limits.post.remaining === 0
+                              ? "text-red-400"
+                              : socialLimits.limits.post.remaining <= 2
+                                ? "text-amber-400"
+                                : "text-muted-foreground"
+                          }
+                        >
+                          {socialLimits.limits.post.remaining}/
+                          {socialLimits.limits.post.limit} posts left
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  <span className="text-xs text-muted-foreground">{postContent.length}/280</span>
                 </div>
                 <button
                   onClick={handlePost}
                   disabled={
-                    isPosting || (!postContent.trim() && !postImage)
+                    isPosting ||
+                    (!postContent.trim() && !postImage && !postNFTUrl) ||
+                    (socialLimits !== null &&
+                      socialLimits.limits.post.remaining === 0 &&
+                      socialLimits.limits.post.limit !== -1)
                   }
                   className="px-4 py-1.5 rounded-full bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
