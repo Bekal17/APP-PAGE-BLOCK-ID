@@ -149,6 +149,7 @@ const Dashboard = () => {
   const [postImage, setPostImage] = useState<File | null>(null);
   const [postImagePreview, setPostImagePreview] = useState<string | null>(null);
   const [postImageDropdownOpen, setPostImageDropdownOpen] = useState(false);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const [postNFTModalOpen, setPostNFTModalOpen] = useState(false);
   const [postNFTs, setPostNFTs] = useState<any[]>([]);
   const [postNFTsLoading, setPostNFTsLoading] = useState(false);
@@ -168,6 +169,7 @@ const Dashboard = () => {
   const imgRef = useRef<HTMLImageElement>(null);
   const cropAspectRef = useRef<number | undefined>(undefined);
   const postImageInputRef = useRef<HTMLInputElement>(null);
+  const postImageBtnRef = useRef<HTMLButtonElement>(null);
   const postImageMenuRef = useRef<HTMLDivElement>(null);
   const [isPosting, setIsPosting] = useState(false);
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<number>>(new Set());
@@ -980,10 +982,15 @@ const Dashboard = () => {
                 <div className="flex items-center gap-2 relative overflow-visible">
                   <div className="relative" ref={postImageMenuRef}>
                     <button
+                      ref={postImageBtnRef}
                       type="button"
-                      onClick={() =>
-                        setPostImageDropdownOpen((prev) => !prev)
-                      }
+                      onClick={() => {
+                        const rect = postImageBtnRef.current?.getBoundingClientRect();
+                        if (rect) {
+                          setDropdownPos({ top: rect.bottom + 4, left: rect.left });
+                        }
+                        setPostImageDropdownOpen((prev) => !prev);
+                      }}
                       className="p-1.5 rounded-full hover:bg-muted/30 text-muted-foreground hover:text-foreground transition-colors"
                     >
                       <ImageIcon className="w-4 h-4" />
@@ -1027,8 +1034,13 @@ const Dashboard = () => {
                     />
                     {postImageDropdownOpen && (
                       <div
-                        className="absolute left-0 top-10 w-40 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl py-1"
-                        style={{ position: "absolute", zIndex: 9999 }}
+                        className="w-40 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl py-1"
+                        style={{
+                          position: "fixed",
+                          top: dropdownPos.top,
+                          left: dropdownPos.left,
+                          zIndex: 9999,
+                        }}
                       >
                         <button
                           type="button"
