@@ -44,6 +44,7 @@ export type SocialPost = {
   link_title?: string | null;
   link_description?: string | null;
   link_image?: string | null;
+  media_type?: string;
   original_post?: {
     wallet: string;
     handle?: string | null;
@@ -51,6 +52,7 @@ export type SocialPost = {
     trust_score?: number | null;
     created_at?: string;
     image_url?: string | null;
+    media_type?: string;
     plan?: string;
     link_url?: string | null;
     link_title?: string | null;
@@ -680,6 +682,12 @@ export default function PostCard({
                   : isRepost && originalPost
                     ? originalPost.image_url
                     : post.image_url;
+              const isNftMedia =
+                (isQuoteRepost && originalPost
+                  ? originalPost.media_type
+                  : isRepost && originalPost
+                    ? originalPost.media_type
+                    : post.media_type) === "NFT";
               return imgUrl ? (
                 <div
                   style={{
@@ -689,6 +697,13 @@ export default function PostCard({
                     marginTop: 8,
                     borderRadius: 12,
                     backgroundColor: "transparent",
+                    ...(isNftMedia
+                      ? {
+                          border: "2px solid gold",
+                          borderRadius: "8px",
+                          boxShadow: "0 0 12px rgba(255,215,0,0.4)",
+                        }
+                      : {}),
                   }}
                 >
                   <img
