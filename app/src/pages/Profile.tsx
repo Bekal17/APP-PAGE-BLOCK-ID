@@ -1537,7 +1537,7 @@ const Profile = () => {
                   className="h-7 px-3 rounded-full text-xs mt-2"
                   onClick={() => {
                     setEditModalOpen(true);
-                    fetch(`${SOCIAL_API_BASE}/social/badges/${wallet}`)
+                    fetch(`${SOCIAL_API_BASE}/social/badges/${address ?? wallet}`)
                       .then((r) => r.json())
                       .then((data) => {
                         setEarnedBadges(data.earned ?? []);
@@ -3349,11 +3349,16 @@ const Profile = () => {
                       website: normalizedWebsite,
                       location: editForm.location,
                     });
-                    await fetch(`${SOCIAL_API_BASE}/social/badges/display`, {
+                    const badgeRes = await fetch(`${SOCIAL_API_BASE}/social/badges/display`, {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ wallet, badges: selectedBadges }),
+                      body: JSON.stringify({ wallet: address, badges: selectedBadges }),
                     });
+                    if (!badgeRes.ok) {
+                      const badgeErr = await badgeRes.json().catch(() => ({}));
+                      console.warn("Badge save failed:", badgeErr);
+                      // Don't throw - badge save failure should not block profile update
+                    }
                     setProfile((prev: any) => ({
                       ...prev,
                       ...editForm,
