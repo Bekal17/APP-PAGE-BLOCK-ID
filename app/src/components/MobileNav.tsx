@@ -10,6 +10,11 @@ import {
   Fingerprint,
   Route,
   Users,
+  Bell,
+  MessageSquare,
+  Bookmark,
+  Settings,
+  Zap,
   X,
   Wallet,
   UserCircle,
@@ -21,6 +26,10 @@ const navItems = [
   { titleKey: "nav.explore", url: "/explore", icon: Compass },
   { titleKey: "nav.identity", url: "/identity", icon: Fingerprint },
   { titleKey: "nav.smart_router", url: "/router", icon: Route },
+  { titleKey: "nav.notifications", url: "/notifications", icon: Bell },
+  { titleKey: "nav.messages", url: "/messages", icon: MessageSquare },
+  { titleKey: "nav.bookmarks", url: "/bookmarks", icon: Bookmark },
+  { titleKey: "nav.settings", url: "/settings", icon: Settings },
   { titleKey: "nav.profile", url: "/profile", icon: Users },
 ] as const;
 
@@ -81,6 +90,17 @@ const MobileNav = ({ open, onClose }: MobileNavProps) => {
             );
           })}
         </nav>
+        <div className="mt-4">
+          <NavLink
+            to="/upgrade"
+            onClick={onClose}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all bg-primary/10 text-primary border border-primary/20 hover:bg-primary/15"
+            activeClassName=""
+          >
+            <Zap className="w-4 h-4" />
+            <span>Upgrade</span>
+          </NavLink>
+        </div>
         <div className="mt-4 pt-4 border-t border-sidebar-border">
           {connected && displayAddress ? (
             <div className="flex items-center gap-2 p-3 rounded-lg bg-sidebar-accent/50">
