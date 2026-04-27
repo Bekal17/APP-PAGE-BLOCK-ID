@@ -9,6 +9,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
   const { t } = useTranslation();
@@ -16,6 +17,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
   const { theme, toggleTheme } = useTheme();
   const sub = useSubscription();
   const navigate = useNavigate();
+  const { connected } = useWallet();
 
   return (
     <div className="flex min-h-screen w-full bg-background">
@@ -41,7 +43,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
           </div>
           <div className="flex items-center gap-4 ml-auto shrink-0">
             <div className="flex items-center gap-2">
-              {(!sub.loading && sub.plan === "free") && (
+              {connected && (!sub.loading && sub.plan === "free") && (
                 <button
                   onClick={() => navigate("/upgrade")}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-full

@@ -43,7 +43,8 @@ export default function WalletIndicator() {
         onClick={() => setVisible(true)}
         className="bg-primary text-primary-foreground hover:bg-primary/90"
       >
-        {t("common.connect_wallet")}
+        <Wallet className="w-4 h-4 sm:hidden" />
+        <span className="hidden sm:inline">{t("common.connect_wallet")}</span>
       </Button>
     );
   }
