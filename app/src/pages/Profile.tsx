@@ -152,6 +152,14 @@ interface DashboardData {
   unique_counterparties?: number;
 }
 
+interface SocialProfile {
+  is_og_member: boolean;
+  og_member_number: number | null;
+  displayed_badges?: string[];
+  badges?: string[];
+  [key: string]: any;
+}
+
 const formatWalletAge = (
   firstSeen?: string,
   months?: number,
@@ -360,7 +368,7 @@ const Profile = () => {
     return [...new Set(alerts)];
   };
 
-  const [profile, setProfile] = useState<any | null>(null);
+  const [profile, setProfile] = useState<SocialProfile | null>(null);
   const [posts, setPosts] = useState<any[]>([]);
   const [activeProfileTab, setActiveProfileTab] = useState<
     "posts" | "wallet" | "activity" | "linked"
@@ -1492,9 +1500,32 @@ const Profile = () => {
                 const list = (profile?.displayed_badges?.length
                   ? profile.displayed_badges
                   : profile?.badges) ?? [];
-                if (!Array.isArray(list) || list.length === 0) return null;
+                if ((!Array.isArray(list) || list.length === 0) && !profile?.is_og_member) {
+                  return null;
+                }
                 return (
                   <div className="flex flex-wrap gap-1.5 mt-2">
+                    {profile?.is_og_member && (
+                      <span
+                        style={{
+                          background: "linear-gradient(135deg, #F59E0B, #D97706)",
+                          color: "#000000",
+                          fontWeight: 600,
+                          borderRadius: "9999px",
+                          padding: "2px 10px",
+                          fontSize: "12px",
+                          boxShadow: "0 0 8px rgba(245, 158, 11, 0.4)",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "4px",
+                        }}
+                      >
+                        ⭐{" "}
+                        {profile.og_member_number
+                          ? `OG Member #${profile.og_member_number}`
+                          : "OG Member"}
+                      </span>
+                    )}
                     {list.map((badge: string) => {
                       const cexColor = getCexBadgeColor(badge);
                       if (cexColor) {
@@ -1540,8 +1571,14 @@ const Profile = () => {
                     fetch(`${SOCIAL_API_BASE}/social/badges/${address ?? wallet}`)
                       .then((r) => r.json())
                       .then((data) => {
-                        setEarnedBadges(data.earned ?? []);
-                        setSelectedBadges(data.displayed ?? []);
+                        const earned = (data.earned ?? []).filter(
+                          (badge: string) => badge !== "OG_MEMBER"
+                        );
+                        const displayed = (data.displayed ?? []).filter(
+                          (badge: string) => badge !== "OG_MEMBER"
+                        );
+                        setEarnedBadges(earned);
+                        setSelectedBadges(displayed);
                       })
                       .catch(() => {});
                   }}

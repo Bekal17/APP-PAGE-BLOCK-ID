@@ -198,8 +198,18 @@ const Dashboard = () => {
     new Set()
   );
   const [selectedPost, setSelectedPost] = useState<SocialPost | null>(null);
+  const [ogRemaining, setOgRemaining] = useState<number | null>(null);
   const selectedPostIdRef = useRef<number | null>(null);
   selectedPostIdRef.current = selectedPost?.id ?? null;
+
+  useEffect(() => {
+    fetch("https://blockid-backend-production.up.railway.app/social/og-count")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.is_open) setOgRemaining(data.remaining);
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     document.body.style.overflow = selectedPost ? "hidden" : "";
@@ -966,6 +976,22 @@ const Dashboard = () => {
             {t("dashboard.tab_following")}
           </button>
         </div>
+        {ogRemaining !== null && (
+          <div
+            style={{
+              background: "rgba(245, 158, 11, 0.1)",
+              border: "1px solid rgba(245, 158, 11, 0.3)",
+              borderRadius: "8px",
+              padding: "8px 14px",
+              fontSize: "13px",
+              color: "#F59E0B",
+              marginBottom: "12px",
+            }}
+          >
+            ⭐ {ogRemaining} OG Member slots remaining — invite friends to claim
+            theirs
+          </div>
+        )}
 
         {publicKey && (
           <div className="glass-card p-4 flex gap-3 animate-slide-up">
