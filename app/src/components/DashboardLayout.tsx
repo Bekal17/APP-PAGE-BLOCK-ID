@@ -4,13 +4,11 @@ import logo from "/blockid-logo.svg";
 import MobileNav from "@/components/MobileNav";
 import WalletIndicator from "@/components/WalletIndicator";
 import NotificationBell from "@/components/NotificationBell";
-import { Menu, Sun, Moon, Zap, Wallet } from "lucide-react";
+import { Menu, Sun, Moon, Zap } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
   const { t } = useTranslation();
@@ -18,8 +16,6 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
   const { theme, toggleTheme } = useTheme();
   const sub = useSubscription();
   const navigate = useNavigate();
-  const { connected } = useWallet();
-  const { setVisible } = useWalletModal();
 
   return (
     <div className="flex min-h-screen w-full bg-background">
@@ -75,27 +71,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                   <Moon className="w-4 h-4" />
                 )}
               </button>
-              <div className="hidden sm:flex">
-                <WalletIndicator />
-              </div>
-              <button
-                onClick={() => {
-                  if (connected) {
-                    navigate("/profile");
-                  } else {
-                    setVisible(true);
-                  }
-                }}
-                className="flex sm:hidden relative items-center justify-center w-9 h-9 rounded-lg bg-muted/50 border border-border hover:bg-muted transition-colors"
-                title={t("profile.wallet")}
-              >
-                <Wallet className="w-4 h-4 text-foreground" />
-                <span
-                  className={`absolute top-1 right-1 w-2 h-2 rounded-full ${
-                    connected ? "bg-green-400" : "bg-muted-foreground/70"
-                  }`}
-                />
-              </button>
+              <WalletIndicator />
             </div>
           </div>
         </header>

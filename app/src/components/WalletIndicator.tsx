@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Copy, LogOut } from "lucide-react";
+import { Copy, LogOut, Wallet } from "lucide-react";
 
 const formatAddress = (address: string) => {
   if (address.length <= 10) return address;
@@ -58,16 +58,21 @@ export default function WalletIndicator() {
           className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50 border border-border hover:bg-muted transition-colors text-sm"
           title={t("profile.wallet")}
         >
-          <span className="w-2 h-2 rounded-full bg-green-400 shrink-0" />
-          <span className="font-mono text-foreground">{shortAddress}</span>
-          <svg
-            className="w-4 h-4 text-muted-foreground"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
+          <>
+            <span className="w-2 h-2 rounded-full bg-green-400 shrink-0" />
+            <span className="hidden sm:inline font-mono text-foreground">
+              {shortAddress}
+            </span>
+            <Wallet className="w-4 h-4 sm:hidden text-foreground" />
+            <svg
+              className="w-4 h-4 text-muted-foreground hidden sm:block"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </>
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
