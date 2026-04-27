@@ -79,7 +79,13 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
                 <WalletIndicator />
               </div>
               <button
-                onClick={() => setVisible(true)}
+                onClick={() => {
+                  if (connected) {
+                    navigate("/profile");
+                  } else {
+                    setVisible(true);
+                  }
+                }}
                 className="flex sm:hidden relative items-center justify-center w-9 h-9 rounded-lg bg-muted/50 border border-border hover:bg-muted transition-colors"
                 title={t("profile.wallet")}
               >
