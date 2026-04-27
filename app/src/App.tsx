@@ -1,4 +1,3 @@
-import InteractiveWalletGraph from "@/components/InteractiveWalletGraph";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -23,10 +22,6 @@ import LoginEmail from "@/pages/LoginEmail";
 
 const queryClient = new QueryClient();
 
-function DashboardBackground() {
-  return <InteractiveWalletGraph />;
-}
-
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AutoLogin />
@@ -35,7 +30,6 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <div className="relative min-h-screen">
-          <DashboardBackground />
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
