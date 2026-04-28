@@ -1147,6 +1147,7 @@ const Profile = () => {
   const avatarUrl = profile?.avatar_url as string | undefined;
   const avatarType = profile?.avatar_type as string | undefined;
   const avatarIsAnimated = profile?.avatar_is_animated === true;
+  const isVideo = avatarUrl?.endsWith(".mp4") || avatarUrl?.endsWith(".webm");
   const handle = profile?.handle as string | undefined;
   const profileWallet = profile?.wallet ?? wallet;
   const followerCount = profile?.follower_count ?? profile?.followers_count ?? 0;
@@ -1397,7 +1398,7 @@ const Profile = () => {
         <div className="flex items-start gap-4 -mt-14 ml-4 relative z-10">
           <div className="relative w-24 h-24 shrink-0">
               {avatarType === "NFT" && avatarUrl ? (
-                avatarIsAnimated ? (
+                avatarIsAnimated && isVideo ? (
                   <video
                     src={avatarUrl}
                     autoPlay
