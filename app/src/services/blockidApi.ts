@@ -527,7 +527,7 @@ export async function uploadAvatarPhoto(
   formData.append("wallet", wallet);
   formData.append("file", file);
   formData.append("session_token", getSessionToken() ?? "");
-  const res = await fetch(buildSocialUrl("/social/profile/avatar"), {
+  const res = await fetch(buildSocialUrl("/social/profile/avatar/photo"), {
     method: "POST",
     body: formData,
   });
