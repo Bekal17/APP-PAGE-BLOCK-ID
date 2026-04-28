@@ -30,6 +30,8 @@ export default function UserAvatar({
 
   // NFT — square with gold border (exact from Profile.tsx)
   if (isNFT) {
+    const isVideo =
+      avatarUrl?.endsWith(".mp4") || avatarUrl?.endsWith(".webm");
     const nftStyle = {
       width: sizeClass,
       height: sizeClass,
@@ -42,7 +44,7 @@ export default function UserAvatar({
       flexShrink: 0,
     };
 
-    return avatarIsAnimated ? (
+    return avatarIsAnimated && isVideo ? (
       <video
         src={avatarUrl}
         autoPlay
