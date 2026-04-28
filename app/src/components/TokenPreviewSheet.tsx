@@ -79,7 +79,10 @@ export function TokenPreviewSheet({
         ? "text-green-600"
         : "text-red-600";
 
-  const displayName = token?.name ?? normalizedTicker;
+  const displayName =
+    ticker === "SOL" && token?.name === "Wrapped SOL"
+      ? "SOL (Solana)"
+      : (token?.name ?? normalizedTicker);
   const displaySymbol = token?.symbol ?? normalizedTicker.replace("$", "");
   const logoFallbackText = normalizedTicker.replace("$", "").slice(0, 3).toUpperCase();
 
