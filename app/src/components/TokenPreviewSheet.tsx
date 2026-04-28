@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
 import type { JupiterToken } from "@/hooks/useTokenList";
 
 interface TokenPreviewSheetProps {
@@ -84,10 +83,17 @@ export function TokenPreviewSheet({
   const displaySymbol = token?.symbol ?? normalizedTicker.replace("$", "");
   const logoFallbackText = normalizedTicker.replace("$", "").slice(0, 3).toUpperCase();
 
+  if (!open) return null;
+
   return (
-    <Sheet open={open} onOpenChange={(nextOpen) => !nextOpen && onClose()}>
-      <SheetContent side="bottom" className="rounded-t-2xl">
-        <div className="w-12 h-1.5 bg-muted rounded-full mx-auto mb-4" />
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="max-w-md w-full mx-auto rounded-xl bg-zinc-900 border border-zinc-700 p-4"
+        onClick={(e) => e.stopPropagation()}
+      >
 
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
@@ -197,7 +203,7 @@ export function TokenPreviewSheet({
         >
           View on Jupiter
         </Button>
-      </SheetContent>
-    </Sheet>
+      </div>
+    </div>
   );
 }
