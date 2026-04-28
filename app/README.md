@@ -93,29 +93,6 @@ git clone https://github.com/Bekal17/BACKEND-BLOCK-ID
 cd BACKEND-BLOCK-ID
 pip install -r requirements.txt
 uvicorn backend_blockid.api_server.server:app --host 0.0.0.0 --port 8001 --reload
-```
-
----
-
-## B2B API Plans
-
-| Plan | Price | Requests/month |
-|---|---|---|
-| Free | $0 | 100 |
-| Pro | $29/mo | 50,000 |
-| Enterprise | $199/mo | Unlimited |
-
-Get your API key at [api.blockidscore.fun](https://api.blockidscore.fun).
-
----
-
-## Roadmap
-
-- [ ] Webhook notifications for risk events
-- [ ] Paddle billing integration
-- [ ] Multi-chain support (Ethereum, Base)
-- [ ] SDK (TypeScript + Python)
-- [ ] On-chain trust score oracle (Solana program)
 
 ---
 

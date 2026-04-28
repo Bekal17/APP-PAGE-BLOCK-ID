@@ -525,9 +525,9 @@ export async function uploadAvatarPhoto(
 ): Promise<any> {
   const formData = new FormData();
   formData.append("wallet", wallet);
-  formData.append("signature", "devtest_signature_bypass");
   formData.append("file", file);
-  const res = await fetch(buildSocialUrl("/social/avatar/photo"), {
+  formData.append("session_token", getSessionToken() ?? "");
+  const res = await fetch(buildSocialUrl("/social/profile/avatar"), {
     method: "POST",
     body: formData,
   });
@@ -563,15 +563,16 @@ export async function setNFTAvatar(
   wallet: string,
   nftMint: string
 ): Promise<any> {
-  const res = await fetch(buildSocialUrl("/social/avatar"), {
+  const res = await fetch(buildSocialUrl("/social/profile/avatar"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       wallet,
-      type: "NFT",
-      nft_mint: nftMint,
-      signed_message: "BlockID Avatar",
-      signature: "devtest_signature_bypass",
+      avatar_url: null,
+      avatar_type: "NFT",
+      avatar_is_animated: false,
+      avatar_nft_mint: nftMint,
+      session_token: getSessionToken() ?? "",
     }),
   });
   if (!res.ok) throw new Error("Failed to set NFT avatar");
@@ -598,12 +599,16 @@ export async function setNFTBanner(
 }
 
 export async function removeAvatar(wallet: string): Promise<any> {
-  const res = await fetch(buildSocialUrl("/social/avatar"), {
-    method: "DELETE",
+  const res = await fetch(buildSocialUrl("/social/profile/avatar"), {
+    method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       wallet,
-      signature: "devtest_signature_bypass",
+      avatar_url: null,
+      avatar_type: "NONE",
+      avatar_is_animated: false,
+      avatar_nft_mint: null,
+      session_token: getSessionToken() ?? "",
     }),
   });
   if (!res.ok) throw new Error("Failed to remove avatar");
