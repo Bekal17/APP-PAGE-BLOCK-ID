@@ -43,7 +43,8 @@
     "upgrade": "升级",
     "settings": "设置",
     "log_out": "退出登录",
-    "identity": "身份"
+    "identity": "身份",
+    "communities": "社区"
   },
   "dashboard": {
     "title": "仪表盘",

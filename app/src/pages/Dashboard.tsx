@@ -21,6 +21,7 @@ import {
   AlertTriangle,
   X,
   Image as ImageIcon,
+  ChevronDown,
 } from "lucide-react";
 import QuotaBanner from "@/components/blockid/QuotaBanner";
 import SubscriptionBadge from "@/components/blockid/SubscriptionBadge";
@@ -44,6 +45,9 @@ import {
   getFollowing,
   getPost,
   getWalletNFTs,
+  getCommunities,
+  getCommunityFeed,
+  type CommunityItem,
 } from "@/services/blockidApi";
 import { useToast } from "@/hooks/use-toast";
 import { useTokenList } from "@/hooks/useTokenList";
@@ -130,9 +134,7 @@ const Dashboard = () => {
   const address = publicKey?.toBase58() ?? publicKey?.toString();
   const [feed, setFeed] = useState<SocialPost[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<
-    "explore" | "following" | "newest"
-  >("explore");
+  const [activeTab, setActiveTab] = useState<string>("explore");
   const [profiles, setProfiles] = useState<Record<string, WalletProfile>>({});
   const [composeProfile, setComposeProfile] = useState<{
     avatar_url?: string | null;
@@ -205,8 +207,17 @@ const Dashboard = () => {
   );
   const [selectedPost, setSelectedPost] = useState<SocialPost | null>(null);
   const [ogRemaining, setOgRemaining] = useState<number | null>(null);
+  const [communities, setCommunities] = useState<CommunityItem[]>([]);
+  const [postCommunity, setPostCommunity] = useState<string | null>(null);
+  const [postCommunityOpen, setPostCommunityOpen] = useState(false);
+  const [alsoShareToEveryone, setAlsoShareToEveryone] = useState(true);
   const selectedPostIdRef = useRef<number | null>(null);
   selectedPostIdRef.current = selectedPost?.id ?? null;
+  const pinnedCommunities = communities.filter((c) => c.is_pinned);
+  const myCommunities = communities.filter((c) => c.is_member);
+  const selectedPostCommunity = communities.find(
+    (c) => c.collection_address === postCommunity
+  );
 
   useEffect(() => {
     fetch("https://blockid-backend-production.up.railway.app/social/og-count")
@@ -316,6 +327,16 @@ const Dashboard = () => {
         });
       })
       .catch(() => setComposeProfile(null));
+  }, [address]);
+
+  useEffect(() => {
+    if (!address) {
+      setCommunities([]);
+      return;
+    }
+    getCommunities(address)
+      .then((data) => setCommunities(data.communities ?? []))
+      .catch(() => setCommunities([]));
   }, [address]);
 
   useEffect(() => {
@@ -439,6 +460,21 @@ const Dashboard = () => {
                 window.scrollTo({ top: y, behavior: "instant" });
               }, 100);
             }
+          }
+        } else if (activeTab.startsWith("community:")) {
+          if (!publicKey) {
+            if (!cancelled) setFeed([]);
+            return;
+          }
+          const communityAddress = activeTab.replace("community:", "");
+          const data = await getCommunityFeed(communityAddress, publicKey.toString());
+          const posts: SocialPost[] = data.posts ?? data.feed ?? data ?? [];
+          if (!Array.isArray(posts)) {
+            if (!cancelled) setFeed([]);
+            return;
+          }
+          if (!cancelled) {
+            setFeed(posts);
           }
         }
       } catch (err) {
@@ -943,6 +979,8 @@ const Dashboard = () => {
             session_token: getSessionToken() ?? "",
             image_url: postNFTUrl,
             media_type: "NFT",
+            community_address: postCommunity,
+            also_share_to_everyone: postCommunity ? alsoShareToEveryone : true,
           }),
         });
         if (!res.ok) {
@@ -959,6 +997,13 @@ const Dashboard = () => {
         formData.append("post_type", "PUBLIC");
         formData.append("session_token", getSessionToken() ?? "");
         formData.append("image", postImage);
+        if (postCommunity) {
+          formData.append("community_address", postCommunity);
+          formData.append(
+            "also_share_to_everyone",
+            alsoShareToEveryone ? "true" : "false"
+          );
+        }
 
         const res = await fetch(`${API_SOCIAL}/social/post/with-image`, {
           method: "POST",
@@ -972,7 +1017,10 @@ const Dashboard = () => {
           );
         }
       } else {
-        await createPost(publicKey.toString(), postContent.trim());
+        await createPost(publicKey.toString(), postContent.trim(), "PUBLIC", undefined, {
+          community_address: postCommunity,
+          also_share_to_everyone: postCommunity ? alsoShareToEveryone : true,
+        });
       }
 
       setPostContent("");
@@ -983,12 +1031,24 @@ const Dashboard = () => {
       setPostNFTs([]);
       setPostNFTModalOpen(false);
       setPostImageDropdownOpen(false);
+      setPostCommunity(null);
+      setAlsoShareToEveryone(true);
       fetch(`${API_SOCIAL}/social/limits/${publicKey.toString()}`)
         .then((r) => r.json())
         .then((data) => setSocialLimits(data))
         .catch(() => {});
-      const data = await getSocialFeed();
-      const posts: SocialPost[] = data.posts ?? data ?? [];
+      let data: any;
+      if (activeTab === "following") {
+        data = await getFollowingFeed(publicKey.toString());
+      } else if (activeTab.startsWith("community:")) {
+        data = await getCommunityFeed(
+          activeTab.replace("community:", ""),
+          publicKey.toString()
+        );
+      } else {
+        data = await getSocialFeed();
+      }
+      const posts: SocialPost[] = data.posts ?? data.feed ?? data ?? [];
       setFeed(Array.isArray(posts) ? posts : []);
     } catch (e: unknown) {
       const err = e as Error;
@@ -1044,6 +1104,22 @@ const Dashboard = () => {
             <Star className="w-3 h-3 sm:w-4 sm:h-4" />
             {t("dashboard.tab_following")}
           </button>
+          {pinnedCommunities.map((community) => {
+            const tabKey = `community:${community.collection_address}`;
+            return (
+              <button
+                key={community.collection_address}
+                className={`px-3 py-1.5 text-xs sm:text-sm rounded-full flex items-center gap-1 ${
+                  activeTab === tabKey
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:bg-muted/20"
+                }`}
+                onClick={() => setActiveTab(tabKey)}
+              >
+                {community.collection_name.slice(0, 10)}
+              </button>
+            );
+          })}
         </div>
         {ogRemaining !== null && (
           <div
@@ -1091,6 +1167,44 @@ const Dashboard = () => {
               </div>
             )}
             <div className="flex-1">
+              <div className="relative inline-block mb-2">
+                <button
+                  type="button"
+                  onClick={() => setPostCommunityOpen((prev) => !prev)}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-zinc-700 text-xs text-zinc-200 hover:bg-zinc-800"
+                >
+                  {selectedPostCommunity?.collection_name ?? "Everyone"}
+                  <ChevronDown className="w-3.5 h-3.5" />
+                </button>
+                {postCommunityOpen && (
+                  <div className="absolute z-20 mt-2 w-64 rounded-xl border border-zinc-700 bg-zinc-900 shadow-xl overflow-hidden">
+                    <button
+                      type="button"
+                      className="w-full text-left px-3 py-2 text-xs text-zinc-100 hover:bg-zinc-800"
+                      onClick={() => {
+                        setPostCommunity(null);
+                        setAlsoShareToEveryone(true);
+                        setPostCommunityOpen(false);
+                      }}
+                    >
+                      Everyone
+                    </button>
+                    {myCommunities.map((community) => (
+                      <button
+                        key={community.collection_address}
+                        type="button"
+                        className="w-full text-left px-3 py-2 text-xs text-zinc-100 hover:bg-zinc-800 border-t border-zinc-800"
+                        onClick={() => {
+                          setPostCommunity(community.collection_address);
+                          setPostCommunityOpen(false);
+                        }}
+                      >
+                        {community.collection_name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               <textarea
                 ref={composeTextareaRef}
                 value={postContent}
@@ -1116,6 +1230,16 @@ const Dashboard = () => {
                 }}
                 maxLength={280}
               />
+              {postCommunity && (
+                <label className="flex items-center gap-2 text-xs text-zinc-300 mb-2">
+                  <input
+                    type="checkbox"
+                    checked={alsoShareToEveryone}
+                    onChange={(e) => setAlsoShareToEveryone(e.target.checked)}
+                  />
+                  Also share to everyone feed
+                </label>
+              )}
               {cashtagDropdownOpen && cashtagResults.length > 0 && (
                 <div className="mt-2 bg-zinc-900 border border-zinc-700 rounded-xl shadow-xl z-50 overflow-hidden">
                   {cashtagQuery && (
@@ -1592,7 +1716,12 @@ const Dashboard = () => {
                       const data =
                         activeTab === "following" && publicKey
                           ? await getFollowingFeed(publicKey.toString())
-                          : await getSocialFeed();
+                          : activeTab.startsWith("community:") && publicKey
+                            ? await getCommunityFeed(
+                                activeTab.replace("community:", ""),
+                                publicKey.toString()
+                              )
+                            : await getSocialFeed();
                       const raw = data.posts ?? data ?? [];
                       const posts = Array.isArray(raw) ? raw : [];
                       if (activeTab === "explore") setFeed([...posts].reverse());

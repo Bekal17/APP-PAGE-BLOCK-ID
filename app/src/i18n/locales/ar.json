@@ -43,7 +43,8 @@
     "upgrade": "ترقية",
     "settings": "الإعدادات",
     "log_out": "تسجيل الخروج",
-    "identity": "الهوية"
+    "identity": "الهوية",
+    "communities": "المجتمعات"
   },
   "dashboard": {
     "title": "لوحة التحكم",

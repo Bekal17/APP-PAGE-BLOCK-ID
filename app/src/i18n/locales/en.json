@@ -43,7 +43,8 @@
     "upgrade": "Upgrade",
     "settings": "Settings",
     "log_out": "Log Out",
-    "identity": "Identity"
+    "identity": "Identity",
+    "communities": "Communities"
   },
   "dashboard": {
     "title": "Dashboard",

@@ -84,7 +84,7 @@ export type PostCardProps = {
   post: SocialPost;
   profile: WalletProfile;
   publicKey: PublicKey | null;
-  activeTab: "explore" | "following" | "newest";
+  activeTab: string;
   likedPostIds: Set<number>;
   repostedPostIds: Set<number>;
   bookmarkedIds: Set<number>;

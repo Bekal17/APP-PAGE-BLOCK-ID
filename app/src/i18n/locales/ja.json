@@ -43,7 +43,8 @@
     "upgrade": "アップグレード",
     "settings": "設定",
     "log_out": "ログアウト",
-    "identity": "アイデンティティ"
+    "identity": "アイデンティティ",
+    "communities": "コミュニティ"
   },
   "dashboard": {
     "title": "ダッシュボード",

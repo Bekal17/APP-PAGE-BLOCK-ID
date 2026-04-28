@@ -43,7 +43,8 @@
     "upgrade": "Mejorar Plan",
     "settings": "Configuración",
     "log_out": "Cerrar Sesión",
-    "identity": "Identidad"
+    "identity": "Identidad",
+    "communities": "Comunidades"
   },
   "dashboard": {
     "title": "Panel",

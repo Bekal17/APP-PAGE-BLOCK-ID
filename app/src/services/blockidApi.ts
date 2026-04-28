@@ -263,7 +263,11 @@ export async function createPost(
   wallet: string,
   content: string,
   postType: "PUBLIC" | "FOLLOWERS_ONLY" = "PUBLIC",
-  parentId?: number
+  parentId?: number,
+  options?: {
+    community_address?: string | null;
+    also_share_to_everyone?: boolean;
+  }
 ) {
   const res = await fetch(buildSocialUrl("/social/post"), {
     method: "POST",
@@ -273,12 +277,101 @@ export async function createPost(
       content,
       post_type: postType,
       parent_id: parentId ?? null,
+      community_address: options?.community_address ?? null,
+      also_share_to_everyone: options?.also_share_to_everyone ?? true,
       signed_message: "BlockID Post",
       signature: "devtest_signature_bypass",
       session_token: getSessionToken(),
     }),
   });
   if (!res.ok) throw new Error("Failed to create post");
+  return res.json();
+}
+
+export type CommunityItem = {
+  collection_address: string;
+  collection_name: string;
+  collection_image?: string | null;
+  member_count?: number;
+  post_count?: number;
+  is_member: boolean;
+  is_pinned?: boolean;
+};
+
+export async function syncCommunities(wallet: string, sessionToken?: string | null) {
+  const res = await fetch(buildSocialUrl("/social/communities/sync"), {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({
+      wallet,
+      session_token: sessionToken ?? getSessionToken(),
+    }),
+  });
+  if (!res.ok) throw new Error("Failed to sync communities");
+  return res.json();
+}
+
+export async function getCommunities(wallet: string): Promise<{ communities: CommunityItem[] }> {
+  const res = await fetch(
+    buildSocialUrl(`/social/communities?wallet=${encodeURIComponent(wallet)}`)
+  );
+  if (!res.ok) throw new Error("Failed to fetch communities");
+  return res.json();
+}
+
+export async function pinCommunity(
+  wallet: string,
+  collectionAddress: string,
+  sessionToken?: string | null
+) {
+  const res = await fetch(buildSocialUrl("/social/communities/pin"), {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({
+      wallet,
+      collection_address: collectionAddress,
+      session_token: sessionToken ?? getSessionToken(),
+    }),
+  });
+  if (!res.ok) throw new Error("Failed to pin community");
+  return res.json();
+}
+
+export async function unpinCommunity(
+  wallet: string,
+  collectionAddress: string,
+  sessionToken?: string | null
+) {
+  const res = await fetch(buildSocialUrl("/social/communities/pin"), {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({
+      wallet,
+      collection_address: collectionAddress,
+      session_token: sessionToken ?? getSessionToken(),
+    }),
+  });
+  if (!res.ok) throw new Error("Failed to unpin community");
+  return res.json();
+}
+
+export async function getCommunityFeed(
+  collectionAddress: string,
+  wallet: string,
+  limit: number = 20,
+  before?: string
+) {
+  const params = new URLSearchParams({
+    wallet,
+    limit: String(limit),
+  });
+  if (before) params.set("before", before);
+  const res = await fetch(
+    buildSocialUrl(
+      `/social/communities/${encodeURIComponent(collectionAddress)}/feed?${params.toString()}`
+    )
+  );
+  if (!res.ok) throw new Error("Failed to fetch community feed");
   return res.json();
 }
 

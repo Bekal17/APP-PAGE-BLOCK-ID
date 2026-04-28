@@ -16,6 +16,8 @@ import Notifications from "./pages/Notifications";
 import Messages from "./pages/Messages";
 import Bookmarks from "./pages/Bookmarks";
 import PostDetail from "./pages/PostDetail";
+import Communities from "./pages/Communities";
+import CommunityFeed from "./pages/CommunityFeed";
 import NotFound from "./pages/NotFound";
 import AuthCallback from "@/pages/AuthCallback";
 import LoginEmail from "@/pages/LoginEmail";
@@ -42,6 +44,11 @@ const App = () => (
             <Route path="/messages" element={<Messages />} />
             <Route path="/messages/:walletParam" element={<Messages />} />
             <Route path="/bookmarks" element={<Bookmarks />} />
+            <Route path="/communities" element={<Communities />} />
+            <Route
+              path="/communities/:collectionAddress"
+              element={<CommunityFeed />}
+            />
             <Route path="/post/:postId" element={<PostDetail />} />
             <Route path="/settings" element={<PrivacySettings />} />
             <Route path="/settings/privacy" element={<PrivacySettings />} />
