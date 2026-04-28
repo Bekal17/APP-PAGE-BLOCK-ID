@@ -46,6 +46,7 @@ import {
   getWalletNFTs,
 } from "@/services/blockidApi";
 import { useToast } from "@/hooks/use-toast";
+import { useTokenList } from "@/hooks/useTokenList";
 
 type SocialPost = {
   id: number;
@@ -149,6 +150,9 @@ const Dashboard = () => {
   const [postContent, setPostContent] = useState("");
   const [postImage, setPostImage] = useState<File | null>(null);
   const [postImagePreview, setPostImagePreview] = useState<string | null>(null);
+  const [cashtagQuery, setCashtagQuery] = useState<string | null>(null);
+  const [cashtagDropdownOpen, setCashtagDropdownOpen] = useState(false);
+  const [cashtagResults, setCashtagResults] = useState<any[]>([]);
   const [postImageDropdownOpen, setPostImageDropdownOpen] = useState(false);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const [postNFTModalOpen, setPostNFTModalOpen] = useState(false);
@@ -181,9 +185,11 @@ const Dashboard = () => {
   const cropAspectRef = useRef<number | undefined>(undefined);
   const postImageInputRef = useRef<HTMLInputElement>(null);
   const composeTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const composeCursorRef = useRef(0);
   const postImageBtnRef = useRef<HTMLButtonElement>(null);
   const postImageMenuRef = useRef<HTMLDivElement>(null);
   const [isPosting, setIsPosting] = useState(false);
+  const { tokens } = useTokenList();
   const [bookmarkedIds, setBookmarkedIds] = useState<Set<number>>(new Set());
   const [bookmarkLoading, setBookmarkLoading] = useState<Record<number, boolean>>({});
   const [followedWallets, setFollowedWallets] = useState<Set<string>>(new Set());
@@ -850,6 +856,69 @@ const Dashboard = () => {
     return false;
   };
 
+  const updateCashtagAutocomplete = (
+    value: string,
+    cursorPosition: number | null
+  ) => {
+    const cursor = cursorPosition ?? value.length;
+    const beforeCursor = value.slice(0, cursor);
+    const match = beforeCursor.match(/(^|\s)\$([A-Za-z]{1,15})$/);
+    if (!match) {
+      setCashtagQuery(null);
+      setCashtagResults([]);
+      setCashtagDropdownOpen(false);
+      return;
+    }
+
+    const query = match[2].toUpperCase();
+    const results = (tokens ?? [])
+      .filter((token) => token?.symbol?.toUpperCase().startsWith(query))
+      .slice(0, 5);
+
+    if (results.length === 0) {
+      setCashtagQuery(query);
+      setCashtagResults([]);
+      setCashtagDropdownOpen(false);
+      return;
+    }
+
+    setCashtagQuery(query);
+    setCashtagResults(results);
+    setCashtagDropdownOpen(true);
+  };
+
+  const handleCashtagSelect = (selectedTicker: string) => {
+    const textarea = composeTextareaRef.current;
+    const cursor =
+      textarea?.selectionStart ?? composeCursorRef.current ?? postContent.length;
+    const beforeCursor = postContent.slice(0, cursor);
+    const afterCursor = postContent.slice(cursor);
+    const match = beforeCursor.match(/(^|\s)\$([A-Za-z]{1,15})$/);
+    if (!match) {
+      setCashtagDropdownOpen(false);
+      return;
+    }
+
+    const replacedBeforeCursor =
+      beforeCursor.slice(0, beforeCursor.length - match[0].length) +
+      `${match[1]}$${selectedTicker.toUpperCase()}`;
+    const nextValue = replacedBeforeCursor + afterCursor;
+    const nextCursor = replacedBeforeCursor.length;
+
+    setPostContent(nextValue);
+    setCashtagQuery(null);
+    setCashtagResults([]);
+    setCashtagDropdownOpen(false);
+
+    requestAnimationFrame(() => {
+      const el = composeTextareaRef.current;
+      if (!el) return;
+      el.focus();
+      el.setSelectionRange(nextCursor, nextCursor);
+      composeCursorRef.current = nextCursor;
+    });
+  };
+
   const handlePost = async () => {
     setIsPosting(true);
     if (!publicKey || !postContent.trim()) {
@@ -1025,7 +1094,18 @@ const Dashboard = () => {
               <textarea
                 ref={composeTextareaRef}
                 value={postContent}
-                onChange={(e) => setPostContent(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  const cursor = e.target.selectionStart;
+                  composeCursorRef.current = cursor ?? value.length;
+                  setPostContent(value);
+                  updateCashtagAutocomplete(value, cursor);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") {
+                    setCashtagDropdownOpen(false);
+                  }
+                }}
                 placeholder={t("dashboard.post_placeholder")}
                 className="w-full bg-transparent border-none outline-none text-sm text-foreground placeholder:text-muted-foreground"
                 style={{
@@ -1036,6 +1116,44 @@ const Dashboard = () => {
                 }}
                 maxLength={280}
               />
+              {cashtagDropdownOpen && cashtagResults.length > 0 && (
+                <div className="mt-2 bg-zinc-900 border border-zinc-700 rounded-xl shadow-xl z-50 overflow-hidden">
+                  {cashtagQuery && (
+                    <div className="px-3 py-1.5 text-[11px] text-zinc-400 border-b border-zinc-800">
+                      Matches for ${cashtagQuery}
+                    </div>
+                  )}
+                  {cashtagResults.map((token) => (
+                    <button
+                      key={token.address ?? token.symbol}
+                      type="button"
+                      className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-zinc-800 transition-colors"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => handleCashtagSelect(token.symbol)}
+                    >
+                      {token.logoURI ? (
+                        <img
+                          src={token.logoURI}
+                          alt={token.symbol}
+                          className="w-6 h-6 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-zinc-700 flex items-center justify-center text-[10px] text-zinc-200 font-semibold">
+                          {(token.symbol ?? "?").slice(0, 2)}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold text-zinc-100">
+                          ${token.symbol}
+                        </div>
+                        <div className="text-xs text-zinc-400 truncate">
+                          {token.name}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
               {postImagePreview && (
                 <div className="relative mt-2 rounded-xl overflow-hidden max-h-64 w-full">
                   <img
