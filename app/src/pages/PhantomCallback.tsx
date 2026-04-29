@@ -1,0 +1,62 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { usePhantom, AddressType } from "@phantom/react-sdk";
+import { useToast } from "@/hooks/use-toast";
+
+export default function PhantomCallback() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { isConnected, addresses, isLoading } = usePhantom();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const hash = window.location.hash.startsWith("#")
+      ? window.location.hash.slice(1)
+      : window.location.hash;
+    const hashParams = new URLSearchParams(hash);
+    const hasAuthParams =
+      params.toString().length > 0 || hashParams.toString().length > 0;
+
+    if (!hasAuthParams && !isConnected && !isLoading) {
+      toast({
+        title: "Authentication callback is missing required parameters.",
+        variant: "destructive",
+      });
+      navigate("/", { replace: true });
+      return;
+    }
+
+    if (isConnected) {
+      const solAddress = addresses?.find(
+        (addr) => addr.addressType === AddressType.solana,
+      )?.address;
+      if (solAddress) {
+        navigate("/dashboard", { replace: true });
+        return;
+      }
+      toast({
+        title: "Wallet connected but no Solana address was found.",
+        variant: "destructive",
+      });
+      navigate("/", { replace: true });
+      return;
+    }
+
+    if (!isLoading && hasAuthParams && !isConnected) {
+      toast({
+        title: "Authentication failed. Please try again.",
+        variant: "destructive",
+      });
+      navigate("/", { replace: true });
+    }
+  }, [addresses, isConnected, isLoading, navigate, toast]);
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-zinc-950">
+      <div className="text-center space-y-3">
+        <div className="w-8 h-8 border-2 border-blue-400 border-t-transparent rounded-full animate-spin mx-auto" />
+        <p className="text-sm text-zinc-400">Completing Phantom sign in...</p>
+      </div>
+    </div>
+  );
+}

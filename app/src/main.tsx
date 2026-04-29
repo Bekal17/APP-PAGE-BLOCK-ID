@@ -1,7 +1,7 @@
 import './i18n';
 import { createRoot } from "react-dom/client";
-import { OpenfortProvider } from "@/providers/OpenfortProvider";
 import SolanaWalletProvider from "@/components/SolanaWalletProvider";
+import { PhantomEmbeddedProvider } from "@/providers/PhantomEmbeddedProvider";
 import App from "./App.tsx";
 import "./index.css";
 
@@ -14,9 +14,9 @@ if (savedTheme === "light") {
 }
 
 createRoot(document.getElementById("root")!).render(
-  <OpenfortProvider>
-    <SolanaWalletProvider>
+  <SolanaWalletProvider>
+    <PhantomEmbeddedProvider>
       <App />
-    </SolanaWalletProvider>
-  </OpenfortProvider>
+    </PhantomEmbeddedProvider>
+  </SolanaWalletProvider>
 );

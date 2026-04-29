@@ -1,8 +1,6 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
-import { OAuthProvider } from "@openfort/openfort-js";
-import { openfortClient, useOpenfort } from "@/providers/OpenfortProvider";
+import { useModal } from "@phantom/react-sdk";
 
 const FEATURE_KEYS = [
   { icon: "🕸", titleKey: "onboarding.feat_scam_title", descKey: "onboarding.feat_scam_desc" },
@@ -14,11 +12,7 @@ const FEATURE_KEYS = [
 export default function DashboardOnboarding() {
   const { t } = useTranslation();
   const { setVisible } = useWalletModal();
-  const { openfortLoading } = useOpenfort();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [authBusy, setAuthBusy] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
+  const { open } = useModal();
 
   return (
     <div className="w-full max-w-screen-2xl mx-auto p-8">
@@ -50,21 +44,8 @@ export default function DashboardOnboarding() {
 
         <button
           type="button"
-          onClick={async () => {
-            try {
-              await openfortClient.waitForInitialization();
-              const url = await openfortClient.auth.initOAuth({
-                provider: OAuthProvider.GOOGLE,
-                redirectTo: `${window.location.origin}/auth/callback`,
-                options: { skipBrowserRedirect: true },
-              });
-              if (url) window.location.assign(url);
-            } catch (e) {
-              console.error("Google login error:", e);
-            }
-          }}
-          disabled={openfortLoading || authBusy}
-          className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 transition-colors text-sm font-medium text-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          onClick={() => void open()}
+          className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 transition-colors text-sm font-medium text-zinc-200"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
             <path
@@ -86,73 +67,24 @@ export default function DashboardOnboarding() {
           </svg>
           {t("onboarding.continue_google")}
         </button>
-
-        <div className="mt-4 space-y-2 text-left max-w-sm mx-auto">
-          <input
-            type="email"
-            autoComplete="email"
-            placeholder={t("onboarding.email_placeholder")}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg border border-zinc-700 bg-zinc-900 text-sm text-zinc-200 placeholder:text-zinc-500"
-          />
-          <input
-            type="password"
-            autoComplete="current-password"
-            placeholder={t("onboarding.password_placeholder")}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg border border-zinc-700 bg-zinc-900 text-sm text-zinc-200 placeholder:text-zinc-500"
-          />
-          {authError && <p className="text-xs text-red-400 text-center">{authError}</p>}
-          <div className="flex gap-2">
-            <button
-              type="button"
-              disabled={openfortLoading || authBusy}
-              onClick={async () => {
-                setAuthError(null);
-                setAuthBusy(true);
-                try {
-                  await openfortClient.waitForInitialization();
-                  await openfortClient.auth.logInWithEmailPassword({
-                    email,
-                    password,
-                  });
-                } catch {
-                  setAuthError(t("onboarding.sign_in_failed"));
-                } finally {
-                  setAuthBusy(false);
-                }
-              }}
-              className="flex-1 py-2 rounded-lg bg-zinc-800 border border-zinc-600 text-sm font-medium text-zinc-200 hover:bg-zinc-700 disabled:opacity-50"
-            >
-              {t("onboarding.sign_in_email")}
-            </button>
-            <button
-              type="button"
-              disabled={openfortLoading || authBusy}
-              onClick={async () => {
-                setAuthError(null);
-                setAuthBusy(true);
-                try {
-                  await openfortClient.waitForInitialization();
-                  await openfortClient.auth.signUpWithEmailPassword({
-                    email,
-                    password,
-                    name: email.split("@")[0],
-                  });
-                } catch {
-                  setAuthError(t("onboarding.sign_up_failed"));
-                } finally {
-                  setAuthBusy(false);
-                }
-              }}
-              className="flex-1 py-2 rounded-lg bg-zinc-700 border border-zinc-600 text-sm font-medium text-zinc-100 hover:bg-zinc-600 disabled:opacity-50"
-            >
-              {t("onboarding.create_account")}
-            </button>
-          </div>
-        </div>
+        <button
+          type="button"
+          onClick={() => void open()}
+          className="w-full mt-2 flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 transition-colors text-sm font-medium text-zinc-200"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            aria-hidden
+          >
+            <path d="M12 2c-3 2-4 4.5-4 7.2 0 2.1 1.3 4.1 3.3 5.2-.2-2.6.7-4.8 2.7-6.7-2.1.6-3.7 2.2-4.2 4.1-.2-.8-.3-1.6-.3-2.4 0-2.4 1.4-4.6 3.8-6.4 2.4 1.8 3.8 4 3.8 6.4 0 3.4-2.7 6.4-6.3 6.4-3.8 0-6.8-3.2-6.8-7.3 0-2.6 1.3-5 3.4-6.5" />
+          </svg>
+          {t("onboarding.continue_apple", "Continue with Apple")}
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-10">

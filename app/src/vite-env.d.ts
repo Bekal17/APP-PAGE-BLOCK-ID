@@ -1,9 +1,7 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_OPENFORT_PUBLISHABLE_KEY?: string;
-  readonly VITE_OPENFORT_SHIELD_KEY?: string;
-  readonly VITE_OPENFORT_ENCRYPTION_SESSION_URL?: string;
+  readonly VITE_PHANTOM_APP_ID: string;
 }
 
 interface ImportMeta {

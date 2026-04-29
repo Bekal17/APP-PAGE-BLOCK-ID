@@ -19,8 +19,7 @@ import PostDetail from "./pages/PostDetail";
 import Communities from "./pages/Communities";
 import CommunityFeed from "./pages/CommunityFeed";
 import NotFound from "./pages/NotFound";
-import AuthCallback from "@/pages/AuthCallback";
-import LoginEmail from "@/pages/LoginEmail";
+import PhantomCallback from "@/pages/PhantomCallback";
 
 const queryClient = new QueryClient();
 
@@ -54,8 +53,7 @@ const App = () => (
             <Route path="/settings/privacy" element={<PrivacySettings />} />
             <Route path="/upgrade" element={<Upgrade />} />
             <Route path="/premium" element={<PremiumHub />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
-            <Route path="/login-email" element={<LoginEmail />} />
+            <Route path="/auth/callback" element={<PhantomCallback />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
