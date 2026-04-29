@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePhantom, useDisconnect, AddressType } from "@phantom/react-sdk";
 import { useToast } from "@/hooks/use-toast";
@@ -10,6 +10,8 @@ const API_BASE =
 const BLOCKID_SESSION_TOKEN_KEY = "blockid_session_token";
 const BLOCKID_EMBEDDED_WALLET_KEY = "blockid_embedded_wallet";
 const BLOCKID_AUTH_TYPE_KEY = "blockid_auth_type";
+const RETRY_INTERVAL_MS = 500;
+const RETRY_TIMEOUT_MS = 10_000;
 
 export function useEmbeddedLogout() {
   const { disconnect } = useDisconnect();
@@ -26,6 +28,8 @@ export default function PhantomCallback() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { isConnected, addresses, isLoading } = usePhantom();
+  const [retryTick, setRetryTick] = useState(0);
+  const retryStartRef = useRef<number | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -35,6 +39,24 @@ export default function PhantomCallback() {
     const hashParams = new URLSearchParams(hash);
     const hasAuthParams =
       params.toString().length > 0 || hashParams.toString().length > 0;
+    const hasAuthCode =
+      params.has("code") ||
+      params.has("access_token") ||
+      params.has("token") ||
+      hashParams.has("code") ||
+      hashParams.has("access_token") ||
+      hashParams.has("token");
+    const embeddedWallet = localStorage.getItem(BLOCKID_EMBEDDED_WALLET_KEY);
+
+    console.log("PhantomCallback: isConnected=" + isConnected);
+    console.log("PhantomCallback: addresses=" + JSON.stringify(addresses));
+    console.log("PhantomCallback: isLoading=" + isLoading);
+    console.log("PhantomCallback: hasAuthParams=" + hasAuthParams);
+
+    if (embeddedWallet) {
+      navigate("/dashboard", { replace: true });
+      return;
+    }
 
     if (!hasAuthParams && !isConnected && !isLoading) {
       toast({
@@ -46,6 +68,7 @@ export default function PhantomCallback() {
     }
 
     if (isConnected) {
+      retryStartRef.current = null;
       const solAddress = addresses?.find(
         (addr) => addr.addressType === AddressType.solana,
       )?.address;
@@ -98,14 +121,27 @@ export default function PhantomCallback() {
       return;
     }
 
-    if (!isLoading && hasAuthParams && !isConnected) {
-      toast({
-        title: "Authentication failed. Please try again.",
-        variant: "destructive",
-      });
-      navigate("/", { replace: true });
+    if (!isConnected && hasAuthCode) {
+      if (retryStartRef.current === null) {
+        retryStartRef.current = Date.now();
+      }
+
+      const elapsed = Date.now() - retryStartRef.current;
+      if (elapsed >= RETRY_TIMEOUT_MS) {
+        toast({
+          title: "Authentication failed. Please try again.",
+          variant: "destructive",
+        });
+        navigate("/", { replace: true });
+        return;
+      }
+
+      const timer = window.setTimeout(() => {
+        setRetryTick((n) => n + 1);
+      }, RETRY_INTERVAL_MS);
+      return () => window.clearTimeout(timer);
     }
-  }, [addresses, isConnected, isLoading, navigate, toast]);
+  }, [addresses, isConnected, isLoading, navigate, retryTick, toast]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-zinc-950">
