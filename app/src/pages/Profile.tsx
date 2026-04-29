@@ -320,6 +320,8 @@ function getCexBadgeColor(badgeCode: string): string | null {
 const Profile = () => {
   const { t } = useTranslation();
   const { publicKey, connected } = useWallet();
+  const embeddedWallet = localStorage.getItem("blockid_embedded_wallet");
+  const effectiveWallet = publicKey?.toString() ?? embeddedWallet ?? "";
   const { connection } = useConnection();
   const sub = useSubscription();
   const { walletParam } = useParams<{ walletParam: string }>();
@@ -543,7 +545,7 @@ const Profile = () => {
   }, [modalAvatarMenu]);
 
   const address = publicKey?.toBase58();
-  const wallet = walletParam ?? address ?? "";
+  const wallet = effectiveWallet;
 
   useEffect(() => {
     if (!address || !walletParam || walletParam === address) {
@@ -1129,7 +1131,7 @@ const Profile = () => {
   const cardClass =
     "rounded-2xl border border-border bg-card/40 backdrop-blur p-6 transition-shadow hover:shadow-[0_0_20px_rgba(0,255,200,0.15)]";
 
-  if (!connected || !publicKey) {
+  if (!effectiveWallet) {
     return (
       <DashboardLayout>
         <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
@@ -1163,7 +1165,9 @@ const Profile = () => {
       ? "bg-orange-500/20 text-orange-400"
       : "bg-red-500/20 text-red-400";
 
-  const isOwnProfile = !walletParam || (!!address && walletParam === address);
+  const isOwnProfile = !!effectiveWallet &&
+    (publicKey?.toString() === effectiveWallet ||
+      embeddedWallet === effectiveWallet);
   const canShowBalance =
     isOwnProfile || viewedPrivacy?.balance_visibility === "PUBLIC";
 
