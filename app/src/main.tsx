@@ -14,9 +14,9 @@ if (savedTheme === "light") {
 }
 
 createRoot(document.getElementById("root")!).render(
-  <SolanaWalletProvider>
-    <PhantomEmbeddedProvider>
+  <PhantomEmbeddedProvider>
+    <SolanaWalletProvider>
       <App />
-    </PhantomEmbeddedProvider>
-  </SolanaWalletProvider>
+    </SolanaWalletProvider>
+  </PhantomEmbeddedProvider>
 );
