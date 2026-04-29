@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { useDisconnect as usePhantomDisconnect } from "@phantom/react-sdk";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,6 +20,9 @@ export default function WalletIndicator() {
   const { t } = useTranslation();
   const { publicKey, connected, disconnect } = useWallet();
   const { setVisible } = useWalletModal();
+  const { disconnect: phantomDisconnect } = usePhantomDisconnect();
+  const embeddedWallet = localStorage.getItem("blockid_embedded_wallet");
+  const displayKey = publicKey?.toString() ?? embeddedWallet ?? null;
 
   const handleCopyAddress = () => {
     if (publicKey) {
@@ -32,12 +36,20 @@ export default function WalletIndicator() {
     } catch {
       /* ignore */
     }
+    try {
+      const authType = localStorage.getItem("blockid_auth_type");
+      if (authType === "embedded") {
+        await phantomDisconnect();
+      }
+    } catch {
+      // ignore
+    }
     sessionStorage.clear();
     localStorage.clear();
     window.location.href = "/";
   };
 
-  if (!connected || !publicKey) {
+  if (!displayKey) {
     return (
       <Button
         onClick={() => setVisible(true)}
@@ -49,7 +61,7 @@ export default function WalletIndicator() {
     );
   }
 
-  const fullAddress = publicKey.toBase58();
+  const fullAddress = displayKey;
   const shortAddress = formatAddress(fullAddress);
 
   return (
