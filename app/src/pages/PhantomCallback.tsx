@@ -1,7 +1,26 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { usePhantom, AddressType } from "@phantom/react-sdk";
+import { usePhantom, useDisconnect, AddressType } from "@phantom/react-sdk";
 import { useToast } from "@/hooks/use-toast";
+
+const API_BASE =
+  import.meta.env.VITE_SOCIAL_API_URL ??
+  "https://blockid-backend-production.up.railway.app";
+
+const BLOCKID_SESSION_TOKEN_KEY = "blockid_session_token";
+const BLOCKID_EMBEDDED_WALLET_KEY = "blockid_embedded_wallet";
+const BLOCKID_AUTH_TYPE_KEY = "blockid_auth_type";
+
+export function useEmbeddedLogout() {
+  const { disconnect } = useDisconnect();
+
+  return async () => {
+    localStorage.removeItem(BLOCKID_SESSION_TOKEN_KEY);
+    localStorage.removeItem(BLOCKID_EMBEDDED_WALLET_KEY);
+    localStorage.removeItem(BLOCKID_AUTH_TYPE_KEY);
+    await disconnect();
+  };
+}
 
 export default function PhantomCallback() {
   const navigate = useNavigate();
@@ -31,7 +50,44 @@ export default function PhantomCallback() {
         (addr) => addr.addressType === AddressType.solana,
       )?.address;
       if (solAddress) {
-        navigate("/dashboard", { replace: true });
+        void (async () => {
+          try {
+            const response = await fetch(`${API_BASE}/auth/embedded-login`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                wallet_address: solAddress,
+                auth_provider: "google",
+              }),
+            });
+
+            const data = await response.json();
+
+            if (data.success && data.session_token) {
+              localStorage.setItem(BLOCKID_SESSION_TOKEN_KEY, data.session_token);
+              localStorage.setItem(
+                BLOCKID_EMBEDDED_WALLET_KEY,
+                data.wallet_address,
+              );
+              localStorage.setItem(BLOCKID_AUTH_TYPE_KEY, "embedded");
+              navigate("/dashboard", { replace: true });
+              return;
+            }
+
+            toast({
+              title: "Embedded login failed. Please try again.",
+              variant: "destructive",
+            });
+            navigate("/", { replace: true });
+          } catch (err) {
+            console.error("Embedded login request failed:", err);
+            toast({
+              title: "Embedded login failed. Please try again.",
+              variant: "destructive",
+            });
+            navigate("/", { replace: true });
+          }
+        })();
         return;
       }
       toast({
