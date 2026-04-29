@@ -130,8 +130,11 @@ const sortPostsByCreatedAtDesc = (posts: SocialPost[]) =>
 const Dashboard = () => {
   const { t } = useTranslation();
   const { publicKey } = useWallet();
+  const embeddedWallet = localStorage.getItem("blockid_embedded_wallet");
+  const effectiveAddress =
+    publicKey?.toBase58() ?? publicKey?.toString() ?? embeddedWallet ?? "";
   const { toast } = useToast();
-  const address = publicKey?.toBase58() ?? publicKey?.toString();
+  const address = effectiveAddress;
   const [feed, setFeed] = useState<SocialPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string>("explore");
@@ -288,23 +291,23 @@ const Dashboard = () => {
   }, [postContent]);
 
   useEffect(() => {
-    if (!publicKey) return;
-    getBookmarkIds(publicKey.toString())
+    if (!effectiveAddress) return;
+    getBookmarkIds(effectiveAddress)
       .then((data) => {
         setBookmarkedIds(new Set(data.post_ids ?? []));
       })
       .catch(() => {});
-    getLikedIds(publicKey.toString())
+    getLikedIds(effectiveAddress)
       .then((data) => {
         setLikedPostIds(new Set(data.post_ids ?? []));
       })
       .catch(() => {});
-    getRepostedIds(publicKey.toString())
+    getRepostedIds(effectiveAddress)
       .then((data) => {
         setRepostedPostIds(new Set(data.post_ids ?? []));
       })
       .catch(() => {});
-    getFollowing(publicKey.toString())
+    getFollowing(effectiveAddress)
       .then((data) => {
         const wallets = (data.following ?? data ?? [])
           .map((f: any) => f.wallet ?? f.following_wallet)
@@ -312,7 +315,7 @@ const Dashboard = () => {
         setFollowedWallets(new Set(wallets));
       })
       .catch(() => {});
-  }, [publicKey]);
+  }, [effectiveAddress]);
 
   useEffect(() => {
     if (!address) {
@@ -957,7 +960,7 @@ const Dashboard = () => {
 
   const handlePost = async () => {
     setIsPosting(true);
-    if (!publicKey || !postContent.trim()) {
+    if (!effectiveAddress || !postContent.trim()) {
       setIsPosting(false);
       return;
     }
@@ -971,7 +974,7 @@ const Dashboard = () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            wallet: publicKey.toString(),
+            wallet: effectiveAddress,
             content: postContent.trim(),
             post_type: "PUBLIC",
             signed_message: "BlockID Post",
@@ -992,7 +995,7 @@ const Dashboard = () => {
         }
       } else if (postImage) {
         const formData = new FormData();
-        formData.append("wallet", publicKey.toString());
+        formData.append("wallet", effectiveAddress);
         formData.append("content", postContent.trim());
         formData.append("post_type", "PUBLIC");
         formData.append("session_token", getSessionToken() ?? "");
@@ -1017,7 +1020,7 @@ const Dashboard = () => {
           );
         }
       } else {
-        await createPost(publicKey.toString(), postContent.trim(), "PUBLIC", undefined, {
+        await createPost(effectiveAddress, postContent.trim(), "PUBLIC", undefined, {
           community_address: postCommunity,
           also_share_to_everyone: postCommunity ? alsoShareToEveryone : true,
         });
@@ -1033,17 +1036,17 @@ const Dashboard = () => {
       setPostImageDropdownOpen(false);
       setPostCommunity(null);
       setAlsoShareToEveryone(true);
-      fetch(`${API_SOCIAL}/social/limits/${publicKey.toString()}`)
+      fetch(`${API_SOCIAL}/social/limits/${effectiveAddress}`)
         .then((r) => r.json())
         .then((data) => setSocialLimits(data))
         .catch(() => {});
       let data: any;
       if (activeTab === "following") {
-        data = await getFollowingFeed(publicKey.toString());
+        data = await getFollowingFeed(effectiveAddress);
       } else if (activeTab.startsWith("community:")) {
         data = await getCommunityFeed(
           activeTab.replace("community:", ""),
-          publicKey.toString()
+          effectiveAddress
         );
       } else {
         data = await getSocialFeed();
@@ -1138,7 +1141,7 @@ const Dashboard = () => {
           </div>
         )}
 
-        {publicKey && (
+        {!!effectiveAddress && (
           <div className="glass-card p-4 flex gap-3 animate-slide-up">
             {composeProfile?.avatar_url ? (
               <img
