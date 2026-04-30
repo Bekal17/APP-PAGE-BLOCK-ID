@@ -110,16 +110,8 @@ export default function CustomWalletModal() {
           {/* Google */}
           <button
             type="button"
-            onClick={async () => {
-              try {
-                await connect({ provider: "google" });
-                setShow(false);
-              } catch (err) {
-                console.error("Google login failed:", err);
-              }
-            }}
-            disabled={isConnecting}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-900/50 transition-all text-sm font-medium text-zinc-200 hover:bg-zinc-800 hover:border-zinc-700"
+            disabled={true}
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-900/50 transition-all text-sm font-medium text-zinc-200 hover:bg-zinc-800 hover:border-zinc-700 opacity-50 cursor-not-allowed"
           >
             <svg width="18" height="18" viewBox="0 0 24 24">
               <path
@@ -139,22 +131,17 @@ export default function CustomWalletModal() {
                 d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
               />
             </svg>
-            {t("onboarding.continue_google")}
+            <span>{t("onboarding.continue_google")}</span>
+            <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-700 text-zinc-400">
+              Soon
+            </span>
           </button>
 
           {/* Email */}
           <button
             type="button"
-            onClick={async () => {
-              try {
-                await connect({ provider: "apple" });
-                setShow(false);
-              } catch (err) {
-                console.error("Apple login failed:", err);
-              }
-            }}
-            disabled={isConnecting}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-900/50 transition-all text-sm font-medium text-zinc-200 hover:bg-zinc-800 hover:border-zinc-700"
+            disabled={true}
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-900/50 transition-all text-sm font-medium text-zinc-200 hover:bg-zinc-800 hover:border-zinc-700 opacity-50 cursor-not-allowed"
           >
             <svg
               width="18"
@@ -167,7 +154,10 @@ export default function CustomWalletModal() {
               <rect x="2" y="4" width="20" height="16" rx="2" />
               <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
             </svg>
-            {t("auth.continue_with_email")}
+            <span>{t("auth.continue_with_email")}</span>
+            <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-700 text-zinc-400">
+              Soon
+            </span>
           </button>
 
           <p className="text-center text-xs text-zinc-600 pt-1">
