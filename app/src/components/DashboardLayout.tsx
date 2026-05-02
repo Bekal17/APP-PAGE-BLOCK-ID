@@ -38,7 +38,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
               <img
                 src={blockidIcon}
                 alt="BlockID"
-                className="h-18 w-18 object-contain shrink-0"
+                className="h-13 w-13 object-contain shrink-0"
               />
             </div>
           </div>
