@@ -11,6 +11,7 @@ import {
   MoreVertical,
   Clock,
   Shield,
+  Users,
 } from "lucide-react";
 import WalletHoverCard from "@/components/WalletHoverCard";
 import UserAvatar from "@/components/UserAvatar";
@@ -399,6 +400,16 @@ export default function PostCard({
           ? `@${post.handle}`
           : truncateWallet(post?.wallet ?? "")}{" "}
         reposted
+      </span>
+    </div>
+  ) : null;
+
+  const communityLabel = (post as any).community_address ? (
+    <div className="flex items-center gap-1.5 px-1 pb-1 text-xs text-muted-foreground">
+      <Users className="w-3.5 h-3.5 text-primary" />
+      <span>Posted in</span>
+      <span className="font-semibold text-primary">
+        {(post as any).community_name ?? ((post as any).community_address as string).slice(0, 8) + "..."}
       </span>
     </div>
   ) : null;
@@ -793,6 +804,7 @@ export default function PostCard({
   const normalCard = (
     <>
       {repostLabel}
+      {communityLabel}
       {mainPostCard}
       <TokenPreviewSheet
         open={!!previewTicker && !!previewMint}
@@ -829,6 +841,7 @@ export default function PostCard({
         />
         <div style={{ marginBottom: 0, paddingBottom: 0 }}>
           {repostLabel}
+          {communityLabel}
           {mainPostCard}
         </div>
         <div
