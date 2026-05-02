@@ -481,7 +481,7 @@ export default function PostCard({
                         ? (post.handle ?? undefined)
                         : isRepost && originalPost
                           ? (originalPost.handle ?? undefined)
-                          : (profile?.handle ?? post.handle ?? undefined)
+                          : (post.handle ?? undefined)
                     }
                     isFollowing={followedWallets.has(
                       isQuoteRepost
