@@ -2603,7 +2603,7 @@ const Profile = () => {
                     profile={{
                       wallet: post.wallet,
                       handle:
-                        post.handle ?? profile?.handle ?? null,
+                        post.handle ?? null,
                       trust_score: post.trust_score,
                     }}
                     publicKey={publicKey}
