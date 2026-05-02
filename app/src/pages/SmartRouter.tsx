@@ -124,7 +124,7 @@ const SmartRouter = () => {
   const { publicKey, signTransaction } = useWallet();
   const { connection } = useConnection();
   const [searchParams] = useSearchParams();
-  const { getByTicker } = useTokenList();
+  const { getByTicker, tokens } = useTokenList();
   const inputRef = useRef<HTMLInputElement>(null);
   const hasAutoParsedFromUrlRef = useRef(false);
 
@@ -144,6 +144,8 @@ const SmartRouter = () => {
   const [swapStep, setSwapStep] = useState<"idle" | "quoted" | "signing">("idle");
   const [balance, setBalance] = useState<any>(null);
   const [balanceLoading, setBalanceLoading] = useState(false);
+  const [showCashtagDropdown, setShowCashtagDropdown] = useState(false);
+  const [filteredTokens, setFilteredTokens] = useState<any[]>([]);
 
   const routerToken = parseResult?.token ?? null;
   const routerTokenData = routerToken ? getByTicker(routerToken) : null;
@@ -645,7 +647,27 @@ const SmartRouter = () => {
                   ref={inputRef}
                   type="text"
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setInput(value);
+                    const lastDollar = value.lastIndexOf("$");
+                    if (lastDollar !== -1) {
+                      const afterDollar = value.slice(lastDollar + 1);
+                      const query = afterDollar.split(" ")[0].toUpperCase();
+                      if (query.length > 0) {
+                        const matches = tokens
+                          .filter((t) => t.symbol.toUpperCase().startsWith(query))
+                          .slice(0, 6);
+                        setFilteredTokens(matches);
+                        setShowCashtagDropdown(matches.length > 0);
+                      } else {
+                        setShowCashtagDropdown(false);
+                      }
+                    } else {
+                      setShowCashtagDropdown(false);
+                    }
+                  }}
+                  onBlur={() => setTimeout(() => setShowCashtagDropdown(false), 150)}
                   onKeyDown={handleKeyDown}
                   placeholder={t(
                     "smart_router.input_placeholder",
@@ -655,6 +677,52 @@ const SmartRouter = () => {
                   disabled={parsing}
                   autoFocus
                 />
+                {showCashtagDropdown && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl py-1 z-50 max-h-52 overflow-y-auto">
+                    {filteredTokens.map((token) => (
+                      <button
+                        key={token.address}
+                        type="button"
+                        className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-zinc-800 transition-colors text-left"
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          const lastDollar = input.lastIndexOf("$");
+                          const before = input.slice(0, lastDollar);
+                          const newValue = before + "$" + token.symbol + " ";
+                          setInput(newValue);
+                          setShowCashtagDropdown(false);
+                          inputRef.current?.focus();
+                        }}
+                      >
+                        <div className="flex items-center gap-2">
+                          {token.logoURI && (
+                            <img
+                              src={token.logoURI}
+                              className="w-5 h-5 rounded-full"
+                              alt={token.symbol}
+                              onError={(e) => {
+                                e.currentTarget.style.display = "none";
+                              }}
+                            />
+                          )}
+                          <span className="text-sm font-semibold text-foreground">
+                            ${token.symbol}
+                          </span>
+                          <span className="text-xs text-muted-foreground truncate max-w-[120px]">
+                            {token.name}
+                          </span>
+                        </div>
+                        {token.usdPrice && (
+                          <span className="text-xs text-muted-foreground font-mono">
+                            ${token.usdPrice.toFixed(
+                              token.usdPrice < 0.01 ? 6 : 2,
+                            )}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 {input && !parsing && (
                   <button
                     type="button"
