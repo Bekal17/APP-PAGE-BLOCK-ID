@@ -545,7 +545,7 @@ const Profile = () => {
   }, [modalAvatarMenu]);
 
   const address = publicKey?.toBase58();
-  const wallet = effectiveWallet;
+  const wallet = walletParam ?? effectiveWallet;
 
   useEffect(() => {
     if (!address || !walletParam || walletParam === address) {
