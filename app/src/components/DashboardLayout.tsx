@@ -1,6 +1,7 @@
 import { ReactNode, useState } from "react";
 import AppSidebar from "@/components/AppSidebar";
 import logo from "/blockid-logo.svg";
+import blockidIcon from "@/assets/BLOCKID_LOGO_NEW1.png";
 import MobileNav from "@/components/MobileNav";
 import WalletIndicator from "@/components/WalletIndicator";
 import NotificationBell from "@/components/NotificationBell";
@@ -33,11 +34,11 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
             <button onClick={() => setMobileOpen(true)} className="lg:hidden text-muted-foreground hover:text-foreground transition-colors">
               <Menu className="w-5 h-5" />
             </button>
-            <div className="flex items-center min-w-[240px] lg:hidden">
+            <div className="flex items-center lg:hidden">
               <img
-                src={logo}
+                src={blockidIcon}
                 alt="BlockID"
-                className="h-24 w-auto object-contain shrink-0"
+                className="h-9 w-9 object-contain shrink-0"
               />
             </div>
           </div>
