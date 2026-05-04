@@ -1165,9 +1165,11 @@ const Profile = () => {
       ? "bg-orange-500/20 text-orange-400"
       : "bg-red-500/20 text-red-400";
 
-  const isOwnProfile = !!effectiveWallet &&
-    (publicKey?.toString() === effectiveWallet ||
-      embeddedWallet === effectiveWallet);
+  const isOwnProfile = !!effectiveWallet && (
+    !walletParam ||
+    walletParam === publicKey?.toString() ||
+    walletParam === embeddedWallet
+  );
   const canShowBalance =
     isOwnProfile || viewedPrivacy?.balance_visibility === "PUBLIC";
 
