@@ -61,7 +61,7 @@ This is the **frontend repository** (React/TypeScript).
 |---|---|
 | [APP-PAGE-BLOCK-ID](https://github.com/Bekal17/APP-PAGE-BLOCK-ID) | Frontend (this repo) |
 | [BACKEND-BLOCK-ID](https://github.com/Bekal17/BACKEND-BLOCK-ID) | Backend FastAPI/Python |
-| Landing page | blockidscore.fun |
+| [LANDING-PAGE-BLOCK-ID](https://github.com/Bekal17/LANDING-PAGE-BLOCK-ID)) | [Landing Page] (https://www.blockidscore.fun/) |
 
 BlockID development started on **February 13, 2026**. All hackathon-period work tracked via Git commits from April 6, 2026 onwards.
 
