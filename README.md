@@ -106,3 +106,5 @@ Built for **Colosseum Frontier Hackathon** (April 6 – May 10, 2026) under the 
 ## License
 
 Proprietary — © 2026 BlockID. All rights reserved.
+
+---
