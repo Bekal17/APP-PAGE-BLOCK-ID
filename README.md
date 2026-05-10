@@ -10,7 +10,7 @@
 
 BlockID is a consumer platform that makes Solana accessible to everyone, not just crypto natives.
 
-Every Solana wallet gets a **Trust Score (0–100)** derived from real on-chain behavior — wallet age, transaction history, DeFi activity, CEX/DEX fingerprints, and ML classification trained on known scam wallets. Users claim **@handle NFT identities**, post on a **trust-gated social feed**, send crypto via **natural language commands**, and access **token-gated communities** automatically based on NFT holdings.
+Every Solana wallet gets a **Trust Score (0–100)** derived from real on-chain behavior, wallet age, transaction history, DeFi activity, CEX/DEX fingerprints, and ML classification trained on known scam wallets. Users claim **@handle NFT identities**, post on a **trust-gated social feed**, send crypto via **natural language commands**, and access **token-gated communities** automatically based on NFT holdings.
 
 Built on Solana mainnet. Powered by Helius, Jupiter, Daemon Protocol, and Metaplex.
 
@@ -93,10 +93,6 @@ Connect any Solana wallet to access the full platform. No signup or credentials 
 
 ---
 
-## Hackathon
-
-Built for **Colosseum Frontier Hackathon** (April 6 – May 10, 2026) under the **Consumer Apps** track.
-
 - Live on Solana mainnet at [app.blockidscore.fun](https://app.blockidscore.fun)
 - Solo founder, self-taught, building from Jakarta, Indonesia
 - Active in Superteam Indonesia ecosystem
@@ -105,6 +101,6 @@ Built for **Colosseum Frontier Hackathon** (April 6 – May 10, 2026) under the 
 
 ## License
 
-Proprietary — © 2026 BlockID. All rights reserved.
+Proprietary © 2026 BlockID. All rights reserved.
 
 ---
