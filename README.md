@@ -1,4 +1,4 @@
-# BlockID — The Human Interface for Blockchain
+# BlockID: The Human Interface for Blockchain
 
 > On-chain identity, trust scoring, and social layer for the Solana ecosystem.
 
