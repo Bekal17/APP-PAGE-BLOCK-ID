@@ -923,7 +923,11 @@ const Profile = () => {
     riskColorMap[data?.risk_color?.toUpperCase() ?? ""] ?? "GREEN";
   const summaryMessage = data?.summary_message ?? "";
   const recommendedActions = data?.recommended_actions ?? [];
-  const riskAlerts = data ? buildRiskAlerts(data) : [];
+  const backendAlerts: string[] = walletDashboard?.alerts ?? [];
+  const riskAlerts = [
+    ...backendAlerts,
+    ...(data ? buildRiskAlerts(data) : []),
+  ].filter((v, i, arr) => arr.indexOf(v) === i);
   const counterpartyItems = (data?.counterparties ?? [])
     .filter(
       (c) =>
