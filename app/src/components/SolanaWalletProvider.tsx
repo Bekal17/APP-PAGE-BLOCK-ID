@@ -43,10 +43,6 @@ export default function SolanaWalletProvider({
           theme: 'dark',
           accentColor: '#6366f1',
         },
-        solanaClusters: [{
-          name: 'mainnet-beta',
-          rpcUrl: RPC_URL,
-        }],
         solana: {
           rpcs: {
             'solana:mainnet': {
