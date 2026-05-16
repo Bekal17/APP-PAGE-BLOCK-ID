@@ -10,7 +10,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useSubscription } from "@/hooks/useSubscription";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
 
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
   const { t } = useTranslation();
@@ -18,7 +18,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
   const { theme, toggleTheme } = useTheme();
   const sub = useSubscription();
   const navigate = useNavigate();
-  const { connected } = useWallet();
+  const { connected } = useBlockIDWallet();
 
   return (
     <div className="flex min-h-screen w-full bg-background">
