@@ -1,7 +1,8 @@
 import { usePrivy } from '@privy-io/react-auth';
-import { useWallets } from '@privy-io/react-auth/solana';
-import { PublicKey } from '@solana/web3.js';
+import { useWallets, useSignAndSendTransaction } from '@privy-io/react-auth/solana';
+import { PublicKey, Transaction, VersionedTransaction } from '@solana/web3.js';
 import { useMemo } from 'react';
+import { getTransactionEncoder } from '@solana/kit';
 
 export function useBlockIDWallet() {
   const { logout, authenticated } = usePrivy();
@@ -27,25 +28,30 @@ export function useBlockIDWallet() {
     };
   }, [activeWallet]);
 
-  // For Privy embedded wallet users — use wallet's sendTransaction directly
+  const { signAndSendTransaction } = useSignAndSendTransaction();
+
   const sendTransaction = useMemo(() => {
     if (!activeWallet) return undefined;
-    return async (tx: any, connection: any) => {
-      try {
-        console.log('[BlockID] sendTransaction called');
-        console.log('[BlockID] walletClientType:', activeWallet.walletClientType);
-        console.log('[BlockID] sendTransaction method exists:', typeof activeWallet.sendTransaction);
-        const signature = await activeWallet.sendTransaction(tx, connection);
-        console.log('[BlockID] success signature:', signature);
-        return signature;
-      } catch (err: any) {
-        console.error('[BlockID] sendTransaction error:', err);
-        console.error('[BlockID] error message:', err?.message);
-        console.error('[BlockID] error code:', err?.code);
-        throw err;
+    return async (tx: any, _connection: any) => {
+      // Encode legacy Transaction or VersionedTransaction to Uint8Array for Privy v3
+      let encoded: Uint8Array;
+      if (tx instanceof VersionedTransaction) {
+        encoded = tx.serialize();
+      } else if (tx instanceof Transaction) {
+        encoded = tx.serialize({ requireAllSignatures: false });
+      } else {
+        encoded = getTransactionEncoder().encode(tx);
       }
+      const { signature } = await signAndSendTransaction({
+        transaction: encoded,
+        wallet: activeWallet,
+        options: {
+          skipPreflight: false,
+        },
+      });
+      return Buffer.from(signature).toString('base64');
     };
-  }, [activeWallet]);
+  }, [activeWallet, signAndSendTransaction]);
 
   const signMessage = useMemo(() => {
     if (!activeWallet) return undefined;
