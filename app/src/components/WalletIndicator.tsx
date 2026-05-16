@@ -1,6 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { usePhantomAuth } from "@/hooks/usePhantomAuth";
 import { usePrivyAuth } from "@/hooks/usePrivyAuth";
+import { usePrivy } from "@privy-io/react-auth";
+import { useWallets } from "@privy-io/react-auth/solana";
 import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -20,9 +22,19 @@ export default function WalletIndicator() {
   const { t } = useTranslation();
   const { publicKey, connected, disconnectWallet } = usePhantomAuth();
   const { logoutPrivy } = usePrivyAuth();
+  const { authenticated, user } = usePrivy();
+  const { wallets: privyWallets } = useWallets();
   const navigate = useNavigate();
   const embeddedWallet = localStorage.getItem("blockid_embedded_wallet");
-  const displayKey = publicKey?.toString() ?? embeddedWallet ?? null;
+  const privyWalletAddress = privyWallets?.[0]?.address ?? null;
+  const privyEmail = user?.email?.address ?? user?.google?.email ?? null;
+  const displayKey = publicKey?.toString() ?? privyWalletAddress ?? embeddedWallet ?? null;
+  const displayLabel = displayKey 
+    ? formatAddress(displayKey) 
+    : privyEmail 
+    ? privyEmail.slice(0, 16) + "..." 
+    : null;
+  const isPrivyUser = authenticated && !connected;
 
   const handleCopyAddress = () => {
     if (publicKey) {
@@ -31,10 +43,14 @@ export default function WalletIndicator() {
   };
 
   const handleLogOut = () => {
-    disconnectWallet();
+    if (isPrivyUser) {
+      logoutPrivy();
+    } else {
+      disconnectWallet();
+    }
   };
 
-  if (!displayKey) {
+  if (!displayKey && !authenticated) {
     return (
       <Button
         onClick={() => navigate("/login")}
@@ -59,7 +75,7 @@ export default function WalletIndicator() {
           <>
             <span className="w-2 h-2 rounded-full bg-green-400 shrink-0" />
             <span className="hidden sm:inline font-mono text-foreground">
-              {shortAddress}
+              {displayLabel ?? shortAddress}
             </span>
             <Wallet className="w-4 h-4 sm:hidden text-foreground" />
             <svg
