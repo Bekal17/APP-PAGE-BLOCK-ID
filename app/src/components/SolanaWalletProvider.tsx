@@ -35,6 +35,7 @@ export default function SolanaWalletProvider({
           solana: {
             createOnLogin: 'users-without-wallets',
           },
+          showWalletUIs: false,
         },
         externalWallets: {
           solana: { connectors: solanaConnectors },
