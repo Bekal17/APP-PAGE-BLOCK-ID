@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { NavLink } from "@/components/NavLink";
 import { useLocation } from "react-router-dom";
 import logo from "/blockid-logo.svg";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import {
   LayoutDashboard,
@@ -46,7 +46,7 @@ const formatSolanaAddress = (address: string) => {
 
 const MobileNav = ({ open, onClose }: MobileNavProps) => {
   const location = useLocation();
-  const { publicKey, connected } = useWallet();
+  const { publicKey, connected } = useBlockIDWallet();
   const { setVisible } = useWalletModal();
   const { t } = useTranslation();
   const displayAddress = publicKey ? formatSolanaAddress(publicKey.toBase58()) : null;

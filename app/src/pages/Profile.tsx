@@ -1,4 +1,5 @@
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useConnection } from "@solana/wallet-adapter-react";
+import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
 import {
   LAMPORTS_PER_SOL,
   PublicKey,
@@ -319,7 +320,7 @@ function getCexBadgeColor(badgeCode: string): string | null {
 
 const Profile = () => {
   const { t } = useTranslation();
-  const { publicKey, connected } = useWallet();
+  const { publicKey, connected } = useBlockIDWallet();
   const embeddedWallet = localStorage.getItem("blockid_embedded_wallet");
   const effectiveWallet = publicKey?.toString() ?? embeddedWallet ?? "";
   const { connection } = useConnection();

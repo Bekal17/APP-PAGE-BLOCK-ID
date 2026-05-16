@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, type KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useConnection } from "@solana/wallet-adapter-react";
+import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
 import { useSearchParams } from "react-router-dom";
 import { Buffer } from "buffer";
 import {
@@ -121,7 +122,7 @@ interface ResolveResult {
 
 const SmartRouter = () => {
   const { t } = useTranslation();
-  const { publicKey, signTransaction } = useWallet();
+  const { publicKey, signTransaction } = useBlockIDWallet();
   const { connection } = useConnection();
   const [searchParams] = useSearchParams();
   const { getByTicker, tokens } = useTokenList();

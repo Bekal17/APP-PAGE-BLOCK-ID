@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { useWallet, useConnection } from "@solana/wallet-adapter-react";
+import { useConnection } from "@solana/wallet-adapter-react";
+import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
 import {
   PublicKey,
   Transaction,
@@ -51,7 +52,7 @@ const PLANS: Record<
 export default function Upgrade() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { publicKey, signTransaction } = useWallet();
+  const { publicKey, signTransaction } = useBlockIDWallet();
   const { connection } = useConnection();
   const sub = useSubscription();
   const { toast } = useToast();

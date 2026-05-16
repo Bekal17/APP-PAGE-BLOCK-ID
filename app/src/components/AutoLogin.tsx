@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
 import {
   loginWithSignature,
   getSessionToken,
@@ -7,7 +7,7 @@ import {
 } from "@/services/blockidApi";
 
 const AutoLogin = () => {
-  const { publicKey, connected, signMessage } = useWallet();
+  const { publicKey, connected, signMessage } = useBlockIDWallet();
 
   useEffect(() => {
     if (!connected || !publicKey || !signMessage) return;

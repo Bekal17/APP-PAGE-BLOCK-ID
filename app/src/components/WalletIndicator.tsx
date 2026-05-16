@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import {
   DropdownMenu,
@@ -17,7 +17,7 @@ const formatAddress = (address: string) => {
 
 export default function WalletIndicator() {
   const { t } = useTranslation();
-  const { publicKey, connected, disconnect } = useWallet();
+  const { publicKey, connected, disconnect } = useBlockIDWallet();
   const { setVisible } = useWalletModal();
   const embeddedWallet = localStorage.getItem("blockid_embedded_wallet");
   const displayKey = publicKey?.toString() ?? embeddedWallet ?? null;
