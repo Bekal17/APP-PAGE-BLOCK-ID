@@ -26,11 +26,11 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AutoLogin />
     <TooltipProvider>
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <AutoLogin />
         <div className="relative min-h-screen w-full overflow-x-hidden">
           <Routes>
             <Route path="/" element={<Dashboard />} />
