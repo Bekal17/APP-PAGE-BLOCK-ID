@@ -32,7 +32,7 @@ export default function WalletIndicator() {
   const displayLabel = displayKey 
     ? formatAddress(displayKey) 
     : privyEmail 
-    ? privyEmail.slice(0, 16) + "..." 
+    ? (privyEmail.length > 16 ? privyEmail.slice(0, 16) + "..." : privyEmail)
     : null;
   const isPrivyUser = authenticated && !connected;
 
@@ -62,8 +62,8 @@ export default function WalletIndicator() {
     );
   }
 
-  const fullAddress = displayKey;
-  const shortAddress = formatAddress(fullAddress);
+  const fullAddress = displayKey ?? "";
+  const shortAddress = fullAddress ? formatAddress(fullAddress) : "";
 
   return (
     <DropdownMenu>
