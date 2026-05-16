@@ -31,8 +31,17 @@ export function useBlockIDWallet() {
   const sendTransaction = useMemo(() => {
     if (!activeWallet) return undefined;
     return async (tx: any, connection: Connection) => {
-      const signature = await activeWallet.sendTransaction(tx, connection);
-      return signature;
+      try {
+        console.log('[BlockID] sendTransaction called, wallet:', activeWallet.address);
+        console.log('[BlockID] walletClientType:', activeWallet.walletClientType);
+        console.log('[BlockID] tx type:', tx?.constructor?.name);
+        const signature = await activeWallet.sendTransaction(tx, connection);
+        console.log('[BlockID] signature:', signature);
+        return signature;
+      } catch (err) {
+        console.error('[BlockID] sendTransaction error:', err);
+        throw err;
+      }
     };
   }, [activeWallet]);
 
