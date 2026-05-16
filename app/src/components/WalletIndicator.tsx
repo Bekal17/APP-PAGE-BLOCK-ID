@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
+import { usePrivy } from '@privy-io/react-auth';
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import {
@@ -32,7 +33,7 @@ export default function WalletIndicator() {
 
   const handleLogOut = async () => {
     try { await adapterDisconnect(); } catch {}
-    try { await disconnect(); } catch {}
+    try { await logout(); } catch {}
     sessionStorage.clear();
     localStorage.clear();
     window.location.href = "/";
