@@ -1,6 +1,6 @@
 import { usePrivy } from '@privy-io/react-auth';
 import { useWallets } from '@privy-io/react-auth/solana';
-import { PublicKey, Connection } from '@solana/web3.js';
+import { PublicKey } from '@solana/web3.js';
 import { useMemo } from 'react';
 
 export function useBlockIDWallet() {
@@ -30,7 +30,7 @@ export function useBlockIDWallet() {
   // For Privy embedded wallet users — use wallet's sendTransaction directly
   const sendTransaction = useMemo(() => {
     if (!activeWallet) return undefined;
-    return async (tx: any, connection: Connection) => {
+    return async (tx: any, connection: any) => {
       try {
         console.log('[BlockID] sendTransaction called, wallet:', activeWallet.address);
         console.log('[BlockID] walletClientType:', activeWallet.walletClientType);
