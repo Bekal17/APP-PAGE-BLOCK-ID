@@ -15,7 +15,6 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
-    "@phantom/react-sdk": "^2.0.2",
     "@privy-io/react-auth": "^3.26.0",
     "@privy-io/wagmi": "^4.0.7",
     "@radix-ui/react-accordion": "^1.2.11",

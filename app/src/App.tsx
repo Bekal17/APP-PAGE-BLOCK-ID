@@ -19,7 +19,6 @@ import PostDetail from "./pages/PostDetail";
 import Communities from "./pages/Communities";
 import CommunityFeed from "./pages/CommunityFeed";
 import NotFound from "./pages/NotFound";
-import PhantomCallback from "@/pages/PhantomCallback";
 
 const queryClient = new QueryClient();
 
@@ -53,7 +52,6 @@ const App = () => (
             <Route path="/settings/privacy" element={<PrivacySettings />} />
             <Route path="/upgrade" element={<Upgrade />} />
             <Route path="/premium" element={<PremiumHub />} />
-            <Route path="/auth/callback" element={<PhantomCallback />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>

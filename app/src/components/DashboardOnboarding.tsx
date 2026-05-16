@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
-import { useModal } from "@phantom/react-sdk";
 
 const FEATURE_KEYS = [
   { icon: "🕸", titleKey: "onboarding.feat_scam_title", descKey: "onboarding.feat_scam_desc" },
@@ -12,7 +11,6 @@ const FEATURE_KEYS = [
 export default function DashboardOnboarding() {
   const { t } = useTranslation();
   const { setVisible } = useWalletModal();
-  const { open } = useModal();
 
   return (
     <div className="w-full max-w-screen-2xl mx-auto p-8">
@@ -44,8 +42,8 @@ export default function DashboardOnboarding() {
 
         <button
           type="button"
-          onClick={() => void open()}
-          className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 transition-colors text-sm font-medium text-zinc-200"
+          disabled
+          className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-zinc-700 bg-zinc-900 transition-colors text-sm font-medium text-zinc-200 opacity-50 cursor-not-allowed"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden>
             <path
@@ -66,11 +64,14 @@ export default function DashboardOnboarding() {
             />
           </svg>
           {t("onboarding.continue_google")}
+          <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-700 text-zinc-400">
+            Soon
+          </span>
         </button>
         <button
           type="button"
-          onClick={() => void open()}
-          className="w-full mt-2 flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 transition-colors text-sm font-medium text-zinc-200"
+          disabled
+          className="w-full mt-2 flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-zinc-700 bg-zinc-900 transition-colors text-sm font-medium text-zinc-200 opacity-50 cursor-not-allowed"
         >
           <svg
             width="18"
@@ -84,6 +85,9 @@ export default function DashboardOnboarding() {
             <path d="M12 2c-3 2-4 4.5-4 7.2 0 2.1 1.3 4.1 3.3 5.2-.2-2.6.7-4.8 2.7-6.7-2.1.6-3.7 2.2-4.2 4.1-.2-.8-.3-1.6-.3-2.4 0-2.4 1.4-4.6 3.8-6.4 2.4 1.8 3.8 4 3.8 6.4 0 3.4-2.7 6.4-6.3 6.4-3.8 0-6.8-3.2-6.8-7.3 0-2.6 1.3-5 3.4-6.5" />
           </svg>
           {t("onboarding.continue_apple", "Continue with Apple")}
+          <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-700 text-zinc-400">
+            Soon
+          </span>
         </button>
       </div>
 

@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
-import { useDisconnect as usePhantomDisconnect } from "@phantom/react-sdk";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,7 +19,6 @@ export default function WalletIndicator() {
   const { t } = useTranslation();
   const { publicKey, connected, disconnect } = useWallet();
   const { setVisible } = useWalletModal();
-  const { disconnect: phantomDisconnect } = usePhantomDisconnect();
   const embeddedWallet = localStorage.getItem("blockid_embedded_wallet");
   const displayKey = publicKey?.toString() ?? embeddedWallet ?? null;
 
@@ -35,14 +33,6 @@ export default function WalletIndicator() {
       await disconnect();
     } catch {
       /* ignore */
-    }
-    try {
-      const authType = localStorage.getItem("blockid_auth_type");
-      if (authType === "embedded") {
-        await phantomDisconnect();
-      }
-    } catch {
-      // ignore
     }
     sessionStorage.clear();
     localStorage.clear();

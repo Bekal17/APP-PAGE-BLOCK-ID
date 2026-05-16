@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
-import { useConnect } from "@phantom/react-sdk";
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 
@@ -9,7 +8,6 @@ export default function CustomWalletModal() {
   const { t } = useTranslation();
   const { wallets, select } = useWallet();
   const { visible, setVisible } = useWalletModal();
-  const { connect, isConnecting } = useConnect();
   const [show, setShow] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
 
