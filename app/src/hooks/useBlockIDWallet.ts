@@ -1,5 +1,5 @@
 import { usePrivy } from '@privy-io/react-auth';
-import { useWallets, useSendTransaction } from '@privy-io/react-auth/solana';
+import { useWallets } from '@privy-io/react-auth/solana';
 import { PublicKey, Connection } from '@solana/web3.js';
 import { useMemo } from 'react';
 
@@ -20,8 +20,6 @@ export function useBlockIDWallet() {
 
   const connected = authenticated && !!activeWallet;
 
-  const { sendTransaction: privySendTransaction } = useSendTransaction();
-
   const signTransaction = useMemo(() => {
     if (!activeWallet) return undefined;
     return async (tx: any) => {
@@ -29,17 +27,14 @@ export function useBlockIDWallet() {
     };
   }, [activeWallet]);
 
-  // For Privy embedded wallet users — sign + send in one step
+  // For Privy embedded wallet users — use wallet's sendTransaction directly
   const sendTransaction = useMemo(() => {
     if (!activeWallet) return undefined;
     return async (tx: any, connection: Connection) => {
-      const receipt = await privySendTransaction({
-        transaction: tx,
-        connection,
-      });
-      return receipt.signature;
+      const signature = await activeWallet.sendTransaction(tx, connection);
+      return signature;
     };
-  }, [activeWallet, privySendTransaction]);
+  }, [activeWallet]);
 
   const signMessage = useMemo(() => {
     if (!activeWallet) return undefined;
