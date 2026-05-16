@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
+import { usePhantomAuth } from "@/hooks/usePhantomAuth";
 import {
   Bell,
   UserPlus,
@@ -51,7 +51,7 @@ const formatTimeAgo = (iso?: string) => {
 
 const Notifications = () => {
   const { t } = useTranslation();
-  const { publicKey } = useBlockIDWallet();
+  const { publicKey } = usePhantomAuth();
   const navigate = useNavigate();
   const wallet = publicKey?.toString() ?? "";
 
@@ -104,18 +104,6 @@ const Notifications = () => {
       : notifications;
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
-
-  if (!wallet) {
-    return (
-      <DashboardLayout>
-        <div className="max-w-2xl mx-auto px-4 py-12 flex flex-col items-center text-muted-foreground">
-          <Bell className="w-12 h-12 mb-4 opacity-30" />
-          <p className="text-lg font-medium">{t("common.connect_wallet")}</p>
-          <p className="text-sm mt-1">{t("notifications.connect_subtitle")}</p>
-        </div>
-      </DashboardLayout>
-    );
-  }
 
   return (
     <DashboardLayout>

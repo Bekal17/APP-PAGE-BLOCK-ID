@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
+import { usePhantomAuth } from "@/hooks/usePhantomAuth";
 import { Lock, Pin, PinOff, Users } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import {
@@ -14,7 +14,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 
 const Communities = () => {
-  const { publicKey } = useBlockIDWallet();
+  const { publicKey } = usePhantomAuth();
   const wallet = publicKey?.toString() ?? "";
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -102,11 +102,7 @@ const Communities = () => {
           </p>
         </div>
 
-        {!wallet ? (
-          <div className="glass-card p-6 text-center text-sm text-zinc-400">
-            Connect your wallet to view communities.
-          </div>
-        ) : loading ? (
+        {loading ? (
           <div className="space-y-3">
             {[0, 1, 2].map((i) => (
               <div key={i} className="glass-card p-4 animate-pulse h-20" />

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, useNavigate } from "react-router-dom";
-import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
+import { usePhantomAuth } from "@/hooks/usePhantomAuth";
 import { ArrowLeft, Send, MessageCircle, Search } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import {
@@ -32,7 +32,7 @@ const Messages = () => {
   const { t } = useTranslation();
   const { walletParam } = useParams<{ walletParam?: string }>();
   const navigate = useNavigate();
-  const { publicKey } = useBlockIDWallet();
+  const { publicKey } = usePhantomAuth();
   const wallet = publicKey?.toString() ?? "";
 
   const [conversations, setConversations] = useState<any[]>([]);
@@ -147,17 +147,6 @@ const Messages = () => {
   const otherName = otherProfile?.handle
     ? `@${otherProfile.handle}`
     : truncate(walletParam ?? "");
-
-  if (!wallet) {
-    return (
-      <DashboardLayout>
-        <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
-          <MessageCircle className="w-12 h-12 mb-4 opacity-30" />
-          <p>{t("messages.connect_wallet_prompt")}</p>
-        </div>
-      </DashboardLayout>
-    );
-  }
 
   return (
     <DashboardLayout>

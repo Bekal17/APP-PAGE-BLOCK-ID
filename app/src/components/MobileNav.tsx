@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import logo from "/blockid-logo.svg";
-import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
+import { usePhantomAuth } from "@/hooks/usePhantomAuth";
 import {
   LayoutDashboard,
   Compass,
@@ -46,7 +46,7 @@ const formatSolanaAddress = (address: string) => {
 const MobileNav = ({ open, onClose }: MobileNavProps) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { publicKey, connected } = useBlockIDWallet();
+  const { publicKey, connected } = usePhantomAuth();
   const { t } = useTranslation();
   const displayAddress = publicKey ? formatSolanaAddress(publicKey.toBase58()) : null;
 

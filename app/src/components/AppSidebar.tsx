@@ -15,7 +15,7 @@ import {
   Settings,
   Zap,
 } from "lucide-react";
-import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
+import { usePhantomAuth } from "@/hooks/usePhantomAuth";
 import { getDMUnreadCount } from "@/services/blockidApi";
 import QuotaIndicator from "@/components/blockid/QuotaIndicator";
 
@@ -35,7 +35,7 @@ const navItems = [
 
 const AppSidebar = () => {
   const location = useLocation();
-  const { publicKey } = useBlockIDWallet();
+  const { publicKey } = usePhantomAuth();
   const [dmUnread, setDmUnread] = useState(0);
   const { t } = useTranslation();
 

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
-import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
+import { usePhantomAuth } from "@/hooks/usePhantomAuth";
 import { Shield, Users } from "lucide-react";
 import { getSocialProfile, followWallet } from "@/services/blockidApi";
 import SubscriptionBadge from "@/components/blockid/SubscriptionBadge";
@@ -20,7 +20,7 @@ const WalletHoverCard = ({
   isFollowing: initialFollowing = false,
 }: WalletHoverCardProps) => {
   const navigate = useNavigate();
-  const { publicKey } = useBlockIDWallet();
+  const { publicKey } = usePhantomAuth();
   const [show, setShow] = useState(false);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(false);

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
+import { usePhantomAuth } from "@/hooks/usePhantomAuth";
 import {
   Bookmark,
   Heart,
@@ -41,7 +41,7 @@ function isSelectingText(): boolean {
 
 const Bookmarks = () => {
   const { t } = useTranslation();
-  const { publicKey } = useBlockIDWallet();
+  const { publicKey } = usePhantomAuth();
   const navigate = useNavigate();
   const wallet = publicKey?.toString() ?? "";
 
@@ -152,17 +152,6 @@ const Bookmarks = () => {
       setLikeLoading((prev) => ({ ...prev, [post.id]: false }));
     }
   };
-
-  if (!wallet) {
-    return (
-      <DashboardLayout>
-        <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
-          <Bookmark className="w-12 h-12 mb-4 opacity-30" />
-          <p>Connect your wallet to view bookmarks</p>
-        </div>
-      </DashboardLayout>
-    );
-  }
 
   const walletShort =
     wallet.length > 8 ? `${wallet.slice(0, 4)}...${wallet.slice(-4)}` : wallet;

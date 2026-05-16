@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "@/components/DashboardLayout";
-import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
+import { usePhantomAuth } from "@/hooks/usePhantomAuth";
 import { useEffect, useState } from "react";
 import {
   Search,
@@ -24,7 +24,7 @@ type SubInfo = { plan: string; scans_used: number; scans_limit: number };
 
 const PremiumHub = () => {
   const { t } = useTranslation();
-  const { publicKey } = useBlockIDWallet();
+  const { publicKey } = usePhantomAuth();
   const navigate = useNavigate();
   const [sub, setSub] = useState<SubInfo>({
     plan: "free",

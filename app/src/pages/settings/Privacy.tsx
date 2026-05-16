@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
+import { usePhantomAuth } from "@/hooks/usePhantomAuth";
 import { Shield } from "lucide-react";
 import SettingsLayout from "@/components/SettingsLayout";
 import LanguageSwitcher, {
@@ -15,7 +15,7 @@ type WalletDisplay = "TRUNCATED" | "HIDDEN";
 
 const PrivacySettings = () => {
   const { t, i18n } = useTranslation();
-  const { publicKey } = useBlockIDWallet();
+  const { publicKey } = usePhantomAuth();
   const wallet = publicKey?.toString() ?? "";
   const [settings, setSettings] = useState<any>({
     wallet_display: "TRUNCATED" as WalletDisplay,
@@ -63,22 +63,6 @@ const PrivacySettings = () => {
     }
     setSaving(false);
   };
-
-  if (!wallet) {
-    return (
-      <SettingsLayout
-        title={t("settings.privacy_safety")}
-        description={t("settings.privacy_desc_short")}
-      >
-        <LanguageSwitcher />
-        <div className="flex flex-col items-center
-          justify-center py-12 text-muted-foreground">
-          <Shield className="w-12 h-12 mb-4 opacity-30" />
-          <p>{t("settings.connect_wallet_manage")}</p>
-        </div>
-      </SettingsLayout>
-    );
-  }
 
   return (
     <SettingsLayout

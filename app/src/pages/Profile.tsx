@@ -1,5 +1,5 @@
 import { useConnection } from "@solana/wallet-adapter-react";
-import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
+import { usePhantomAuth } from "@/hooks/usePhantomAuth";
 import {
   LAMPORTS_PER_SOL,
   PublicKey,
@@ -319,7 +319,7 @@ function getCexBadgeColor(badgeCode: string): string | null {
 
 const Profile = () => {
   const { t } = useTranslation();
-  const { publicKey, connected } = useBlockIDWallet();
+  const { publicKey, connected } = usePhantomAuth();
   const embeddedWallet = localStorage.getItem("blockid_embedded_wallet");
   const effectiveWallet = publicKey?.toString() ?? embeddedWallet ?? "";
   const { connection } = useConnection();
@@ -1134,20 +1134,6 @@ const Profile = () => {
 
   const cardClass =
     "rounded-2xl border border-border bg-card/40 backdrop-blur p-6 transition-shadow hover:shadow-[0_0_20px_rgba(0,255,200,0.15)]";
-
-  if (!effectiveWallet) {
-    return (
-      <DashboardLayout>
-        <div className="flex flex-col items-center justify-center h-64 text-muted-foreground">
-          <Shield className="w-12 h-12 mb-4 opacity-30" />
-          <p className="text-lg font-medium">Connect your wallet</p>
-          <p className="text-sm mt-1">
-            Connect wallet to view your BlockID profile
-          </p>
-        </div>
-      </DashboardLayout>
-    );
-  }
 
   const bannerUrl = profile?.banner_url as string | undefined;
   const avatarUrl = profile?.avatar_url as string | undefined;

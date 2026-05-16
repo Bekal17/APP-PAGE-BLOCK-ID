@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Heart, MessageSquare, MessageSquareQuote, Repeat2, Trash2 } from "lucide-react";
-import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
+import { usePhantomAuth } from "@/hooks/usePhantomAuth";
 import {
   likePost,
   unlikePost,
@@ -104,7 +104,7 @@ export default function PostDetailPanel({
   initialRepostedIds,
 }: Props) {
   const { t } = useTranslation();
-  const { publicKey } = useBlockIDWallet();
+  const { publicKey } = usePhantomAuth();
   const [likedIds, setLikedIds] = useState<Set<number>>(
     initialLikedIds ?? new Set()
   );
