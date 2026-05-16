@@ -1,10 +1,11 @@
-import { usePrivy, useSolanaWallets } from '@privy-io/react-auth';
+import { usePrivy } from '@privy-io/react-auth';
+import { useWallets } from '@privy-io/react-auth/solana';
 import { PublicKey } from '@solana/web3.js';
 import { useMemo } from 'react';
 
 export function useBlockIDWallet() {
   const { logout, authenticated } = usePrivy();
-  const { wallets, ready } = useSolanaWallets();
+  const { wallets, ready } = useWallets();
 
   const activeWallet = wallets[0] ?? null;
 

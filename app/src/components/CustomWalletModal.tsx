@@ -3,11 +3,13 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
+import { usePrivy } from '@privy-io/react-auth';
 
 export default function CustomWalletModal() {
   const { t } = useTranslation();
   const { wallets, select } = useWallet();
   const { visible, setVisible } = useWalletModal();
+  const { login } = usePrivy();
   const [show, setShow] = useState(false);
   const modalRef = useRef<HTMLDivElement>(null);
 
@@ -108,8 +110,8 @@ export default function CustomWalletModal() {
           {/* Google */}
           <button
             type="button"
-            disabled={true}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-900/50 transition-all text-sm font-medium text-zinc-200 hover:bg-zinc-800 hover:border-zinc-700 opacity-50 cursor-not-allowed"
+            onClick={() => { login(); setShow(false); }}
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-900/50 transition-all text-sm font-medium text-zinc-200 hover:bg-zinc-800 hover:border-zinc-700"
           >
             <svg width="18" height="18" viewBox="0 0 24 24">
               <path
@@ -130,16 +132,13 @@ export default function CustomWalletModal() {
               />
             </svg>
             <span>{t("onboarding.continue_google")}</span>
-            <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-700 text-zinc-400">
-              Soon
-            </span>
           </button>
 
           {/* Email */}
           <button
             type="button"
-            disabled={true}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-900/50 transition-all text-sm font-medium text-zinc-200 hover:bg-zinc-800 hover:border-zinc-700 opacity-50 cursor-not-allowed"
+            onClick={() => { login(); setShow(false); }}
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-900/50 transition-all text-sm font-medium text-zinc-200 hover:bg-zinc-800 hover:border-zinc-700"
           >
             <svg
               width="18"
@@ -153,9 +152,6 @@ export default function CustomWalletModal() {
               <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
             </svg>
             <span>{t("auth.continue_with_email")}</span>
-            <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-700 text-zinc-400">
-              Soon
-            </span>
           </button>
 
           <p className="text-center text-xs text-zinc-600 pt-1">
