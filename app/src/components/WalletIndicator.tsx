@@ -32,9 +32,9 @@ export default function WalletIndicator() {
     }
   };
 
-  const handleLogOut = async () => {
-    try { await adapterDisconnect(); } catch {}
-    try { await logout(); } catch {}
+  const handleLogOut = () => {
+    adapterDisconnect().catch(() => {});
+    logout().catch(() => {});
     sessionStorage.clear();
     localStorage.clear();
     window.location.href = "/";
