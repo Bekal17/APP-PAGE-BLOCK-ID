@@ -1,5 +1,5 @@
 import { usePrivy } from '@privy-io/react-auth';
-import { useWallets } from '@privy-io/react-auth/solana';
+import { useWallets, useSignAndSendTransaction } from '@privy-io/react-auth/solana';
 import { PublicKey, Transaction, VersionedTransaction } from '@solana/web3.js';
 import { useMemo } from 'react';
 
@@ -27,27 +27,21 @@ export function useBlockIDWallet() {
     };
   }, [activeWallet]);
 
+  const { signAndSendTransaction } = useSignAndSendTransaction();
+
   const sendTransaction = useMemo(() => {
     if (!activeWallet) return undefined;
     return async (tx: any, _connection: any) => {
-      let encoded: Uint8Array;
-      if (tx instanceof VersionedTransaction) {
-        encoded = tx.serialize();
-      } else if (tx instanceof Transaction) {
-        encoded = new Uint8Array(tx.serialize({
-          requireAllSignatures: false,
-          verifySignatures: false,
-        }));
-      } else {
-        encoded = new Uint8Array(tx.serialize());
-      }
-      const result = await activeWallet.signAndSendTransaction({
-        chain: 'solana:mainnet',
-        transaction: encoded,
+      const serialized = tx instanceof Transaction
+        ? tx.serialize({ requireAllSignatures: false, verifySignatures: false })
+        : tx.serialize();
+      const result = await signAndSendTransaction({
+        transaction: serialized,
+        wallet: activeWallet,
       });
-      return result.signature;
+      return Buffer.from(result.signature).toString('base64');
     };
-  }, [activeWallet]);
+  }, [activeWallet, signAndSendTransaction]);
 
   const signMessage = useMemo(() => {
     if (!activeWallet) return undefined;
