@@ -1,40 +1,31 @@
-import { useMemo, type ReactNode } from "react";
-import { ConnectionProvider, WalletProvider } from "@solana/wallet-adapter-react";
-import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
-import CustomWalletModal from "@/components/CustomWalletModal";
-import { PhantomWalletAdapter } from "@solana/wallet-adapter-phantom";
-import { SolflareWalletAdapter } from "@solana/wallet-adapter-solflare";
-import { BackpackWalletAdapter } from "@solana/wallet-adapter-backpack";
-import { clusterApiUrl } from "@solana/web3.js";
+import React from 'react';
+import { PrivyProvider } from '@privy-io/react-auth';
+import { toSolanaWalletConnectors } from '@privy-io/react-auth/solana';
 
-interface SolanaWalletProviderProps {
-  children: ReactNode;
-}
+const solanaConnectors = toSolanaWalletConnectors({
+  shouldAutoConnect: true,
+});
 
-const SolanaWalletProvider = ({ children }: SolanaWalletProviderProps) => {
-  const endpoint = useMemo(() => {
-    return import.meta.env.VITE_HELIUS_RPC_URL ?? clusterApiUrl("mainnet-beta");
-  }, []);
-
-  const wallets = useMemo(
-    () => [
-      new PhantomWalletAdapter(),
-      new SolflareWalletAdapter(),
-      new BackpackWalletAdapter(),
-    ],
-    []
-  );
-
+export default function SolanaWalletProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect>
-        <WalletModalProvider>
-          <CustomWalletModal />
-          {children}
-        </WalletModalProvider>
-      </WalletProvider>
-    </ConnectionProvider>
+    <PrivyProvider
+      appId="cmp6qkb0a01uo0cl8nl33gh42"
+      config={{
+        loginMethods: ['email', 'google', 'wallet'],
+        externalWallets: {
+          solana: { connectors: solanaConnectors },
+        },
+        appearance: {
+          theme: 'dark',
+          accentColor: '#6366f1',
+        },
+      }}
+    >
+      {children}
+    </PrivyProvider>
   );
-};
-
-export default SolanaWalletProvider;
+}
