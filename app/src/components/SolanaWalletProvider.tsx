@@ -10,6 +10,7 @@ const intentionalLogout = localStorage.getItem("blockid_logged_out") === "true";
 
 const solanaConnectors = toSolanaWalletConnectors({
   shouldAutoConnect: !intentionalLogout,
+  walletConnectProjectId: undefined,
 });
 
 const wallets = [
