@@ -32,14 +32,16 @@ export function useBlockIDWallet() {
     if (!activeWallet) return undefined;
     return async (tx: any, connection: any) => {
       try {
-        console.log('[BlockID] sendTransaction called, wallet:', activeWallet.address);
+        console.log('[BlockID] sendTransaction called');
         console.log('[BlockID] walletClientType:', activeWallet.walletClientType);
-        console.log('[BlockID] tx type:', tx?.constructor?.name);
+        console.log('[BlockID] sendTransaction method exists:', typeof activeWallet.sendTransaction);
         const signature = await activeWallet.sendTransaction(tx, connection);
-        console.log('[BlockID] signature:', signature);
+        console.log('[BlockID] success signature:', signature);
         return signature;
-      } catch (err) {
+      } catch (err: any) {
         console.error('[BlockID] sendTransaction error:', err);
+        console.error('[BlockID] error message:', err?.message);
+        console.error('[BlockID] error code:', err?.code);
         throw err;
       }
     };
