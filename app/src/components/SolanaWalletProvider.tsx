@@ -30,6 +30,11 @@ export default function SolanaWalletProvider({
       appId="cmp6qkb0a01uo0cl8nl33gh42"
       config={{
         loginMethods: ['email', 'google', 'wallet'],
+        embeddedWallets: {
+          solana: {
+            createOnLogin: 'users-without-wallets',
+          },
+        },
         externalWallets: {
           solana: { connectors: solanaConnectors },
         },
