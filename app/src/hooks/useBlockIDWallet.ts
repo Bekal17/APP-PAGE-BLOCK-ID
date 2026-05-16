@@ -1,8 +1,7 @@
 import { usePrivy } from '@privy-io/react-auth';
-import { useWallets, useSignAndSendTransaction } from '@privy-io/react-auth/solana';
+import { useWallets } from '@privy-io/react-auth/solana';
 import { PublicKey, Transaction, VersionedTransaction } from '@solana/web3.js';
 import { useMemo } from 'react';
-import { getTransactionEncoder } from '@solana/kit';
 
 export function useBlockIDWallet() {
   const { logout, authenticated } = usePrivy();
@@ -28,30 +27,27 @@ export function useBlockIDWallet() {
     };
   }, [activeWallet]);
 
-  const { signAndSendTransaction } = useSignAndSendTransaction();
-
   const sendTransaction = useMemo(() => {
     if (!activeWallet) return undefined;
     return async (tx: any, _connection: any) => {
-      // Encode legacy Transaction or VersionedTransaction to Uint8Array for Privy v3
       let encoded: Uint8Array;
       if (tx instanceof VersionedTransaction) {
         encoded = tx.serialize();
       } else if (tx instanceof Transaction) {
-        encoded = tx.serialize({ requireAllSignatures: false });
+        encoded = new Uint8Array(tx.serialize({
+          requireAllSignatures: false,
+          verifySignatures: false,
+        }));
       } else {
-        encoded = getTransactionEncoder().encode(tx);
+        encoded = new Uint8Array(tx.serialize());
       }
-      const { signature } = await signAndSendTransaction({
+      const result = await activeWallet.signAndSendTransaction({
+        chain: 'solana:mainnet',
         transaction: encoded,
-        wallet: activeWallet,
-        options: {
-          skipPreflight: false,
-        },
       });
-      return Buffer.from(signature).toString('base64');
+      return result.signature;
     };
-  }, [activeWallet, signAndSendTransaction]);
+  }, [activeWallet]);
 
   const signMessage = useMemo(() => {
     if (!activeWallet) return undefined;
