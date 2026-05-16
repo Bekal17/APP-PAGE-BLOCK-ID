@@ -21,6 +21,7 @@ export default function WalletIndicator() {
   const { t } = useTranslation();
   const { publicKey, connected, disconnect } = useBlockIDWallet();
   const { disconnect: adapterDisconnect } = useWallet();
+  const { logout } = usePrivy();
   const { setVisible } = useWalletModal();
   const embeddedWallet = localStorage.getItem("blockid_embedded_wallet");
   const displayKey = publicKey?.toString() ?? embeddedWallet ?? null;
