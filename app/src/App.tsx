@@ -19,6 +19,7 @@ import PostDetail from "./pages/PostDetail";
 import Communities from "./pages/Communities";
 import CommunityFeed from "./pages/CommunityFeed";
 import NotFound from "./pages/NotFound";
+import Login from "@/pages/Login";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,7 @@ const App = () => (
         <div className="relative min-h-screen w-full overflow-x-hidden">
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/explore" element={<Explore />} />
             <Route path="/identity" element={<Identity />} />

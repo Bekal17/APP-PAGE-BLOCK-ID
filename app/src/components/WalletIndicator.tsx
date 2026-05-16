@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
-import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { useWalletModal } from "@solana/wallet-adapter-react-ui";
+import { usePhantomAuth } from "@/hooks/usePhantomAuth";
+import { usePrivyAuth } from "@/hooks/usePrivyAuth";
+import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,9 +18,9 @@ const formatAddress = (address: string) => {
 
 export default function WalletIndicator() {
   const { t } = useTranslation();
-  const { publicKey, connected, disconnect } = useBlockIDWallet();
-  const { disconnect: adapterDisconnect } = useWallet();
-  const { setVisible } = useWalletModal();
+  const { publicKey, connected, disconnectWallet } = usePhantomAuth();
+  const { logoutPrivy } = usePrivyAuth();
+  const navigate = useNavigate();
   const embeddedWallet = localStorage.getItem("blockid_embedded_wallet");
   const displayKey = publicKey?.toString() ?? embeddedWallet ?? null;
 
@@ -31,17 +31,13 @@ export default function WalletIndicator() {
   };
 
   const handleLogOut = () => {
-    adapterDisconnect().catch(() => {});
-    sessionStorage.clear();
-    localStorage.clear();
-    localStorage.setItem("blockid_logged_out", "true");
-    window.location.replace("/");
+    disconnectWallet();
   };
 
   if (!displayKey) {
     return (
       <Button
-        onClick={() => setVisible(true)}
+        onClick={() => navigate("/login")}
         className="bg-primary text-primary-foreground hover:bg-primary/90"
       >
         <Wallet className="w-4 h-4 sm:hidden" />

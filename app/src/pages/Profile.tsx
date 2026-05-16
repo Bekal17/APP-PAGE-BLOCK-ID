@@ -48,7 +48,6 @@ import { normalizeGraphResponse } from "@/components/investigation/WalletGraph";
 import DashboardLayout from "@/components/DashboardLayout";
 import PostDetailPanel from "@/components/PostDetailPanel";
 import PostCard from "@/components/PostCard";
-import DashboardOnboarding from "@/components/DashboardOnboarding";
 import ScoreRing from "@/components/blockid/ScoreRing";
 import RiskBadge from "@/components/blockid/RiskBadge";
 import WalletActivityChart from "@/components/blockid/WalletActivityChart";

@@ -1,9 +1,8 @@
 import { useTranslation } from "react-i18next";
 import { NavLink } from "@/components/NavLink";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import logo from "/blockid-logo.svg";
 import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
-import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import {
   LayoutDashboard,
   Compass,
@@ -46,8 +45,8 @@ const formatSolanaAddress = (address: string) => {
 
 const MobileNav = ({ open, onClose }: MobileNavProps) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { publicKey, connected } = useBlockIDWallet();
-  const { setVisible } = useWalletModal();
   const { t } = useTranslation();
   const displayAddress = publicKey ? formatSolanaAddress(publicKey.toBase58()) : null;
 
@@ -113,7 +112,7 @@ const MobileNav = ({ open, onClose }: MobileNavProps) => {
             </div>
           ) : (
             <Button
-              onClick={() => { setVisible(true); onClose(); }}
+              onClick={() => { navigate("/login"); onClose(); }}
               variant="outline"
               className="w-full gap-2"
             >
