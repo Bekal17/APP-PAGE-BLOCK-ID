@@ -41,6 +41,7 @@ export default function WalletIndicator() {
     } catch {}
     sessionStorage.clear();
     localStorage.clear();
+    localStorage.setItem("blockid_logged_out", "true");
     setTimeout(() => {
       window.location.replace("/");
     }, 300);

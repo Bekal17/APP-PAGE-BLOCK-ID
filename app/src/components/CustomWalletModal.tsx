@@ -33,6 +33,7 @@ export default function CustomWalletModal() {
   if (!show) return null;
 
   const handleWalletSelect = (walletName: string) => {
+    localStorage.removeItem("blockid_logged_out");
     select(walletName as any);
     setShow(false);
   };
@@ -110,7 +111,7 @@ export default function CustomWalletModal() {
           {/* Google */}
           <button
             type="button"
-            onClick={() => { login(); setShow(false); }}
+            onClick={() => { localStorage.removeItem("blockid_logged_out"); login(); setShow(false); }}
             className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-900/50 transition-all text-sm font-medium text-zinc-200 hover:bg-zinc-800 hover:border-zinc-700"
           >
             <svg width="18" height="18" viewBox="0 0 24 24">
@@ -137,7 +138,7 @@ export default function CustomWalletModal() {
           {/* Email */}
           <button
             type="button"
-            onClick={() => { login(); setShow(false); }}
+            onClick={() => { localStorage.removeItem("blockid_logged_out"); login(); setShow(false); }}
             className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-xl border border-zinc-800 bg-zinc-900/50 transition-all text-sm font-medium text-zinc-200 hover:bg-zinc-800 hover:border-zinc-700"
           >
             <svg

@@ -6,8 +6,10 @@ import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
 import '@solana/wallet-adapter-react-ui/styles.css';
 
+const intentionalLogout = localStorage.getItem("blockid_logged_out") === "true";
+
 const solanaConnectors = toSolanaWalletConnectors({
-  shouldAutoConnect: true,
+  shouldAutoConnect: !intentionalLogout,
 });
 
 const wallets = [
@@ -37,7 +39,7 @@ export default function SolanaWalletProvider({
       }}
     >
       <ConnectionProvider endpoint={RPC_URL}>
-        <WalletProvider wallets={wallets} autoConnect={false}>
+        <WalletProvider wallets={wallets} autoConnect={!intentionalLogout}>
           <WalletModalProvider>
             {children}
           </WalletModalProvider>
