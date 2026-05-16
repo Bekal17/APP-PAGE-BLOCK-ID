@@ -122,7 +122,7 @@ interface ResolveResult {
 
 const SmartRouter = () => {
   const { t } = useTranslation();
-  const { publicKey, signTransaction } = useBlockIDWallet();
+  const { publicKey, signTransaction, sendTransaction, isPrivyWallet } = useBlockIDWallet();
   const { connection } = useConnection();
   const [searchParams] = useSearchParams();
   const { getByTicker, tokens } = useTokenList();
@@ -434,11 +434,14 @@ const SmartRouter = () => {
           throw new Error("Wallet does not support signing. Please reconnect.");
         }
 
-        const signed = await signTransaction(transaction);
-        const signature = await connection.sendRawTransaction(
-          signed.serialize(),
-        );
-
+        let signature: string;
+        if (isPrivyWallet && sendTransaction) {
+          const sig = await sendTransaction(transaction, connection);
+          signature = typeof sig === 'string' ? sig : Buffer.from(sig).toString('base64');
+        } else {
+          const signed = await signTransaction(transaction);
+          signature = await connection.sendRawTransaction(signed.serialize());
+        }
         await connection.confirmTransaction(
           { signature, blockhash, lastValidBlockHeight },
           "confirmed",
@@ -507,11 +510,14 @@ const SmartRouter = () => {
           throw new Error("Wallet does not support signing. Please reconnect.");
         }
 
-        const signed = await signTransaction(transaction);
-        const signature = await connection.sendRawTransaction(
-          signed.serialize(),
-        );
-
+        let signature: string;
+        if (isPrivyWallet && sendTransaction) {
+          const sig = await sendTransaction(transaction, connection);
+          signature = typeof sig === 'string' ? sig : Buffer.from(sig).toString('base64');
+        } else {
+          const signed = await signTransaction(transaction);
+          signature = await connection.sendRawTransaction(signed.serialize());
+        }
         await connection.confirmTransaction(
           { signature, blockhash, lastValidBlockHeight },
           "confirmed",
