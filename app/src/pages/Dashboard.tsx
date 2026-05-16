@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { usePhantomAuth } from "@/hooks/usePhantomAuth";
 import ReactCrop, {
   type Crop,
   type PixelCrop,
@@ -128,6 +130,16 @@ const sortPostsByCreatedAtDesc = (posts: SocialPost[]) =>
   );
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+  const { connected } = usePhantomAuth();
+
+  useEffect(() => {
+    const loggedOut = localStorage.getItem("blockid_logged_out") === "true";
+    if (!connected && loggedOut) {
+      navigate("/login");
+    }
+  }, [connected, navigate]);
+
   const { t } = useTranslation();
   const { publicKey } = useBlockIDWallet();
   const embeddedWallet = localStorage.getItem("blockid_embedded_wallet");
