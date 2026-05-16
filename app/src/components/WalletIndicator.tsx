@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
 import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
-import { usePrivy } from '@privy-io/react-auth';
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import {
@@ -21,7 +20,6 @@ export default function WalletIndicator() {
   const { t } = useTranslation();
   const { publicKey, connected, disconnect } = useBlockIDWallet();
   const { disconnect: adapterDisconnect } = useWallet();
-  const { logout } = usePrivy();
   const { setVisible } = useWalletModal();
   const embeddedWallet = localStorage.getItem("blockid_embedded_wallet");
   const displayKey = publicKey?.toString() ?? embeddedWallet ?? null;
@@ -33,18 +31,11 @@ export default function WalletIndicator() {
   };
 
   const handleLogOut = () => {
-    try {
-      adapterDisconnect().catch(() => {});
-    } catch {}
-    try {
-      logout().catch(() => {});
-    } catch {}
+    adapterDisconnect().catch(() => {});
     sessionStorage.clear();
     localStorage.clear();
     localStorage.setItem("blockid_logged_out", "true");
-    setTimeout(() => {
-      window.location.replace("/");
-    }, 300);
+    window.location.replace("/");
   };
 
   if (!displayKey) {
