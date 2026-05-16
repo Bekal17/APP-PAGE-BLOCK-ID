@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { usePrivy } from "@privy-io/react-auth";
 import { useNavigate } from "react-router-dom";
@@ -41,10 +41,14 @@ const AutoLogin = () => {
     }
   }, [connected]);
 
-  // Privy user: redirect to "/" after Google/Email login
+  // Privy user: redirect to "/" only when coming from /login
+  const hasRedirected = useRef(false);
   useEffect(() => {
-    if (authenticated) {
-      navigate("/");
+    if (authenticated && !hasRedirected.current) {
+      if (window.location.pathname === "/login") {
+        hasRedirected.current = true;
+        navigate("/");
+      }
     }
   }, [authenticated, navigate]);
 
