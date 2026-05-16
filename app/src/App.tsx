@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AutoLogin from "@/components/AutoLogin";
+import PrivateRoute from "@/components/PrivateRoute";
 import Dashboard from "./pages/Dashboard";
 import Identity from "./pages/Identity";
 import Explore from "./pages/Explore";
@@ -35,25 +36,25 @@ const App = () => (
             <Route path="/" element={<Dashboard />} />
             <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/explore" element={<Explore />} />
-            <Route path="/identity" element={<Identity />} />
+            <Route path="/explore" element={<PrivateRoute><Explore /></PrivateRoute>} />
+            <Route path="/identity" element={<PrivateRoute><Identity /></PrivateRoute>} />
             <Route path="/router" element={<SmartRouter />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/profile/:walletParam" element={<Profile />} />
-            <Route path="/notifications" element={<Notifications />} />
-            <Route path="/messages" element={<Messages />} />
-            <Route path="/messages/:walletParam" element={<Messages />} />
-            <Route path="/bookmarks" element={<Bookmarks />} />
-            <Route path="/communities" element={<Communities />} />
+            <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
+            <Route path="/profile/:walletParam" element={<PrivateRoute><Profile /></PrivateRoute>} />
+            <Route path="/notifications" element={<PrivateRoute><Notifications /></PrivateRoute>} />
+            <Route path="/messages" element={<PrivateRoute><Messages /></PrivateRoute>} />
+            <Route path="/messages/:walletParam" element={<PrivateRoute><Messages /></PrivateRoute>} />
+            <Route path="/bookmarks" element={<PrivateRoute><Bookmarks /></PrivateRoute>} />
+            <Route path="/communities" element={<PrivateRoute><Communities /></PrivateRoute>} />
             <Route
               path="/communities/:collectionAddress"
-              element={<CommunityFeed />}
+              element={<PrivateRoute><CommunityFeed /></PrivateRoute>}
             />
             <Route path="/post/:postId" element={<PostDetail />} />
-            <Route path="/settings" element={<PrivacySettings />} />
-            <Route path="/settings/privacy" element={<PrivacySettings />} />
-            <Route path="/upgrade" element={<Upgrade />} />
-            <Route path="/premium" element={<PremiumHub />} />
+            <Route path="/settings" element={<PrivateRoute><PrivacySettings /></PrivateRoute>} />
+            <Route path="/settings/privacy" element={<PrivateRoute><PrivacySettings /></PrivateRoute>} />
+            <Route path="/upgrade" element={<PrivateRoute><Upgrade /></PrivateRoute>} />
+            <Route path="/premium" element={<PrivateRoute><PremiumHub /></PrivateRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
