@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, useNavigate } from "react-router-dom";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
 import { ArrowLeft, Send, MessageCircle, Search } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import {
@@ -32,7 +32,7 @@ const Messages = () => {
   const { t } = useTranslation();
   const { walletParam } = useParams<{ walletParam?: string }>();
   const navigate = useNavigate();
-  const { publicKey } = useWallet();
+  const { publicKey } = useBlockIDWallet();
   const wallet = publicKey?.toString() ?? "";
 
   const [conversations, setConversations] = useState<any[]>([]);

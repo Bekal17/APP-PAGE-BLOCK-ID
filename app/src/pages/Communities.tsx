@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
 import { Lock, Pin, PinOff, Users } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import {
@@ -14,7 +14,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 
 const Communities = () => {
-  const { publicKey } = useWallet();
+  const { publicKey } = useBlockIDWallet();
   const wallet = publicKey?.toString() ?? "";
   const navigate = useNavigate();
   const { toast } = useToast();

@@ -9,7 +9,7 @@ import ReactCrop, {
   makeAspectCrop,
 } from "react-image-crop";
 import "react-image-crop/dist/ReactCrop.css";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
 import DashboardLayout from "@/components/DashboardLayout";
 import PostDetailPanel from "@/components/PostDetailPanel";
 import PostCard from "@/components/PostCard";
@@ -129,7 +129,7 @@ const sortPostsByCreatedAtDesc = (posts: SocialPost[]) =>
 
 const Dashboard = () => {
   const { t } = useTranslation();
-  const { publicKey } = useWallet();
+  const { publicKey } = useBlockIDWallet();
   const embeddedWallet = localStorage.getItem("blockid_embedded_wallet");
   const effectiveAddress =
     publicKey?.toBase58() ?? publicKey?.toString() ?? embeddedWallet ?? "";

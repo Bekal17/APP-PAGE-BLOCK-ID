@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
 import {
   Bell,
   UserPlus,
@@ -47,7 +47,7 @@ const formatTimeAgo = (iso?: string) => {
 
 const NotificationBell = () => {
   const { t } = useTranslation();
-  const { publicKey } = useWallet();
+  const { publicKey } = useBlockIDWallet();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);

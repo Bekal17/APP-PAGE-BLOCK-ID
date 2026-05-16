@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
 import DashboardLayout from "@/components/DashboardLayout";
 import PostCard, { type SocialPost, type WalletProfile } from "@/components/PostCard";
 import {
@@ -23,7 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 
 const CommunityFeed = () => {
   const { collectionAddress } = useParams<{ collectionAddress: string }>();
-  const { publicKey } = useWallet();
+  const { publicKey } = useBlockIDWallet();
   const wallet = publicKey?.toString() ?? "";
   const navigate = useNavigate();
   const { toast } = useToast();

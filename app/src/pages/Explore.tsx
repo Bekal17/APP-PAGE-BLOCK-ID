@@ -10,7 +10,7 @@ import {
   Repeat2,
 } from "lucide-react";
 import { getSocialFeed, getSocialProfile } from "@/services/blockidApi";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
 import WalletHoverCard from "@/components/WalletHoverCard";
 import { useSubscription } from "@/hooks/useSubscription";
 import SubscriptionBadge from "@/components/blockid/SubscriptionBadge";
@@ -18,7 +18,7 @@ import SubscriptionBadge from "@/components/blockid/SubscriptionBadge";
 const Explore = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { publicKey } = useWallet();
+  const { publicKey } = useBlockIDWallet();
   const sub = useSubscription();
   const [feed, setFeed] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

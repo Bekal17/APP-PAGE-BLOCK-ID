@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
 import { Shield } from "lucide-react";
 import SettingsLayout from "@/components/SettingsLayout";
 import LanguageSwitcher, {
@@ -15,7 +15,7 @@ type WalletDisplay = "TRUNCATED" | "HIDDEN";
 
 const PrivacySettings = () => {
   const { t, i18n } = useTranslation();
-  const { publicKey } = useWallet();
+  const { publicKey } = useBlockIDWallet();
   const wallet = publicKey?.toString() ?? "";
   const [settings, setSettings] = useState<any>({
     wallet_display: "TRUNCATED" as WalletDisplay,

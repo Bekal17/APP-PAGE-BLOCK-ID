@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
 
 const API_BASE =
   import.meta.env.VITE_SOCIAL_API_URL ||
@@ -23,7 +23,7 @@ const PLAN_LIMITS: Record<string, number> = {
 };
 
 export function useSubscription() {
-  const { publicKey } = useWallet();
+  const { publicKey } = useBlockIDWallet();
   const [state, setState] = useState<SubscriptionState>({
     plan: "free",
     scansUsed: 0,
