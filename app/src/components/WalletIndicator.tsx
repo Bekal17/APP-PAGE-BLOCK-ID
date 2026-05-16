@@ -33,11 +33,17 @@ export default function WalletIndicator() {
   };
 
   const handleLogOut = () => {
-    adapterDisconnect().catch(() => {});
-    logout().catch(() => {});
+    try {
+      adapterDisconnect().catch(() => {});
+    } catch {}
+    try {
+      logout().catch(() => {});
+    } catch {}
     sessionStorage.clear();
     localStorage.clear();
-    window.location.href = "/";
+    setTimeout(() => {
+      window.location.replace("/");
+    }, 300);
   };
 
   if (!displayKey) {
