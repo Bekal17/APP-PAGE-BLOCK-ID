@@ -35,7 +35,8 @@ export function useBlockIDWallet() {
   }, [activeWallet]);
 
   const disconnect = async () => {
-    await logout();
+    // Privy logout handled by WalletIndicator directly
+    // This only handles wallet-adapter state
   };
 
   // For CustomWalletModal compatibility
