@@ -1,7 +1,8 @@
 import { Buffer } from "buffer";
 window.Buffer = window.Buffer ?? Buffer;
 
-import { useWallet, useConnection } from "@solana/wallet-adapter-react";
+import { useConnection } from "@solana/wallet-adapter-react";
+import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
 import {
   Connection,
   SystemProgram,
@@ -70,7 +71,7 @@ const Identity = () => {
   >("search");
   const [paymentMethod, setPaymentMethod] = useState<"SOL" | "USDC">("SOL");
 
-  const { publicKey, signTransaction, connected } = useWallet();
+  const { publicKey, signTransaction, connected } = useBlockIDWallet();
   const { connection } = useConnection();
   const { toast } = useToast();
   const address = publicKey?.toBase58();
