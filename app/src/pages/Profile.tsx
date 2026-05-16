@@ -1,5 +1,6 @@
 import { useConnection } from "@solana/wallet-adapter-react";
 import { usePhantomAuth } from "@/hooks/usePhantomAuth";
+import { useWallets } from "@privy-io/react-auth/solana";
 import {
   LAMPORTS_PER_SOL,
   PublicKey,
@@ -320,8 +321,10 @@ function getCexBadgeColor(badgeCode: string): string | null {
 const Profile = () => {
   const { t } = useTranslation();
   const { publicKey, connected } = usePhantomAuth();
+  const { wallets: privyWallets } = useWallets();
+  const privySolanaAddress = privyWallets?.[0]?.address ?? null;
   const embeddedWallet = localStorage.getItem("blockid_embedded_wallet");
-  const effectiveWallet = publicKey?.toString() ?? embeddedWallet ?? "";
+  const effectiveWallet = publicKey?.toString() ?? privySolanaAddress ?? embeddedWallet ?? "";
   const { connection } = useConnection();
   const sub = useSubscription();
   const { walletParam } = useParams<{ walletParam: string }>();
