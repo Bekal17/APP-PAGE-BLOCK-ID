@@ -79,7 +79,10 @@ const AutoLogin = () => {
     fetch(`${API_BASE}/auth/embedded-login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ wallet }),
+      body: JSON.stringify({ 
+        wallet_address: wallet,
+        auth_provider: "google",
+      }),
     })
       .then(r => r.json())
       .then(data => {
