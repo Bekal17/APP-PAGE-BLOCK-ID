@@ -1,5 +1,7 @@
 import { useEffect } from "react";
-import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { usePrivy } from "@privy-io/react-auth";
+import { useNavigate } from "react-router-dom";
 import {
   loginWithSignature,
   getSessionToken,
@@ -7,38 +9,44 @@ import {
 } from "@/services/blockidApi";
 
 const AutoLogin = () => {
-  const { publicKey, connected, signMessage } = useBlockIDWallet();
+  const { publicKey, connected, signMessage } = useWallet();
+  const { authenticated } = usePrivy();
+  const navigate = useNavigate();
 
+  // Phantom wallet: login with signature
   useEffect(() => {
     if (!connected || !publicKey || !signMessage) return;
 
     const wallet = publicKey.toBase58();
     const existingToken = getSessionToken();
 
-    // Check if we already have a valid token for this wallet
     if (existingToken) {
       try {
         const payload = JSON.parse(atob(existingToken.split(".")[1]));
         const isExpired = payload.exp < Math.floor(Date.now() / 1000);
         const isCorrectWallet = payload.wallet === wallet;
-        if (!isExpired && isCorrectWallet) return; // Token still valid
-      } catch {
-        // Invalid token, proceed to login
-      }
+        if (!isExpired && isCorrectWallet) return;
+      } catch {}
     }
 
-    // Login with signature
     loginWithSignature(wallet, signMessage).catch((err) => {
       console.warn("BlockID login failed:", err);
     });
   }, [connected, publicKey, signMessage]);
 
-  // Clear token on disconnect
+  // Phantom: clear token on disconnect
   useEffect(() => {
     if (!connected) {
       clearSessionToken();
     }
   }, [connected]);
+
+  // Privy user: redirect to "/" after Google/Email login
+  useEffect(() => {
+    if (authenticated) {
+      navigate("/");
+    }
+  }, [authenticated, navigate]);
 
   return null;
 };
