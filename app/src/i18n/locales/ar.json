@@ -43,6 +43,8 @@
     "error_HANDLE_RESERVED": "@{{handle}} محجوز. إذا كنت المالك الشرعي، تواصل معنا على @BlockIDscore",
     "error_HANDLE_TAKEN_NFT": "@{{handle}} مستخدم بالفعل كمعرف NFT",
     "error_HANDLE_TAKEN_BLOCK": "@{{handle}}.Block مستخدم بالفعل",
+    "error_UNAUTHORIZED": "غير مصرح لك بتنفيذ هذا الإجراء",
+    "error_SESSION_REQUIRED": "يرجى تسجيل الدخول مرة أخرى للمتابعة",
     "error_WALLET_HAS_NFT_HANDLE": "محفظتك لديها بالفعل معرف NFT @{{handle}}",
     "error_WALLET_HAS_BLOCK_HANDLE": "محفظتك لديها بالفعل @{{handle}}.Block. احذفه أولاً للتغيير.",
     "block_handle_release": "تحرير المعرف",

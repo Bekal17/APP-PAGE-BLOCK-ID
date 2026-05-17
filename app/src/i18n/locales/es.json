@@ -43,6 +43,8 @@
     "error_HANDLE_RESERVED": "@{{handle}} está reservado. Si eres el propietario, contáctanos en @BlockIDscore",
     "error_HANDLE_TAKEN_NFT": "@{{handle}} ya se usa como handle NFT",
     "error_HANDLE_TAKEN_BLOCK": "@{{handle}}.Block ya está en uso",
+    "error_UNAUTHORIZED": "No tienes autorización para realizar esta acción",
+    "error_SESSION_REQUIRED": "Por favor inicia sesión de nuevo para continuar",
     "error_WALLET_HAS_NFT_HANDLE": "Tu wallet ya tiene el handle NFT @{{handle}}",
     "error_WALLET_HAS_BLOCK_HANDLE": "Tu wallet ya tiene @{{handle}}.Block. Elimínalo primero para cambiar.",
     "block_handle_release": "Liberar handle",

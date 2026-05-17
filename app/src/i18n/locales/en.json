@@ -43,6 +43,8 @@
     "error_HANDLE_RESERVED": "@{{handle}} is reserved. If you are the rightful owner, contact us at @BlockIDscore",
     "error_HANDLE_TAKEN_NFT": "@{{handle}} is already used as an NFT handle",
     "error_HANDLE_TAKEN_BLOCK": "@{{handle}}.Block is already taken",
+    "error_UNAUTHORIZED": "You are not authorized to perform this action",
+    "error_SESSION_REQUIRED": "Please log in again to continue",
     "error_WALLET_HAS_NFT_HANDLE": "Your wallet already has NFT handle @{{handle}}",
     "error_WALLET_HAS_BLOCK_HANDLE": "Your wallet already has @{{handle}}.Block. Delete it first to change.",
     "block_handle_release": "Release handle",

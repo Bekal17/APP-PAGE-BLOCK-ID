@@ -43,6 +43,8 @@
     "error_HANDLE_RESERVED": "@{{handle}}은 예약된 핸들입니다. 정당한 소유자라면 @BlockIDscore로 문의하세요",
     "error_HANDLE_TAKEN_NFT": "@{{handle}}은 이미 NFT 핸들로 사용 중입니다",
     "error_HANDLE_TAKEN_BLOCK": "@{{handle}}.Block은 이미 사용 중입니다",
+    "error_UNAUTHORIZED": "이 작업을 수행할 권한이 없습니다",
+    "error_SESSION_REQUIRED": "계속하려면 다시 로그인하세요",
     "error_WALLET_HAS_NFT_HANDLE": "이미 NFT 핸들 @{{handle}}이 있습니다",
     "error_WALLET_HAS_BLOCK_HANDLE": "이미 @{{handle}}.Block이 있습니다. 변경하려면 먼저 삭제하세요",
     "block_handle_release": "핸들 해제",

@@ -43,6 +43,8 @@
     "error_HANDLE_RESERVED": "@{{handle}} sudah direservasi. Jika kamu pemilik resmi, hubungi kami di @BlockIDscore",
     "error_HANDLE_TAKEN_NFT": "@{{handle}} sudah dipakai sebagai NFT handle",
     "error_HANDLE_TAKEN_BLOCK": "@{{handle}}.Block sudah dipakai",
+    "error_UNAUTHORIZED": "Kamu tidak memiliki akses untuk melakukan ini",
+    "error_SESSION_REQUIRED": "Silakan login ulang untuk melanjutkan",
     "error_WALLET_HAS_NFT_HANDLE": "Wallet kamu sudah punya NFT handle @{{handle}}",
     "error_WALLET_HAS_BLOCK_HANDLE": "Wallet kamu sudah punya @{{handle}}.Block. Hapus dulu untuk ganti.",
     "block_handle_release": "Lepas handle",

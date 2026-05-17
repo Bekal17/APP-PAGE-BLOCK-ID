@@ -43,6 +43,8 @@
     "error_HANDLE_RESERVED": "@{{handle}} は予約済みです。正当な所有者の場合は @BlockIDscore までご連絡ください",
     "error_HANDLE_TAKEN_NFT": "@{{handle}} はNFTハンドルとして使用中です",
     "error_HANDLE_TAKEN_BLOCK": "@{{handle}}.Block はすでに使用されています",
+    "error_UNAUTHORIZED": "この操作を行う権限がありません",
+    "error_SESSION_REQUIRED": "続行するには再度ログインしてください",
     "error_WALLET_HAS_NFT_HANDLE": "このウォレットはすでに NFT ハンドル @{{handle}} を持っています",
     "error_WALLET_HAS_BLOCK_HANDLE": "このウォレットはすでに @{{handle}}.Block を持っています。変更するには削除してください",
     "block_handle_release": "ハンドルを解放",

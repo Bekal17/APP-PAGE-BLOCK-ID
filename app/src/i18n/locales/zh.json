@@ -43,6 +43,8 @@
     "error_HANDLE_RESERVED": "@{{handle}} 已被保留。如果你是合法所有者，请联系 @BlockIDscore",
     "error_HANDLE_TAKEN_NFT": "@{{handle}} 已被用作 NFT 句柄",
     "error_HANDLE_TAKEN_BLOCK": "@{{handle}}.Block 已被使用",
+    "error_UNAUTHORIZED": "您无权执行此操作",
+    "error_SESSION_REQUIRED": "请重新登录以继续",
     "error_WALLET_HAS_NFT_HANDLE": "你的钱包已有 NFT 句柄 @{{handle}}",
     "error_WALLET_HAS_BLOCK_HANDLE": "你的钱包已有 @{{handle}}.Block，请先删除再更改",
     "block_handle_release": "释放句柄",

@@ -1170,6 +1170,7 @@ const Profile = () => {
           wallet: address,
           handle: blockHandleStatus.handle,
           signature: "",
+          session_token: getSessionToken() ?? "",
         }),
       });
       const data = await res.json();
@@ -1200,7 +1201,10 @@ const Profile = () => {
       const res = await fetch(`${API_BASE}/handle/block/release`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ wallet: address }),
+        body: JSON.stringify({
+          wallet: address,
+          session_token: getSessionToken() ?? "",
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
