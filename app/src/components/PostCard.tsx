@@ -23,6 +23,7 @@ import { linkifyContent } from "@/utils/linkify";
 import { useTokenList } from "@/hooks/useTokenList";
 import { useCashtagPrice } from "@/hooks/useCashtagPrice";
 import { likePost, unlikePost, repostPost } from "@/services/blockidApi";
+import { formatHandle } from "@/utils/handleFormat";
 
 export type SocialPost = {
   id: number;
@@ -118,15 +119,6 @@ export type PostCardProps = {
 
 const truncateWallet = (wallet: string) =>
   wallet.length > 8 ? `${wallet.slice(0, 4)}...${wallet.slice(-4)}` : wallet;
-
-const formatHandle = (
-  handle?: string | null,
-  handleType?: string | null
-): string | null => {
-  if (!handle) return null;
-  if (handleType === "block") return `@${handle}.Block`;
-  return `@${handle}`;
-};
 
 /** Skip opening post / reply modal when the user is selecting text in the card. */
 function isSelectingText(): boolean {

@@ -12,11 +12,13 @@ import {
 import UserAvatar from "@/components/UserAvatar";
 import LinkPreviewCard from "@/components/LinkPreviewCard";
 import { linkifyContent } from "@/utils/linkify";
+import { formatHandle } from "@/utils/handleFormat";
 
 type SocialPost = {
   id: number;
   wallet: string;
   handle?: string | null;
+  handle_type?: string | null;
   trust_score?: number | null;
   content: string;
   created_at?: string;
@@ -38,6 +40,7 @@ type SocialPost = {
   original_post?: {
     wallet: string;
     handle?: string | null;
+    handle_type?: string | null;
     content: string;
     trust_score?: number | null;
     created_at?: string;
@@ -183,18 +186,20 @@ export default function PostDetailPanel({
 
   const displayWallet =
     isRepost && originalPost ? originalPost.wallet : currentPost.wallet ?? "";
-  const displayHandle =
+  const displayHandleRaw =
     isRepost && originalPost
       ? originalPost.handle ?? null
       : currentPost.handle ?? null;
+  const displayHandle = formatHandle(
+    isRepost && originalPost ? originalPost.handle : currentPost.handle,
+    isRepost && originalPost ? originalPost.handle_type : currentPost.handle_type
+  );
   const displayContent =
     isRepost && originalPost ? originalPost.content : currentPost.content;
   const imgUrl =
     isRepost && originalPost ? originalPost.image_url : currentPost.image_url;
 
-  const handleLine = displayHandle
-    ? `@${displayHandle}`
-    : truncateWallet(displayWallet);
+  const handleLine = displayHandle ?? truncateWallet(displayWallet);
 
   const handleLikeReply = (reply: any) => {
     if (!publicKey || reply.id == null) return;
@@ -343,7 +348,7 @@ export default function PostDetailPanel({
               avatarUrl={currentPost.avatar_url ?? null}
               avatarType={currentPost.avatar_type ?? null}
               avatarIsAnimated={currentPost.avatar_is_animated ?? false}
-              handle={displayHandle}
+              handle={displayHandleRaw}
               wallet={displayWallet}
               size={40}
             />
@@ -859,9 +864,8 @@ export default function PostDetailPanel({
                     }}
                   >
                     <div style={{ color: "#fff", fontWeight: 600, fontSize: 13 }}>
-                      {reply.handle
-                        ? `@${reply.handle}`
-                        : `${reply.wallet?.slice(0, 4)}...${reply.wallet?.slice(-4)}`}
+                      {formatHandle(reply.handle, reply.handle_type) ??
+                        `${reply.wallet?.slice(0, 4)}...${reply.wallet?.slice(-4)}`}
                     </div>
                     <div style={{ color: "#666", fontSize: 11 }}>
                       {formatRelativeTime(reply.created_at)}
@@ -990,9 +994,8 @@ export default function PostDetailPanel({
                         <span
                           style={{ color: "#fff", fontWeight: 600, fontSize: 12 }}
                         >
-                          {nested.handle
-                            ? `@${nested.handle}`
-                            : `${nested.wallet?.slice(0, 4)}...${nested.wallet?.slice(-4)}`}
+                          {formatHandle(nested.handle, nested.handle_type) ??
+                            `${nested.wallet?.slice(0, 4)}...${nested.wallet?.slice(-4)}`}
                         </span>
                         <span style={{ color: "#666", fontSize: 11 }}>
                           {formatRelativeTime(nested.created_at)}

@@ -14,6 +14,7 @@ import { usePhantomAuth } from "@/hooks/usePhantomAuth";
 import WalletHoverCard from "@/components/WalletHoverCard";
 import { useSubscription } from "@/hooks/useSubscription";
 import SubscriptionBadge from "@/components/blockid/SubscriptionBadge";
+import { formatHandle } from "@/utils/handleFormat";
 
 const Explore = () => {
   const { t } = useTranslation();
@@ -146,9 +147,8 @@ const Explore = () => {
                     </div>
                     <div className="flex-1">
                       <p className="font-bold text-foreground flex items-center gap-1">
-                        {result.handle
-                          ? `@${result.handle}`
-                          : `${result.wallet?.slice(0, 8)}...${result.wallet?.slice(-8)}`}
+                        {formatHandle(result.handle, result.handle_type) ??
+                          `${result.wallet?.slice(0, 8)}...${result.wallet?.slice(-8)}`}
                         <SubscriptionBadge plan={result.plan ?? "free"} size="sm" />
                       </p>
                       <p className="text-xs text-muted-foreground font-mono">
@@ -246,9 +246,8 @@ const Explore = () => {
                             handle={post.handle ?? undefined}
                           >
                             <span className="text-sm font-semibold text-foreground inline-flex items-center gap-1">
-                              {post.handle
-                                ? `@${post.handle}`
-                                : `${post.wallet?.slice(0, 4)}...${post.wallet?.slice(-4)}`}
+                              {formatHandle(post.handle, post.handle_type) ??
+                                `${post.wallet?.slice(0, 4)}...${post.wallet?.slice(-4)}`}
                               <SubscriptionBadge plan={(post as any).plan ?? "free"} size="sm" />
                             </span>
                           </WalletHoverCard>

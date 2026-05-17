@@ -21,6 +21,7 @@ import {
 } from "@/services/blockidApi";
 import SubscriptionBadge from "@/components/blockid/SubscriptionBadge";
 import UserAvatar from "@/components/UserAvatar";
+import { formatHandle } from "@/utils/handleFormat";
 
 const formatRelativeTime = (dateStr?: string) => {
   if (!dateStr) return "";
@@ -255,12 +256,13 @@ const Bookmarks = () => {
                       <div>
                         <p className="text-sm font-semibold text-foreground flex items-center gap-1">
                           {isRepost && originalPost
-                            ? originalPost.handle
-                              ? `@${originalPost.handle}`
-                              : `${(originalPost.wallet ?? "").slice(0, 4)}...${(originalPost.wallet ?? "").slice(-4)}`
-                            : post.handle
-                            ? `@${post.handle}`
-                            : `${(post.wallet ?? "").slice(0, 4)}...${(post.wallet ?? "").slice(-4)}`}
+                            ? formatHandle(
+                                originalPost.handle,
+                                originalPost.handle_type
+                              ) ??
+                              `${(originalPost.wallet ?? "").slice(0, 4)}...${(originalPost.wallet ?? "").slice(-4)}`
+                            : formatHandle(post.handle, post.handle_type) ??
+                              `${(post.wallet ?? "").slice(0, 4)}...${(post.wallet ?? "").slice(-4)}`}
                           <SubscriptionBadge
                             plan={
                               (isRepost && originalPost

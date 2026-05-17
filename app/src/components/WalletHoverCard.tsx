@@ -5,6 +5,7 @@ import { usePhantomAuth } from "@/hooks/usePhantomAuth";
 import { Shield, Users } from "lucide-react";
 import { getSocialProfile, followWallet } from "@/services/blockidApi";
 import SubscriptionBadge from "@/components/blockid/SubscriptionBadge";
+import { formatHandle } from "@/utils/handleFormat";
 
 interface WalletHoverCardProps {
   wallet: string;
@@ -116,11 +117,10 @@ const WalletHoverCard = ({
     ? "bg-orange-500/20 text-orange-400"
     : "bg-red-500/20 text-red-400";
 
-  const displayName = profile?.handle
-    ? `@${profile.handle}`
-    : handle
-    ? `@${handle}`
-    : `${wallet.slice(0, 6)}...${wallet.slice(-4)}`;
+  const displayName =
+    formatHandle(profile?.handle, profile?.handle_type) ??
+    formatHandle(handle) ??
+    `${wallet.slice(0, 6)}...${wallet.slice(-4)}`;
 
   const avatarInitial = (
     profile?.handle ?? handle ?? wallet ?? "?"
