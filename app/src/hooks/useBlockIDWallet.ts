@@ -8,11 +8,6 @@ export function useBlockIDWallet() {
   const { wallets, ready } = useWallets();
 
   const activeWallet = wallets[0] ?? null;
-  if (activeWallet) {
-    console.log('[BlockIDWallet] walletClientType:', activeWallet.walletClientType);
-    console.log('[BlockIDWallet] address:', activeWallet.address);
-    console.log('[BlockIDWallet] wallet keys:', Object.keys(activeWallet));
-  }
 
   const publicKey = useMemo(() => {
     if (!activeWallet?.address) return null;
@@ -90,6 +85,6 @@ export function useBlockIDWallet() {
     select,
     ready,
     address: activeWallet?.address ?? null,
-    isPrivyWallet: activeWallet?.walletClientType === 'privy',
+    isPrivyWallet: !!activeWallet && !connected,
   };
 }

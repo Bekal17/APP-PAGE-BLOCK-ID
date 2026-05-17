@@ -415,9 +415,6 @@ const SmartRouter = () => {
     setExecuting(true);
     setTxError(null);
     setTxSignature(null);
-    console.log('[SmartRouter] isPrivyWallet:', isPrivyWallet);
-    console.log('[SmartRouter] sendTransaction exists:', !!sendTransaction);
-    console.log('[SmartRouter] publicKey:', publicKey?.toString());
     try {
       const recipientPubkey = new PublicKey(resolveResult.wallet);
       const amount = parseFloat(String(parseResult.amount));
