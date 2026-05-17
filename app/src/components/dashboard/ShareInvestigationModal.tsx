@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Copy, Download } from "lucide-react";
+import { formatHandle } from "@/utils/handleFormat";
 
 const APP_BASE_URL = "https://app.blockidscore.fun";
 
@@ -51,7 +52,7 @@ const buildFullReport = (props: ReportBuildProps) => {
   const patterns = props.behaviorPatterns.map((p) => `• ${p}`).join("\n");
   const handleLine =
     props.handle != null && props.handle !== ""
-      ? `\nHandle:\n@${props.handle}\n`
+      ? `\nHandle:\n${formatHandle(props.handle, props.handle_type) ?? props.handle}\n`
       : "";
   const badgesBlock =
     props.badges && props.badges.length > 0
@@ -115,6 +116,7 @@ export const ShareInvestigationModal = ({
   avatarUrl,
   bannerUrl,
   handle,
+  handle_type,
   badges = [],
   plan = "free",
   avatarType,
@@ -279,7 +281,7 @@ export const ShareInvestigationModal = ({
               )}
               <div className="pb-1">
                 <p className="text-sm font-bold text-white leading-tight">
-                  {handle ? `@${handle}` : shortAddress}
+                  {formatHandle(handle, handle_type) ?? shortAddress}
                 </p>
                 {handle && (
                   <p className="text-[10px] text-zinc-500 font-mono">{shortAddress}</p>

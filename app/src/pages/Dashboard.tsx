@@ -53,11 +53,13 @@ import {
 } from "@/services/blockidApi";
 import { useToast } from "@/hooks/use-toast";
 import { useTokenList } from "@/hooks/useTokenList";
+import { formatHandle } from "@/utils/handleFormat";
 
 type SocialPost = {
   id: number;
   wallet: string;
   handle?: string | null;
+  handle_type?: string | null;
   trust_score?: number | null;
   content: string;
   created_at?: string;
@@ -98,6 +100,7 @@ type SocialPost = {
 type WalletProfile = {
   wallet: string;
   handle?: string | null;
+  handle_type?: string | null;
   trust_score?: number | null;
   avatar_url?: string | null;
   avatar_type?: string | null;
@@ -1932,9 +1935,11 @@ const Dashboard = () => {
                     </div>
                     <div className="flex items-center gap-1">
                       <p className="text-sm font-semibold text-zinc-100">
-                        {originalProfile?.handle
-                          ? `@${originalProfile.handle}`
-                          : `${originalPost.wallet?.slice(0, 4)}...${originalPost.wallet?.slice(-4)}`}
+                        {formatHandle(
+                          originalProfile?.handle,
+                          originalProfile?.handle_type
+                        ) ??
+                          `${originalPost.wallet?.slice(0, 4)}...${originalPost.wallet?.slice(-4)}`}
                       </p>
                       <SubscriptionBadge plan={(originalPost as any)?.plan ?? "free"} size="sm" />
                     </div>
@@ -2095,12 +2100,16 @@ const Dashboard = () => {
                   </div>
                   <span className="text-sm font-semibold text-foreground flex items-center gap-1">
                     {quoteModalPost.is_repost && quoteModalPost.original_post
-                      ? quoteModalPost.original_post.handle
-                        ? `@${quoteModalPost.original_post.handle}`
-                        : `${quoteModalPost.original_post.wallet?.slice(0, 4)}...${quoteModalPost.original_post.wallet?.slice(-4)}`
-                      : quoteModalPost.handle
-                        ? `@${quoteModalPost.handle}`
-                        : `${quoteModalPost.wallet?.slice(0, 4)}...${quoteModalPost.wallet?.slice(-4)}`}
+                      ? formatHandle(
+                          quoteModalPost.original_post.handle,
+                          quoteModalPost.original_post.handle_type
+                        ) ??
+                        `${quoteModalPost.original_post.wallet?.slice(0, 4)}...${quoteModalPost.original_post.wallet?.slice(-4)}`
+                      : formatHandle(
+                          quoteModalPost.handle,
+                          quoteModalPost.handle_type
+                        ) ??
+                        `${quoteModalPost.wallet?.slice(0, 4)}...${quoteModalPost.wallet?.slice(-4)}`}
                     <SubscriptionBadge
                       plan={
                         (quoteModalPost.is_repost && quoteModalPost.original_post

@@ -10,6 +10,7 @@ import {
   sendDM,
   getSocialProfile,
 } from "@/services/blockidApi";
+import { formatHandle } from "@/utils/handleFormat";
 
 const formatTime = (iso?: string) => {
   if (!iso) return "";
@@ -144,9 +145,9 @@ const Messages = () => {
       .includes(search.toLowerCase())
   );
 
-  const otherName = otherProfile?.handle
-    ? `@${otherProfile.handle}`
-    : truncate(walletParam ?? "");
+  const otherName =
+    formatHandle(otherProfile?.handle, otherProfile?.handle_type) ??
+    truncate(walletParam ?? "");
 
   return (
     <DashboardLayout>
@@ -213,9 +214,8 @@ const Messages = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <p className="text-sm font-semibold text-foreground truncate">
-                        {convo.handle
-                          ? `@${convo.handle}`
-                          : truncate(convo.other_wallet)}
+                        {formatHandle(convo.handle, convo.handle_type) ??
+                          truncate(convo.other_wallet)}
                       </p>
                       <span className="text-xs text-muted-foreground shrink-0 ml-1">
                         {formatTime(convo.last_message_at)}

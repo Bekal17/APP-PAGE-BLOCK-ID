@@ -61,6 +61,7 @@ import {
   buildFullReport,
   buildTwitterReport,
 } from "@/components/dashboard/ShareInvestigationModal";
+import { formatHandle } from "@/utils/handleFormat";
 import {
   AlertTriangle,
   Clock,
@@ -1097,6 +1098,7 @@ const Profile = () => {
           avatarUrl: profile?.avatar_url ?? null,
           bannerUrl: profile?.banner_url ?? null,
           handle: profile?.handle ?? null,
+          handle_type: profile?.handle_type ?? null,
           badges: (
             (profile?.displayed_badges?.length
               ? profile.displayed_badges
@@ -1440,7 +1442,7 @@ const Profile = () => {
 
           <div className="flex-1 pb-2 mt-20">
               <p className="text-lg font-bold text-foreground flex items-center gap-1.5">
-                {profile?.handle ? `@${profile.handle}` : wallet.length > 16 ? `${wallet.slice(0, 8)}...${wallet.slice(-8)}` : wallet}
+                {formatHandle(profile?.handle, profile?.handle_type) ?? (wallet.length > 16 ? `${wallet.slice(0, 8)}...${wallet.slice(-8)}` : wallet)}
                 <SubscriptionBadge plan={(profile as any)?.plan ?? "free"} size="md" />
               </p>
               {walletDomains.slice(0, 3).map((domain) => (
@@ -3186,12 +3188,16 @@ const Profile = () => {
                   </div>
                   <span className="text-sm font-semibold text-foreground">
                     {quoteModalPost.is_repost && quoteModalPost.original_post
-                      ? quoteModalPost.original_post.handle
-                        ? `@${quoteModalPost.original_post.handle}`
-                        : `${quoteModalPost.original_post.wallet?.slice(0, 4)}...${quoteModalPost.original_post.wallet?.slice(-4)}`
-                      : quoteModalPost.handle
-                        ? `@${quoteModalPost.handle}`
-                        : `${quoteModalPost.wallet?.slice(0, 4)}...${quoteModalPost.wallet?.slice(-4)}`}
+                      ? formatHandle(
+                          quoteModalPost.original_post.handle,
+                          quoteModalPost.original_post.handle_type
+                        ) ??
+                        `${quoteModalPost.original_post.wallet?.slice(0, 4)}...${quoteModalPost.original_post.wallet?.slice(-4)}`
+                      : formatHandle(
+                          quoteModalPost.handle,
+                          quoteModalPost.handle_type
+                        ) ??
+                        `${quoteModalPost.wallet?.slice(0, 4)}...${quoteModalPost.wallet?.slice(-4)}`}
                   </span>
                   <span className="text-xs text-muted-foreground">
                     ·{" "}
