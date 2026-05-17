@@ -446,6 +446,17 @@ const Profile = () => {
   const [earnedBadges, setEarnedBadges] = useState<string[]>([]);
   const [selectedBadges, setSelectedBadges] = useState<string[]>([]);
   const [editSaving, setEditSaving] = useState(false);
+  const [blockHandleInput, setBlockHandleInput] = useState("");
+  const [blockHandleStatus, setBlockHandleStatus] = useState<
+    | { state: "idle" }
+    | { state: "checking" }
+    | { state: "available"; handle: string }
+    | { state: "unavailable"; code: string; handle: string }
+    | { state: "error"; code: string }
+    | { state: "success"; handle: string }
+  >({ state: "idle" });
+  const [blockHandleClaiming, setBlockHandleClaiming] = useState(false);
+  const blockHandleDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [modalAvatarMenu, setModalAvatarMenu] = useState(false);
   const [modalBannerMenu, setModalBannerMenu] = useState(false);
   const bannerMenuRef = useRef<HTMLDivElement>(null);
@@ -915,6 +926,36 @@ const Profile = () => {
     preloadGraph();
   }, [address, connected]);
 
+  useEffect(() => {
+    const h = blockHandleInput.trim().toLowerCase();
+    if (!h || h.length < 3) {
+      setBlockHandleStatus({ state: "idle" });
+      return;
+    }
+    if (blockHandleDebounceRef.current) clearTimeout(blockHandleDebounceRef.current);
+    setBlockHandleStatus({ state: "checking" });
+    blockHandleDebounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`${API_BASE}/handle/block/check/${h}`);
+        const data = await res.json();
+        if (data.available) {
+          setBlockHandleStatus({ state: "available", handle: h });
+        } else {
+          setBlockHandleStatus({
+            state: "unavailable",
+            code: data.code ?? "HANDLE_TAKEN_BLOCK",
+            handle: h,
+          });
+        }
+      } catch {
+        setBlockHandleStatus({ state: "error", code: "NETWORK_ERROR" });
+      }
+    }, 600);
+    return () => {
+      if (blockHandleDebounceRef.current) clearTimeout(blockHandleDebounceRef.current);
+    };
+  }, [blockHandleInput]);
+
   const trustScore = walletDashboard?.trust_score ?? data?.trust_score ?? 0;
   const riskTier = walletDashboard?.risk_tier ?? data?.risk_tier ?? "LOW";
   const riskExposure = walletDashboard?.risk_exposure;
@@ -1114,6 +1155,40 @@ const Profile = () => {
   const twitterReportText = investigationReportProps
     ? buildTwitterReport(investigationReportProps)
     : "";
+
+  const handleClaimBlockHandle = async () => {
+    if (blockHandleStatus.state !== "available" || !address) return;
+    setBlockHandleClaiming(true);
+    try {
+      const res = await fetch(`${API_BASE}/handle/block/claim`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          wallet: address,
+          handle: blockHandleStatus.handle,
+          signature: "",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const code = data?.detail?.code ?? "UNKNOWN_ERROR";
+        const existing = data?.detail?.existing ?? "";
+        setBlockHandleStatus({ state: "error", code: `${code}|||${existing}` });
+        return;
+      }
+      setProfile((p: any) => ({
+        ...p,
+        handle: data.handle,
+        handle_type: "block",
+      }));
+      setBlockHandleInput("");
+      setBlockHandleStatus({ state: "success", handle: data.handle });
+    } catch {
+      setBlockHandleStatus({ state: "error", code: "NETWORK_ERROR" });
+    } finally {
+      setBlockHandleClaiming(false);
+    }
+  };
 
   const handleCopyInvestigationReport = () => {
     if (!fullReportText) return;
@@ -3758,6 +3833,96 @@ const Profile = () => {
                 <p className="text-xs text-muted-foreground mt-1">
                   Choose from your on-chain names — BlockID handle, .sol, .abc
                 </p>
+              </div>
+
+              {/* .Block Handle */}
+              <div>
+                <label className="text-xs font-medium text-muted-foreground
+                  uppercase tracking-wider block mb-1.5">
+                  {t("common.block_handle_label")}
+                </label>
+                {profile?.handle ? (
+                  <div className="px-4 py-2.5 bg-zinc-800 border border-zinc-700
+                    rounded-lg text-sm text-foreground flex items-center justify-between">
+                    <span>
+                      {formatHandle(profile.handle, profile.handle_type)}
+                    </span>
+                    {profile.handle_type === "nft" && (
+                      <span className="text-xs text-emerald-400 font-medium">NFT · on-chain</span>
+                    )}
+                    {profile.handle_type === "block" && (
+                      <span className="text-xs text-violet-400 font-medium">.Block · free</span>
+                    )}
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2
+                        text-muted-foreground text-sm select-none">@</span>
+                      <input
+                        type="text"
+                        value={blockHandleInput}
+                        onChange={(e) =>
+                          setBlockHandleInput(
+                            e.target.value.replace(/[^a-z0-9_]/gi, "").toLowerCase()
+                          )
+                        }
+                        placeholder={t("common.block_handle_placeholder")}
+                        maxLength={20}
+                        className="w-full pl-7 pr-16 py-2.5 bg-zinc-800 border
+                          border-zinc-700 rounded-lg text-foreground text-sm
+                          focus:outline-none focus:ring-2 focus:ring-violet-500/40"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2
+                        text-xs text-muted-foreground">.Block</span>
+                    </div>
+                    {blockHandleStatus.state === "checking" && (
+                      <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <span className="animate-spin inline-block w-3 h-3 border border-current border-t-transparent rounded-full" />
+                        {t("common.block_handle_checking")}
+                      </p>
+                    )}
+                    {blockHandleStatus.state === "available" && (
+                      <p className="text-xs text-emerald-400">
+                        ✓ {t("common.block_handle_available", { handle: blockHandleStatus.handle })}
+                      </p>
+                    )}
+                    {blockHandleStatus.state === "unavailable" && (
+                      <p className="text-xs text-rose-400">
+                        {t(`common.error_${blockHandleStatus.code}`, {
+                          handle: blockHandleStatus.handle,
+                          defaultValue: blockHandleStatus.code,
+                        })}
+                      </p>
+                    )}
+                    {blockHandleStatus.state === "error" && (
+                      <p className="text-xs text-rose-400">
+                        {t(`common.error_${blockHandleStatus.code.split("|||")[0]}`, {
+                          handle: blockHandleStatus.code.split("|||")[1] || blockHandleInput,
+                          defaultValue: blockHandleStatus.code,
+                        })}
+                      </p>
+                    )}
+                    {blockHandleStatus.state === "success" && (
+                      <p className="text-xs text-emerald-400">
+                        ✓ {t("common.block_handle_success", { handle: blockHandleStatus.handle })}
+                      </p>
+                    )}
+                    <button
+                      onClick={handleClaimBlockHandle}
+                      disabled={blockHandleStatus.state !== "available" || blockHandleClaiming}
+                      className="w-full py-2 rounded-lg bg-violet-600 hover:bg-violet-500
+                        disabled:opacity-40 disabled:cursor-not-allowed text-white
+                        text-sm font-medium transition-colors"
+                    >
+                      {blockHandleClaiming
+                        ? t("common.loading")
+                        : t("common.block_handle_claim_btn", {
+                            handle: blockHandleInput || "handle",
+                          })}
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Bio */}
