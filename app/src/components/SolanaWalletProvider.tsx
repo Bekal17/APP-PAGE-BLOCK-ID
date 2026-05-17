@@ -1,7 +1,7 @@
 import React from 'react';
 import { PrivyProvider } from '@privy-io/react-auth';
 import { toSolanaWalletConnectors } from '@privy-io/react-auth/solana';
-import { createSolanaRpc, createSolanaRpcSubscriptions } from '@solana/kit';
+import { createSolanaRpc, createSolanaRpcSubscriptions, mainnet } from '@solana/kit';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
@@ -11,7 +11,6 @@ const intentionalLogout = localStorage.getItem("blockid_logged_out") === "true";
 
 const solanaConnectors = toSolanaWalletConnectors({
   shouldAutoConnect: !intentionalLogout,
-  walletConnectProjectId: undefined,
 });
 
 const wallets = [
@@ -47,7 +46,7 @@ export default function SolanaWalletProvider({
         solana: {
           rpcs: {
             'solana:mainnet': {
-              rpc: createSolanaRpc(RPC_URL),
+              rpc: createSolanaRpc(mainnet(RPC_URL)),
               rpcSubscriptions: createSolanaRpcSubscriptions(
                 RPC_URL.replace('https://', 'wss://')
               ),
