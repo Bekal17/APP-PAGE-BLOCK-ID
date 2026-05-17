@@ -2,9 +2,11 @@ import { usePrivy } from '@privy-io/react-auth';
 import { useWallets } from '@privy-io/react-auth/solana';
 import { PublicKey, Transaction, VersionedTransaction } from '@solana/web3.js';
 import { useMemo } from 'react';
+import { useWallet } from '@solana/wallet-adapter-react';
 
 export function useBlockIDWallet() {
   const { logout, authenticated } = usePrivy();
+  const { connected: phantomConnected } = useWallet();
   const { wallets, ready } = useWallets();
 
   const activeWallet = wallets[0] ?? null;
@@ -85,6 +87,6 @@ export function useBlockIDWallet() {
     select,
     ready,
     address: activeWallet?.address ?? null,
-    isPrivyWallet: !!activeWallet && !connected,
+    isPrivyWallet: authenticated && !!activeWallet && !phantomConnected,
   };
 }
