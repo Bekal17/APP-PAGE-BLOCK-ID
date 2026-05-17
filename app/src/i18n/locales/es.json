@@ -44,7 +44,13 @@
     "error_HANDLE_TAKEN_NFT": "@{{handle}} ya se usa como handle NFT",
     "error_HANDLE_TAKEN_BLOCK": "@{{handle}}.Block ya está en uso",
     "error_WALLET_HAS_NFT_HANDLE": "Tu wallet ya tiene el handle NFT @{{handle}}",
-    "error_WALLET_HAS_BLOCK_HANDLE": "Tu wallet ya tiene @{{handle}}.Block. Elimínalo primero para cambiar."
+    "error_WALLET_HAS_BLOCK_HANDLE": "Tu wallet ya tiene @{{handle}}.Block. Elimínalo primero para cambiar.",
+    "block_handle_release": "Liberar handle",
+    "block_handle_release_confirm": "¿Liberar @{{handle}}.Block? Podrás reclamar uno nuevo después.",
+    "block_handle_released": "@{{handle}}.Block ha sido liberado.",
+    "block_handle_free_label": ".Block · gratis · se puede cambiar en cualquier momento",
+    "error_NO_HANDLE_FOUND": "No se encontró handle para esta wallet",
+    "error_CANNOT_RELEASE_NFT_HANDLE": "Los handles NFT no se pueden liberar aquí"
   },
   "nav": {
     "dashboard": "Panel",

@@ -456,6 +456,9 @@ const Profile = () => {
     | { state: "success"; handle: string }
   >({ state: "idle" });
   const [blockHandleClaiming, setBlockHandleClaiming] = useState(false);
+  const [blockHandleReleasing, setBlockHandleReleasing] = useState(false);
+  const [blockHandleReleaseConfirm, setBlockHandleReleaseConfirm] = useState(false);
+  const [blockHandleWasReleased, setBlockHandleWasReleased] = useState(false);
   const blockHandleDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [modalAvatarMenu, setModalAvatarMenu] = useState(false);
   const [modalBannerMenu, setModalBannerMenu] = useState(false);
@@ -1187,6 +1190,43 @@ const Profile = () => {
       setBlockHandleStatus({ state: "error", code: "NETWORK_ERROR" });
     } finally {
       setBlockHandleClaiming(false);
+    }
+  };
+
+  const handleReleaseBlockHandle = async () => {
+    if (!address) return;
+    setBlockHandleReleasing(true);
+    try {
+      const res = await fetch(`${API_BASE}/handle/block/release`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wallet: address }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const code = data?.detail?.code ?? "UNKNOWN_ERROR";
+        console.error("Release failed:", code);
+        return;
+      }
+      setProfile((p: any) => ({
+        ...p,
+        handle: null,
+        handle_type: null,
+      }));
+      setBlockHandleReleaseConfirm(false);
+      setBlockHandleWasReleased(true);
+      setBlockHandleStatus({
+        state: "success",
+        handle: data.released_handle,
+      });
+      setTimeout(() => {
+        setBlockHandleStatus({ state: "idle" });
+        setBlockHandleWasReleased(false);
+      }, 3000);
+    } catch {
+      console.error("Release request failed");
+    } finally {
+      setBlockHandleReleasing(false);
     }
   };
 
@@ -3842,16 +3882,61 @@ const Profile = () => {
                   {t("common.block_handle_label")}
                 </label>
                 {profile?.handle ? (
-                  <div className="px-4 py-2.5 bg-zinc-800 border border-zinc-700
-                    rounded-lg text-sm text-foreground flex items-center justify-between">
-                    <span>
-                      {formatHandle(profile.handle, profile.handle_type)}
-                    </span>
-                    {profile.handle_type === "nft" && (
-                      <span className="text-xs text-emerald-400 font-medium">NFT · on-chain</span>
-                    )}
+                  <div className="space-y-2">
+                    <div className="px-4 py-2.5 bg-zinc-800 border border-zinc-700
+                      rounded-lg text-sm text-foreground flex items-center justify-between">
+                      <span className="font-medium">
+                        {formatHandle(profile.handle, profile.handle_type)}
+                      </span>
+                      {profile.handle_type === "nft" && (
+                        <span className="text-xs text-emerald-400 font-medium">NFT · on-chain</span>
+                      )}
+                      {profile.handle_type === "block" && (
+                        <span className="text-xs text-violet-400 font-medium">
+                          {t("common.block_handle_free_label")}
+                        </span>
+                      )}
+                    </div>
                     {profile.handle_type === "block" && (
-                      <span className="text-xs text-violet-400 font-medium">.Block · free</span>
+                      <>
+                        {!blockHandleReleaseConfirm ? (
+                          <button
+                            onClick={() => setBlockHandleReleaseConfirm(true)}
+                            className="text-xs text-rose-400 hover:text-rose-300 transition-colors"
+                          >
+                            {t("common.block_handle_release")}
+                          </button>
+                        ) : (
+                          <div className="rounded-lg border border-rose-500/20 bg-rose-500/5
+                            px-3 py-3 space-y-2">
+                            <p className="text-xs text-rose-300">
+                              {t("common.block_handle_release_confirm", { handle: profile.handle })}
+                            </p>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={handleReleaseBlockHandle}
+                                disabled={blockHandleReleasing}
+                                className="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500
+                                  disabled:opacity-40 text-white text-xs font-medium transition-colors"
+                              >
+                                {blockHandleReleasing ? t("common.loading") : t("common.confirm")}
+                              </button>
+                              <button
+                                onClick={() => setBlockHandleReleaseConfirm(false)}
+                                className="px-3 py-1.5 rounded-lg bg-zinc-700 hover:bg-zinc-600
+                                  text-white text-xs font-medium transition-colors"
+                              >
+                                {t("common.cancel")}
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                    {blockHandleStatus.state === "success" && profile?.handle && (
+                      <p className="text-xs text-emerald-400">
+                        ✓ {t("common.block_handle_success", { handle: blockHandleStatus.handle })}
+                      </p>
                     )}
                   </div>
                 ) : (
@@ -3903,7 +3988,12 @@ const Profile = () => {
                         })}
                       </p>
                     )}
-                    {blockHandleStatus.state === "success" && (
+                    {blockHandleStatus.state === "success" && blockHandleWasReleased && (
+                      <p className="text-xs text-emerald-400">
+                        ✓ {t("common.block_handle_released", { handle: blockHandleStatus.handle })}
+                      </p>
+                    )}
+                    {blockHandleStatus.state === "success" && !blockHandleWasReleased && (
                       <p className="text-xs text-emerald-400">
                         ✓ {t("common.block_handle_success", { handle: blockHandleStatus.handle })}
                       </p>

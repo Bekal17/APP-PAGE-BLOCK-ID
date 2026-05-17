@@ -44,7 +44,13 @@
     "error_HANDLE_TAKEN_NFT": "@{{handle}} はNFTハンドルとして使用中です",
     "error_HANDLE_TAKEN_BLOCK": "@{{handle}}.Block はすでに使用されています",
     "error_WALLET_HAS_NFT_HANDLE": "このウォレットはすでに NFT ハンドル @{{handle}} を持っています",
-    "error_WALLET_HAS_BLOCK_HANDLE": "このウォレットはすでに @{{handle}}.Block を持っています。変更するには削除してください"
+    "error_WALLET_HAS_BLOCK_HANDLE": "このウォレットはすでに @{{handle}}.Block を持っています。変更するには削除してください",
+    "block_handle_release": "ハンドルを解放",
+    "block_handle_release_confirm": "@{{handle}}.Block を解放しますか？後で新しいハンドルを取得できます。",
+    "block_handle_released": "@{{handle}}.Block を解放しました。",
+    "block_handle_free_label": ".Block · 無料 · いつでも変更可能",
+    "error_NO_HANDLE_FOUND": "このウォレットにハンドルが見つかりません",
+    "error_CANNOT_RELEASE_NFT_HANDLE": "NFTハンドルはここでは解放できません"
   },
   "nav": {
     "dashboard": "ダッシュボード",

@@ -44,7 +44,13 @@
     "error_HANDLE_TAKEN_NFT": "@{{handle}} is already used as an NFT handle",
     "error_HANDLE_TAKEN_BLOCK": "@{{handle}}.Block is already taken",
     "error_WALLET_HAS_NFT_HANDLE": "Your wallet already has NFT handle @{{handle}}",
-    "error_WALLET_HAS_BLOCK_HANDLE": "Your wallet already has @{{handle}}.Block. Delete it first to change."
+    "error_WALLET_HAS_BLOCK_HANDLE": "Your wallet already has @{{handle}}.Block. Delete it first to change.",
+    "block_handle_release": "Release handle",
+    "block_handle_release_confirm": "Release @{{handle}}.Block? You can claim a new handle after.",
+    "block_handle_released": "@{{handle}}.Block has been released.",
+    "block_handle_free_label": ".Block · free · can be changed anytime",
+    "error_NO_HANDLE_FOUND": "No handle found for this wallet",
+    "error_CANNOT_RELEASE_NFT_HANDLE": "NFT handles cannot be released here"
   },
   "nav": {
     "dashboard": "Dashboard",

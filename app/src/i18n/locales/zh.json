@@ -44,7 +44,13 @@
     "error_HANDLE_TAKEN_NFT": "@{{handle}} 已被用作 NFT 句柄",
     "error_HANDLE_TAKEN_BLOCK": "@{{handle}}.Block 已被使用",
     "error_WALLET_HAS_NFT_HANDLE": "你的钱包已有 NFT 句柄 @{{handle}}",
-    "error_WALLET_HAS_BLOCK_HANDLE": "你的钱包已有 @{{handle}}.Block，请先删除再更改"
+    "error_WALLET_HAS_BLOCK_HANDLE": "你的钱包已有 @{{handle}}.Block，请先删除再更改",
+    "block_handle_release": "释放句柄",
+    "block_handle_release_confirm": "释放 @{{handle}}.Block？之后可以申请新句柄。",
+    "block_handle_released": "@{{handle}}.Block 已释放。",
+    "block_handle_free_label": ".Block · 免费 · 随时可更改",
+    "error_NO_HANDLE_FOUND": "此钱包没有句柄",
+    "error_CANNOT_RELEASE_NFT_HANDLE": "NFT句柄无法在此释放"
   },
   "nav": {
     "dashboard": "仪表盘",
