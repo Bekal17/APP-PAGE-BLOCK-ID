@@ -29,7 +29,22 @@
     "edit_photo": "编辑照片",
     "wallet_address_copied": "钱包地址已复制到剪贴板。",
     "edit_avatar": "编辑头像",
-    "edit_banner": "编辑横幅"
+    "edit_banner": "编辑横幅",
+    "block_handle_claim": "申请免费句柄",
+    "block_handle_label": ".Block 句柄",
+    "block_handle_placeholder": "例如: bekal17",
+    "block_handle_checking": "检查中...",
+    "block_handle_available": "@{{handle}}.Block 可用！",
+    "block_handle_claim_btn": "申请 @{{handle}}.Block",
+    "block_handle_success": "成功申请 @{{handle}}.Block！",
+    "block_handle_yours": "你的句柄: @{{handle}}.Block",
+    "block_handle_upgrade": "升级到 NFT 句柄",
+    "error_HANDLE_INVALID_FORMAT": "句柄只能包含小写字母、数字和下划线（3-20个字符）",
+    "error_HANDLE_RESERVED": "@{{handle}} 已被保留。如果你是合法所有者，请联系 @BlockIDscore",
+    "error_HANDLE_TAKEN_NFT": "@{{handle}} 已被用作 NFT 句柄",
+    "error_HANDLE_TAKEN_BLOCK": "@{{handle}}.Block 已被使用",
+    "error_WALLET_HAS_NFT_HANDLE": "你的钱包已有 NFT 句柄 @{{handle}}",
+    "error_WALLET_HAS_BLOCK_HANDLE": "你的钱包已有 @{{handle}}.Block，请先删除再更改"
   },
   "nav": {
     "dashboard": "仪表盘",

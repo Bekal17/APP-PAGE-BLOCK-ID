@@ -29,7 +29,22 @@
     "edit_photo": "사진 편집",
     "wallet_address_copied": "지갑 주소가 클립보드에 복사되었습니다.",
     "edit_avatar": "아바타 편집",
-    "edit_banner": "배너 편집"
+    "edit_banner": "배너 편집",
+    "block_handle_claim": "무료 핸들 신청",
+    "block_handle_label": ".Block 핸들",
+    "block_handle_placeholder": "예: bekal17",
+    "block_handle_checking": "확인 중...",
+    "block_handle_available": "@{{handle}}.Block 사용 가능!",
+    "block_handle_claim_btn": "@{{handle}}.Block 신청",
+    "block_handle_success": "@{{handle}}.Block 신청 완료!",
+    "block_handle_yours": "내 핸들: @{{handle}}.Block",
+    "block_handle_upgrade": "NFT 핸들로 업그레이드",
+    "error_HANDLE_INVALID_FORMAT": "핸들은 소문자, 숫자, 밑줄만 사용 가능합니다 (3~20자)",
+    "error_HANDLE_RESERVED": "@{{handle}}은 예약된 핸들입니다. 정당한 소유자라면 @BlockIDscore로 문의하세요",
+    "error_HANDLE_TAKEN_NFT": "@{{handle}}은 이미 NFT 핸들로 사용 중입니다",
+    "error_HANDLE_TAKEN_BLOCK": "@{{handle}}.Block은 이미 사용 중입니다",
+    "error_WALLET_HAS_NFT_HANDLE": "이미 NFT 핸들 @{{handle}}이 있습니다",
+    "error_WALLET_HAS_BLOCK_HANDLE": "이미 @{{handle}}.Block이 있습니다. 변경하려면 먼저 삭제하세요"
   },
   "nav": {
     "dashboard": "대시보드",

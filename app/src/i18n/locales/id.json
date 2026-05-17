@@ -29,7 +29,22 @@
     "edit_photo": "Edit foto",
     "wallet_address_copied": "Alamat wallet disalin ke clipboard.",
     "edit_avatar": "Edit avatar",
-    "edit_banner": "Edit banner"
+    "edit_banner": "Edit banner",
+    "block_handle_claim": "Klaim handle gratismu",
+    "block_handle_label": "Handle .Block-mu",
+    "block_handle_placeholder": "contoh: bekal17",
+    "block_handle_checking": "Mengecek ketersediaan...",
+    "block_handle_available": "@{{handle}}.Block tersedia!",
+    "block_handle_claim_btn": "Klaim @{{handle}}.Block",
+    "block_handle_success": "Kamu berhasil klaim @{{handle}}.Block!",
+    "block_handle_yours": "Handlemu: @{{handle}}.Block",
+    "block_handle_upgrade": "Upgrade ke NFT handle",
+    "error_HANDLE_INVALID_FORMAT": "Handle hanya boleh huruf kecil, angka, dan underscore (3–20 karakter)",
+    "error_HANDLE_RESERVED": "@{{handle}} sudah direservasi. Jika kamu pemilik resmi, hubungi kami di @BlockIDscore",
+    "error_HANDLE_TAKEN_NFT": "@{{handle}} sudah dipakai sebagai NFT handle",
+    "error_HANDLE_TAKEN_BLOCK": "@{{handle}}.Block sudah dipakai",
+    "error_WALLET_HAS_NFT_HANDLE": "Wallet kamu sudah punya NFT handle @{{handle}}",
+    "error_WALLET_HAS_BLOCK_HANDLE": "Wallet kamu sudah punya @{{handle}}.Block. Hapus dulu untuk ganti."
   },
   "nav": {
     "dashboard": "Dasbor",

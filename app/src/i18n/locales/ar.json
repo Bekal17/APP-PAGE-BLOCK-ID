@@ -29,7 +29,22 @@
     "edit_photo": "تعديل الصورة",
     "wallet_address_copied": "تم نسخ عنوان المحفظة إلى الحافظة.",
     "edit_avatar": "تعديل الصورة الرمزية",
-    "edit_banner": "تعديل الغلاف"
+    "edit_banner": "تعديل الغلاف",
+    "block_handle_claim": "احصل على معرفك المجاني",
+    "block_handle_label": "معرف .Block الخاص بك",
+    "block_handle_placeholder": "مثال: bekal17",
+    "block_handle_checking": "جارٍ التحقق...",
+    "block_handle_available": "@{{handle}}.Block متاح!",
+    "block_handle_claim_btn": "احصل على @{{handle}}.Block",
+    "block_handle_success": "تم الحصول على @{{handle}}.Block!",
+    "block_handle_yours": "معرفك: @{{handle}}.Block",
+    "block_handle_upgrade": "الترقية إلى معرف NFT",
+    "error_HANDLE_INVALID_FORMAT": "يجب أن يحتوي المعرف على أحرف صغيرة وأرقام وشرطات سفلية فقط (3-20 حرفاً)",
+    "error_HANDLE_RESERVED": "@{{handle}} محجوز. إذا كنت المالك الشرعي، تواصل معنا على @BlockIDscore",
+    "error_HANDLE_TAKEN_NFT": "@{{handle}} مستخدم بالفعل كمعرف NFT",
+    "error_HANDLE_TAKEN_BLOCK": "@{{handle}}.Block مستخدم بالفعل",
+    "error_WALLET_HAS_NFT_HANDLE": "محفظتك لديها بالفعل معرف NFT @{{handle}}",
+    "error_WALLET_HAS_BLOCK_HANDLE": "محفظتك لديها بالفعل @{{handle}}.Block. احذفه أولاً للتغيير."
   },
   "nav": {
     "dashboard": "لوحة التحكم",

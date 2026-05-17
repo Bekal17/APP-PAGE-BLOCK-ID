@@ -29,7 +29,22 @@
     "edit_photo": "写真を編集",
     "wallet_address_copied": "ウォレットアドレスをクリップボードにコピーしました。",
     "edit_avatar": "アバターを編集",
-    "edit_banner": "バナーを編集"
+    "edit_banner": "バナーを編集",
+    "block_handle_claim": "無料ハンドルを取得",
+    "block_handle_label": ".Blockハンドル",
+    "block_handle_placeholder": "例: bekal17",
+    "block_handle_checking": "確認中...",
+    "block_handle_available": "@{{handle}}.Block は利用可能です！",
+    "block_handle_claim_btn": "@{{handle}}.Block を取得",
+    "block_handle_success": "@{{handle}}.Block を取得しました！",
+    "block_handle_yours": "あなたのハンドル: @{{handle}}.Block",
+    "block_handle_upgrade": "NFTハンドルにアップグレード",
+    "error_HANDLE_INVALID_FORMAT": "ハンドルは小文字英数字とアンダースコアのみ（3〜20文字）",
+    "error_HANDLE_RESERVED": "@{{handle}} は予約済みです。正当な所有者の場合は @BlockIDscore までご連絡ください",
+    "error_HANDLE_TAKEN_NFT": "@{{handle}} はNFTハンドルとして使用中です",
+    "error_HANDLE_TAKEN_BLOCK": "@{{handle}}.Block はすでに使用されています",
+    "error_WALLET_HAS_NFT_HANDLE": "このウォレットはすでに NFT ハンドル @{{handle}} を持っています",
+    "error_WALLET_HAS_BLOCK_HANDLE": "このウォレットはすでに @{{handle}}.Block を持っています。変更するには削除してください"
   },
   "nav": {
     "dashboard": "ダッシュボード",

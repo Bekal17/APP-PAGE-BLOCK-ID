@@ -29,7 +29,22 @@
     "edit_photo": "Edit photo",
     "wallet_address_copied": "Wallet address copied to clipboard.",
     "edit_avatar": "Edit avatar",
-    "edit_banner": "Edit banner"
+    "edit_banner": "Edit banner",
+    "block_handle_claim": "Claim your free handle",
+    "block_handle_label": "Your .Block Handle",
+    "block_handle_placeholder": "e.g. bekal17",
+    "block_handle_checking": "Checking availability...",
+    "block_handle_available": "@{{handle}}.Block is available!",
+    "block_handle_claim_btn": "Claim @{{handle}}.Block",
+    "block_handle_success": "You claimed @{{handle}}.Block!",
+    "block_handle_yours": "Your handle: @{{handle}}.Block",
+    "block_handle_upgrade": "Upgrade to NFT handle",
+    "error_HANDLE_INVALID_FORMAT": "Handle may only contain lowercase letters, numbers, and underscores (3–20 characters)",
+    "error_HANDLE_RESERVED": "@{{handle}} is reserved. If you are the rightful owner, contact us at @BlockIDscore",
+    "error_HANDLE_TAKEN_NFT": "@{{handle}} is already used as an NFT handle",
+    "error_HANDLE_TAKEN_BLOCK": "@{{handle}}.Block is already taken",
+    "error_WALLET_HAS_NFT_HANDLE": "Your wallet already has NFT handle @{{handle}}",
+    "error_WALLET_HAS_BLOCK_HANDLE": "Your wallet already has @{{handle}}.Block. Delete it first to change."
   },
   "nav": {
     "dashboard": "Dashboard",
