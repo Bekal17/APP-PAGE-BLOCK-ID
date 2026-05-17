@@ -412,6 +412,10 @@ const SmartRouter = () => {
     if (!publicKey || !resolveResult || !parseResult?.amount || !connection)
       return;
 
+    if (isPrivyWallet) {
+      setTxError("🚧 Google login transactions are coming soon. For now, please connect a Phantom wallet to send.");
+      return;
+    }
     setExecuting(true);
     setTxError(null);
     setTxSignature(null);
