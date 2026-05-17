@@ -28,6 +28,7 @@ export type SocialPost = {
   id: number;
   wallet: string;
   handle?: string | null;
+  handle_type?: string | null;
   trust_score?: number | null;
   content: string;
   created_at?: string;
@@ -49,6 +50,7 @@ export type SocialPost = {
   original_post?: {
     wallet: string;
     handle?: string | null;
+    handle_type?: string | null;
     content: string;
     trust_score?: number | null;
     created_at?: string;
@@ -66,6 +68,7 @@ export type SocialPost = {
     id: number;
     wallet: string;
     handle?: string | null;
+    handle_type?: string | null;
     content: string;
     created_at?: string;
     like_count?: number;
@@ -78,6 +81,7 @@ export type SocialPost = {
 export type WalletProfile = {
   wallet: string;
   handle?: string | null;
+  handle_type?: string | null;
   trust_score?: number | null;
 };
 
@@ -114,6 +118,15 @@ export type PostCardProps = {
 
 const truncateWallet = (wallet: string) =>
   wallet.length > 8 ? `${wallet.slice(0, 4)}...${wallet.slice(-4)}` : wallet;
+
+const formatHandle = (
+  handle?: string | null,
+  handleType?: string | null
+): string | null => {
+  if (!handle) return null;
+  if (handleType === "block") return `@${handle}.Block`;
+  return `@${handle}`;
+};
 
 /** Skip opening post / reply modal when the user is selecting text in the card. */
 function isSelectingText(): boolean {
@@ -367,12 +380,28 @@ export default function PostCard({
         ? originalPost.wallet
         : post.wallet ?? "";
 
-  const displayHandle =
+  const displayHandleRaw =
     isQuoteRepost
       ? post.handle ?? null
       : isRepost && originalPost
         ? originalPost.handle ?? null
         : profile?.handle ?? post.handle ?? null;
+
+  const displayHandle = (() => {
+    if (isQuoteRepost) {
+      return formatHandle(post.handle, post.handle_type);
+    }
+    if (isRepost && originalPost) {
+      return formatHandle(
+        originalPost.handle,
+        originalPost.handle_type
+      );
+    }
+    return formatHandle(
+      profile?.handle ?? post.handle,
+      profile?.handle_type ?? post.handle_type
+    );
+  })();
 
   const displayContent =
     isQuoteRepost
@@ -396,9 +425,7 @@ export default function PostCard({
     <div className="flex items-center gap-1.5 px-1 pb-1 text-xs text-muted-foreground">
       <Repeat2 className="w-3.5 h-3.5 text-green-400" />
       <span>
-        {post?.handle
-          ? `@${post.handle}`
-          : truncateWallet(post?.wallet ?? "")}{" "}
+        {formatHandle(post.handle, post.handle_type) ?? post.handle}{" "}
         reposted
       </span>
     </div>
@@ -469,7 +496,7 @@ export default function PostCard({
                       (post as any).avatar_is_animated
                     : (post as any).avatar_is_animated
               }
-              handle={displayHandle}
+              handle={displayHandleRaw}
               wallet={displayWallet}
               size={36}
             />
@@ -504,16 +531,15 @@ export default function PostCard({
                   >
                     <span className="text-sm font-semibold text-foreground inline-flex items-center gap-1">
                       {isQuoteRepost
-                        ? post.handle
-                          ? `@${post.handle}`
-                          : truncateWallet(post.wallet ?? "")
+                        ? formatHandle(post.handle, post.handle_type) ??
+                          truncateWallet(post.wallet ?? "")
                         : isRepost && originalPost
-                          ? originalPost.handle
-                            ? `@${originalPost.handle}`
-                            : truncateWallet(originalPost.wallet ?? "")
-                          : displayHandle
-                            ? `@${displayHandle}`
-                            : truncateWallet(post?.wallet ?? "")}
+                          ? formatHandle(
+                              originalPost.handle,
+                              originalPost.handle_type
+                            ) ?? truncateWallet(originalPost.wallet ?? "")
+                          : displayHandle ??
+                            truncateWallet(post?.wallet ?? "")}
                       <SubscriptionBadge
                         plan={
                           (isQuoteRepost
@@ -652,9 +678,10 @@ export default function PostCard({
                     size={20}
                   />
                   <span className="text-xs font-semibold text-foreground inline-flex items-center gap-1">
-                    {originalPost.handle
-                      ? `@${originalPost.handle}`
-                      : `${originalPost.wallet?.slice(0, 4)}...${originalPost.wallet?.slice(-4)}`}
+                    {formatHandle(
+                      originalPost.handle,
+                      originalPost.handle_type
+                    ) ?? truncateWallet(originalPost.wallet ?? "")}
                     <SubscriptionBadge
                       plan={(originalPost as any)?.plan ?? "free"}
                       size="sm"
@@ -894,9 +921,8 @@ export default function PostCard({
                     fontSize: 13,
                   }}
                 >
-                  {tr.handle
-                    ? `@${tr.handle}`
-                    : `${tr.wallet?.slice(0, 4)}...${tr.wallet?.slice(-4)}`}
+                  {formatHandle(tr.handle, tr.handle_type) ??
+                    truncateWallet(tr.wallet ?? "")}
                 </span>
                 <span style={{ color: "hsl(var(--muted-foreground))", fontSize: 11 }}>
                   · {formatRelativeTime(tr.created_at)}
