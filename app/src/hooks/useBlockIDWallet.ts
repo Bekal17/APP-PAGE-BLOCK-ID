@@ -32,11 +32,17 @@ export function useBlockIDWallet() {
   const sendTransaction = useMemo(() => {
     if (!activeWallet) return undefined;
     return async (tx: any, _connection: any) => {
-      const serialized = tx instanceof Transaction
-        ? tx.serialize({ requireAllSignatures: false, verifySignatures: false })
-        : tx.serialize();
+      let encoded: Uint8Array;
+      if (tx instanceof Transaction) {
+        encoded = new Uint8Array(tx.serialize({
+          requireAllSignatures: false,
+          verifySignatures: false,
+        }));
+      } else {
+        encoded = new Uint8Array(tx.serialize());
+      }
       const result = await signAndSendTransaction({
-        transaction: serialized,
+        transaction: encoded,
         wallet: activeWallet,
       });
       return Buffer.from(result.signature).toString('base64');
