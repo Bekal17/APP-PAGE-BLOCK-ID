@@ -32,7 +32,7 @@
     "edit_banner": "Edit banner",
     "block_handle_claim": "Klaim handle gratismu",
     "block_handle_label": "Handle .Block-mu",
-    "block_handle_placeholder": "contoh: bekal17",
+    "block_handle_placeholder": "contoh: satoshi",
     "block_handle_checking": "Mengecek ketersediaan...",
     "block_handle_available": "@{{handle}}.Block tersedia!",
     "block_handle_claim_btn": "Klaim @{{handle}}.Block",

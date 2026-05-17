@@ -32,7 +32,7 @@
     "edit_banner": "バナーを編集",
     "block_handle_claim": "無料ハンドルを取得",
     "block_handle_label": ".Blockハンドル",
-    "block_handle_placeholder": "例: bekal17",
+    "block_handle_placeholder": "例: satoshi",
     "block_handle_checking": "確認中...",
     "block_handle_available": "@{{handle}}.Block は利用可能です！",
     "block_handle_claim_btn": "@{{handle}}.Block を取得",

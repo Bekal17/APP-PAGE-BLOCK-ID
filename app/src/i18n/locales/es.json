@@ -32,7 +32,7 @@
     "edit_banner": "Editar banner",
     "block_handle_claim": "Reclamar tu handle gratis",
     "block_handle_label": "Tu handle .Block",
-    "block_handle_placeholder": "ej: bekal17",
+    "block_handle_placeholder": "ej: satoshi",
     "block_handle_checking": "Verificando disponibilidad...",
     "block_handle_available": "¡@{{handle}}.Block está disponible!",
     "block_handle_claim_btn": "Reclamar @{{handle}}.Block",

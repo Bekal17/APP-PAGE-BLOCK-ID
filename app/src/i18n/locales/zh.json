@@ -32,7 +32,7 @@
     "edit_banner": "编辑横幅",
     "block_handle_claim": "申请免费句柄",
     "block_handle_label": ".Block 句柄",
-    "block_handle_placeholder": "例如: bekal17",
+    "block_handle_placeholder": "例如: satoshi",
     "block_handle_checking": "检查中...",
     "block_handle_available": "@{{handle}}.Block 可用！",
     "block_handle_claim_btn": "申请 @{{handle}}.Block",

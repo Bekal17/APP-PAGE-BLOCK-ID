@@ -32,7 +32,7 @@
     "edit_banner": "배너 편집",
     "block_handle_claim": "무료 핸들 신청",
     "block_handle_label": ".Block 핸들",
-    "block_handle_placeholder": "예: bekal17",
+    "block_handle_placeholder": "예: satoshi",
     "block_handle_checking": "확인 중...",
     "block_handle_available": "@{{handle}}.Block 사용 가능!",
     "block_handle_claim_btn": "@{{handle}}.Block 신청",

@@ -32,7 +32,7 @@
     "edit_banner": "Edit banner",
     "block_handle_claim": "Claim your free handle",
     "block_handle_label": "Your .Block Handle",
-    "block_handle_placeholder": "e.g. bekal17",
+    "block_handle_placeholder": "e.g. satoshi",
     "block_handle_checking": "Checking availability...",
     "block_handle_available": "@{{handle}}.Block is available!",
     "block_handle_claim_btn": "Claim @{{handle}}.Block",
