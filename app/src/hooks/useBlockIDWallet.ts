@@ -1,5 +1,5 @@
 import { usePrivy } from '@privy-io/react-auth';
-import { useWallets, useSignAndSendTransaction } from '@privy-io/react-auth/solana';
+import { useWallets } from '@privy-io/react-auth/solana';
 import { PublicKey, Transaction, VersionedTransaction } from '@solana/web3.js';
 import { useMemo } from 'react';
 
@@ -27,8 +27,6 @@ export function useBlockIDWallet() {
     };
   }, [activeWallet]);
 
-  const { signAndSendTransaction } = useSignAndSendTransaction();
-
   const sendTransaction = useMemo(() => {
     if (!activeWallet) return undefined;
     return async (tx: any, _connection: any) => {
@@ -47,13 +45,14 @@ export function useBlockIDWallet() {
       console.log('[BlockID] encoded instanceof Uint8Array:', encoded instanceof Uint8Array);
       console.log('[BlockID] encoded length:', encoded?.length);
       console.log('[BlockID] activeWallet:', activeWallet?.address, activeWallet?.walletClientType);
-      const result = await signAndSendTransaction({
+      const result = await activeWallet.signAndSendTransaction({
+        chain: 'solana:mainnet',
         transaction: encoded,
-        wallet: activeWallet,
       });
-      return Buffer.from(result.signature).toString('base64');
+      console.log('[BlockID] result:', result);
+      return result.signature;
     };
-  }, [activeWallet, signAndSendTransaction]);
+  }, [activeWallet]);
 
   const signMessage = useMemo(() => {
     if (!activeWallet) return undefined;
