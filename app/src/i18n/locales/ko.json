@@ -406,6 +406,7 @@
     "select_language": "언어 선택",
     "privacy": "개인정보 및 보안",
     "privacy_safety": "개인정보 및 보안",
+    "identity": "신원 & 핸들",
     "privacy_desc": "콘텐츠 공개 범위와 다른 사용자와의 상호작용을 관리합니다.",
     "privacy_desc_short": "콘텐츠를 볼 수 있는 사람을 관리합니다",
     "content": "콘텐츠",

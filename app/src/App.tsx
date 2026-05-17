@@ -13,6 +13,7 @@ import Profile from "./pages/Profile";
 import Upgrade from "./pages/Upgrade";
 import PremiumHub from "./pages/PremiumHub";
 import PrivacySettings from "@/pages/settings/Privacy";
+import IdentitySettings from "@/pages/settings/Identity";
 import Notifications from "./pages/Notifications";
 import Messages from "./pages/Messages";
 import Bookmarks from "./pages/Bookmarks";
@@ -53,6 +54,7 @@ const App = () => (
             <Route path="/post/:postId" element={<PostDetail />} />
             <Route path="/settings" element={<PrivateRoute><PrivacySettings /></PrivateRoute>} />
             <Route path="/settings/privacy" element={<PrivateRoute><PrivacySettings /></PrivateRoute>} />
+            <Route path="/settings/identity" element={<PrivateRoute><IdentitySettings /></PrivateRoute>} />
             <Route path="/upgrade" element={<PrivateRoute><Upgrade /></PrivateRoute>} />
             <Route path="/premium" element={<PrivateRoute><PremiumHub /></PrivateRoute>} />
             <Route path="*" element={<NotFound />} />

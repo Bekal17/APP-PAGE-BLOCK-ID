@@ -7,6 +7,7 @@ import {
   User,
   Bell,
   AlertTriangle,
+  AtSign,
   type LucideIcon,
 } from "lucide-react";
 
@@ -33,6 +34,12 @@ const settingsNav: SettingsNavGroup[] = [
   {
     groupKey: "settings.your_account",
     items: [
+      {
+        labelKey: "settings.identity",
+        href: "/settings/identity",
+        icon: AtSign,
+        comingSoon: false,
+      },
       {
         labelKey: "settings.privacy_safety",
         href: "/settings/privacy",
