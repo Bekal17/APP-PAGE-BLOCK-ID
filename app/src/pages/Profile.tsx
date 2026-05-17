@@ -319,6 +319,25 @@ function getCexBadgeColor(badgeCode: string): string | null {
   return CEX_BADGE_COLORS[cexKey] ?? null;
 }
 
+const useCountdown = (releaseAt: string | null) => {
+  const [remaining, setRemaining] = useState<number>(0);
+  useEffect(() => {
+    if (!releaseAt) {
+      setRemaining(0);
+      return;
+    }
+    const target = new Date(releaseAt).getTime() + 48 * 60 * 60 * 1000;
+    const tick = () => {
+      const diff = target - Date.now();
+      setRemaining(Math.max(0, diff));
+    };
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [releaseAt]);
+  return remaining;
+};
+
 const Profile = () => {
   const { t } = useTranslation();
   const { publicKey, connected } = usePhantomAuth();
@@ -457,6 +476,7 @@ const Profile = () => {
   >({ state: "idle" });
   const [blockHandleClaiming, setBlockHandleClaiming] = useState(false);
   const [blockHandleReleasing, setBlockHandleReleasing] = useState(false);
+  const [handleReleaseAt, setHandleReleaseAt] = useState<string | null>(null);
   const [blockHandleReleaseConfirm, setBlockHandleReleaseConfirm] = useState(false);
   const [blockHandleWasReleased, setBlockHandleWasReleased] = useState(false);
   const blockHandleDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -652,6 +672,7 @@ const Profile = () => {
   useEffect(() => {
     if (!wallet) {
       setProfile(null);
+      setHandleReleaseAt(null);
       setPosts([]);
       setLoading(false);
       return;
@@ -668,6 +689,7 @@ const Profile = () => {
         ]);
         if (!cancelled) {
           setProfile(profileRes);
+          setHandleReleaseAt(profileRes?.handle_release_at ?? null);
           setEditForm({
             display_name: profileRes?.display_name ?? "",
             display_name_source: profileRes?.display_name_source ?? "WALLET",
@@ -697,6 +719,7 @@ const Profile = () => {
         console.error("Failed to load profile/posts", e);
         if (!cancelled) {
           setProfile(null);
+          setHandleReleaseAt(null);
           setPosts([]);
         }
       } finally {
@@ -1159,6 +1182,13 @@ const Profile = () => {
     ? buildTwitterReport(investigationReportProps)
     : "";
 
+  const releaseRemaining = useCountdown(handleReleaseAt);
+  const releaseHours = Math.floor(releaseRemaining / 3600000);
+  const releaseMins = Math.floor((releaseRemaining % 3600000) / 60000);
+  const releaseSecs = Math.floor((releaseRemaining % 60000) / 1000);
+  const releaseCountdown = `${String(releaseHours).padStart(2, "0")}:${String(releaseMins).padStart(2, "0")}:${String(releaseSecs).padStart(2, "0")}`;
+  const isInCooldown = !!handleReleaseAt && releaseRemaining > 0;
+
   const handleClaimBlockHandle = async () => {
     if (blockHandleStatus.state !== "available" || !address) return;
     setBlockHandleClaiming(true);
@@ -1212,11 +1242,7 @@ const Profile = () => {
         console.error("Release failed:", code);
         return;
       }
-      setProfile((p: any) => ({
-        ...p,
-        handle: null,
-        handle_type: null,
-      }));
+      setHandleReleaseAt(data.handle_release_at ?? null);
       setBlockHandleReleaseConfirm(false);
       setBlockHandleWasReleased(true);
       setBlockHandleStatus({
@@ -3903,7 +3929,17 @@ const Profile = () => {
                     </div>
                     {profile.handle_type === "block" && (
                       <>
-                        {!blockHandleReleaseConfirm ? (
+                        {isInCooldown ? (
+                          <div className="rounded-lg border border-zinc-700 bg-zinc-800/50
+                            px-3 py-2.5 flex items-center justify-between">
+                            <p className="text-xs text-muted-foreground">
+                              Releasing in
+                            </p>
+                            <p className="text-xs font-mono font-medium text-violet-400">
+                              {releaseCountdown}
+                            </p>
+                          </div>
+                        ) : !blockHandleReleaseConfirm ? (
                           <button
                             onClick={() => setBlockHandleReleaseConfirm(true)}
                             className="text-xs text-rose-400 hover:text-rose-300 transition-colors"
