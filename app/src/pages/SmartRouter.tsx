@@ -18,6 +18,19 @@ import {
   TOKEN_PROGRAM_ID,
   ASSOCIATED_TOKEN_PROGRAM_ID,
 } from "@solana/spl-token";
+import {
+  pipe,
+  createSolanaRpc,
+  getTransactionEncoder,
+  createTransactionMessage,
+  setTransactionMessageFeePayer,
+  setTransactionMessageLifetimeUsingBlockhash,
+  appendTransactionMessageInstructions,
+  compileTransaction,
+  address,
+  createNoopSigner,
+} from '@solana/kit';
+import { getTransferSolInstruction } from '@solana-program/system';
 import DashboardLayout from "@/components/DashboardLayout";
 import UserAvatar from "@/components/UserAvatar";
 import { CashtagPill } from "@/components/CashtagPill";
@@ -434,14 +447,41 @@ const SmartRouter = () => {
           throw new Error("Wallet does not support signing. Please reconnect.");
         }
 
-        let signature: string;
         if (isPrivyWallet && sendTransaction) {
-          const sig = await sendTransaction(transaction, connection);
-          signature = typeof sig === 'string' ? sig : Buffer.from(sig).toString('base64');
-        } else {
-          const signed = await signTransaction(transaction);
-          signature = await connection.sendRawTransaction(signed.serialize());
+          // Build transaction using @solana/kit for Privy v3
+          const { getLatestBlockhash } = createSolanaRpc(
+            import.meta.env.VITE_HELIUS_RPC_URL || 'https://api.mainnet-beta.solana.com'
+          );
+          const { value: latestBlockhash } = await getLatestBlockhash().send();
+          const kitTx = new Uint8Array(
+            getTransactionEncoder().encode(
+              compileTransaction(
+                appendTransactionMessageInstructions(
+                  [getTransferSolInstruction({
+                    amount: BigInt(Math.round(amount * LAMPORTS_PER_SOL)),
+                    destination: address(recipientPubkey.toString()),
+                    source: createNoopSigner(address(publicKey.toString())),
+                  })],
+                  setTransactionMessageLifetimeUsingBlockhash(
+                    latestBlockhash,
+                    setTransactionMessageFeePayer(
+                      address(publicKey.toString()),
+                      createTransactionMessage({ version: 0 })
+                    )
+                  )
+                )
+              )
+            )
+          );
+          const sig = await sendTransaction(kitTx, connection);
+          setTxSignature(typeof sig === 'string' ? sig : Buffer.from(sig).toString('base64'));
+          setStep("input");
+          getWalletBalance(publicKey.toString()).then(setBalance).catch(() => {});
+          return;
         }
+
+        const signed = await signTransaction(transaction);
+        const signature = await connection.sendRawTransaction(signed.serialize());
         await connection.confirmTransaction(
           { signature, blockhash, lastValidBlockHeight },
           "confirmed",
