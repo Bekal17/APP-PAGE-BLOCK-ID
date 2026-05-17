@@ -1,7 +1,7 @@
 import React from 'react';
 import { PrivyProvider } from '@privy-io/react-auth';
 import { toSolanaWalletConnectors } from '@privy-io/react-auth/solana';
-import { createSolanaRpc, createSolanaRpcSubscriptions, mainnet } from '@solana/kit';
+import { createSolanaRpc, createSolanaRpcSubscriptions } from '@solana/kit';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
@@ -46,7 +46,8 @@ export default function SolanaWalletProvider({
         solana: {
           rpcs: {
             'solana:mainnet': {
-              rpc: createSolanaRpc(mainnet(RPC_URL)),
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              rpc: createSolanaRpc(RPC_URL) as any,
               rpcSubscriptions: createSolanaRpcSubscriptions(
                 RPC_URL.replace('https://', 'wss://')
               ),
