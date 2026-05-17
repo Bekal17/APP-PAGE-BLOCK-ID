@@ -47,6 +47,7 @@ import {
   Shield,
   Wallet,
 } from "lucide-react";
+import { formatHandle } from "@/utils/handleFormat";
 
 const API_BASE =
   import.meta.env.VITE_SOCIAL_API_URL ??
@@ -124,6 +125,8 @@ interface ParseResult {
 interface ResolveResult {
   wallet: string;
   handle: string | null;
+  handle_type: string | null;
+  handle_display: string | null;
   trust_score: number | null;
   risk_level: string | null;
   avatar_url: string | null;
@@ -1139,7 +1142,7 @@ const SmartRouter = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-semibold text-foreground">
-                      @{resolveResult.handle}
+                      {formatHandle(resolveResult.handle, resolveResult.handle_type) ?? resolveResult.handle}
                     </p>
                     {resolveResult.trust_score != null && (
                       <span
@@ -1293,7 +1296,7 @@ const SmartRouter = () => {
               <p className="text-sm text-muted-foreground">
                 {parseResult?.intent === "swap"
                   ? `${parseResult?.amount} ${parseResult?.token} → ${parseResult?.output_token}`
-                  : `${parseResult?.amount} ${parseResult?.token ?? "SOL"} → @${resolveResult?.handle ?? "recipient"}`}
+                  : `${parseResult?.amount} ${parseResult?.token ?? "SOL"} → ${formatHandle(resolveResult?.handle, resolveResult?.handle_type) ?? resolveResult?.handle ?? "recipient"}`}
               </p>
             </div>
 
