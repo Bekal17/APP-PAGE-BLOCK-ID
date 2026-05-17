@@ -43,6 +43,10 @@ export function useBlockIDWallet() {
       } else {
         encoded = new Uint8Array(tx.serialize());
       }
+      console.log('[BlockID] encoded type:', encoded?.constructor?.name);
+      console.log('[BlockID] encoded instanceof Uint8Array:', encoded instanceof Uint8Array);
+      console.log('[BlockID] encoded length:', encoded?.length);
+      console.log('[BlockID] activeWallet:', activeWallet?.address, activeWallet?.walletClientType);
       const result = await signAndSendTransaction({
         transaction: encoded,
         wallet: activeWallet,
