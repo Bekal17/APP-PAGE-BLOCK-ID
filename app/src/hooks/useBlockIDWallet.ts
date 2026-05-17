@@ -33,7 +33,9 @@ export function useBlockIDWallet() {
     if (!activeWallet) return undefined;
     return async (tx: any, _connection: any) => {
       let encoded: Uint8Array;
-      if (tx instanceof Transaction) {
+      if (tx instanceof Uint8Array) {
+        encoded = tx;
+      } else if (tx instanceof Transaction) {
         encoded = new Uint8Array(tx.serialize({
           requireAllSignatures: false,
           verifySignatures: false,
