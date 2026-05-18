@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { getNotifications } from "@/services/blockidApi";
+import UserAvatar from "@/components/UserAvatar";
+import { formatHandle } from "@/utils/handleFormat";
 
 const getNotifIcon = (type: string) => {
   switch (type) {
@@ -26,12 +28,12 @@ const getNotifIcon = (type: string) => {
       return <MessageSquare className="w-4 h-4 text-green-400" />;
     case "ENDORSE":
       return <Award className="w-4 h-4 text-yellow-400" />;
-      case "REPOST":
-        return <Repeat2 className="w-4 h-4 text-purple-400" />;
-      case "MENTION":
-        return <AtSign className="w-4 h-4 text-[#00FFA3]" />;
-      default:
-        return <Shield className="w-4 h-4 text-primary" />;
+    case "REPOST":
+      return <Repeat2 className="w-4 h-4 text-purple-400" />;
+    case "MENTION":
+      return <AtSign className="w-4 h-4 text-[#00FFA3]" />;
+    default:
+      return <Shield className="w-4 h-4 text-primary" />;
   }
 };
 
@@ -186,53 +188,69 @@ const Notifications = () => {
             </p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="rounded-xl border border-zinc-800 overflow-hidden">
             {filtered.map((notif: any) => (
               <div
                 key={notif.id}
                 onClick={() => {
-                  if (notif.from_wallet) {
+                  if (notif.post_id && (notif.type === "LIKE" || notif.type === "REPLY" || notif.type === "REPOST" || notif.type === "MENTION")) {
+                    navigate(`/post/${notif.post_id}`);
+                  } else if (notif.from_wallet) {
                     navigate(`/profile/${notif.from_wallet}`);
                   }
                 }}
-                className={`glass-card p-4 flex items-start gap-3 cursor-pointer hover:bg-muted/10 transition-colors ${
-                  !notif.is_read ? "border-l-2 border-primary" : ""
-                }`}
+                className={`p-4 flex items-start gap-3 cursor-pointer
+                  hover:bg-zinc-800/50 transition-colors border-b border-zinc-800/50
+                  ${!notif.is_read ? "bg-primary/5" : ""}`}
               >
-                {/* Type icon */}
-                <div className="w-10 h-10 rounded-full bg-muted/30 flex items-center justify-center shrink-0">
-                  {getNotifIcon(notif.type ?? notif.notif_type ?? "")}
+                {/* Left: avatar + icon badge */}
+                <div className="relative shrink-0">
+                  <UserAvatar
+                    wallet={notif.from_wallet ?? ""}
+                    handle={notif.from_handle ?? null}
+                    avatarUrl={notif.from_avatar_url ?? null}
+                    avatarType={notif.from_avatar_type ?? "NONE"}
+                    avatarIsAnimated={notif.from_avatar_is_animated ?? false}
+                    size={40}
+                  />
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full
+                    bg-zinc-900 border border-zinc-700 flex items-center justify-center">
+                    {getNotifIcon(notif.type ?? notif.notif_type ?? "")}
+                  </div>
                 </div>
 
-                {/* Content */}
+                {/* Right: content */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                      {getNotifLabel(notif.type ?? notif.notif_type ?? "")}
-                    </p>
-                    <span className="text-xs text-muted-foreground shrink-0">
-                      {formatTimeAgo(
-                        notif.created_at ?? notif.timestamp
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm font-semibold text-foreground">
+                        {formatHandle(notif.from_handle, notif.from_handle_type)
+                          ?? (notif.from_wallet
+                            ? `${notif.from_wallet.slice(0, 4)}...${notif.from_wallet.slice(-4)}`
+                            : "")}
+                      </span>
+                      <span className="text-sm text-muted-foreground ml-1">
+                        {getNotifLabel(notif.type ?? notif.notif_type ?? "")}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-xs text-muted-foreground">
+                        {formatTimeAgo(notif.created_at ?? notif.timestamp)}
+                      </span>
+                      {!notif.is_read && (
+                        <div className="w-2 h-2 rounded-full bg-primary" />
                       )}
-                    </span>
+                    </div>
                   </div>
-                  <p className="text-sm text-foreground mt-0.5">
-                    {notif.message ??
-                      notif.content ??
-                      t("notifications.fallback_new")}
-                  </p>
-                  {notif.from_wallet && (
-                    <p className="text-xs text-muted-foreground mt-1 font-mono">
-                      {notif.from_wallet.slice(0, 6)}...
-                      {notif.from_wallet.slice(-4)}
+
+                  {/* Post preview */}
+                  {notif.post_preview && (
+                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2
+                      border-l-2 border-zinc-700 pl-2">
+                      {notif.post_preview}
                     </p>
                   )}
                 </div>
-
-                {/* Unread indicator */}
-                {!notif.is_read && (
-                  <div className="w-2 h-2 rounded-full bg-primary shrink-0 mt-2" />
-                )}
               </div>
             ))}
           </div>
@@ -243,4 +261,3 @@ const Notifications = () => {
 };
 
 export default Notifications;
-
