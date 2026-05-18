@@ -37,6 +37,8 @@ import { CashtagPill } from "@/components/CashtagPill";
 import { getWalletBalance } from "@/services/blockidApi";
 import { useTokenList } from "@/hooks/useTokenList";
 import { useCashtagPrice } from "@/hooks/useCashtagPrice";
+import { useMentionAutocomplete, type MentionResult } from "@/hooks/useMentionAutocomplete";
+import { MentionDropdown } from "@/components/MentionDropdown";
 import {
   Zap,
   Send,
@@ -141,7 +143,8 @@ const SmartRouter = () => {
   const { publicKey, signTransaction, sendTransaction, isPrivyWallet } = useBlockIDWallet();
   const { connection } = useConnection();
   const [searchParams] = useSearchParams();
-  const { getByTicker, tokens } = useTokenList();
+  const { getByTicker, tokens, isLoading: tokensLoading } = useTokenList();
+  const mention = useMentionAutocomplete(publicKey?.toString());
   const inputRef = useRef<HTMLInputElement>(null);
   const hasAutoParsedFromUrlRef = useRef(false);
 
@@ -703,16 +706,22 @@ const SmartRouter = () => {
                   onChange={(e) => {
                     const value = e.target.value;
                     setInput(value);
+
+                    // @mention detection
+                    const cursor = e.target.selectionStart ?? value.length;
+                    mention.handleInputChange(value, cursor);
+
+                    // $cashtag detection
                     const lastDollar = value.lastIndexOf("$");
                     if (lastDollar !== -1) {
                       const afterDollar = value.slice(lastDollar + 1);
                       const query = afterDollar.split(" ")[0].toUpperCase();
                       if (query.length > 0) {
-                        const matches = tokens
+                        const matches = (tokensLoading ? [] : tokens)
                           .filter((t) => t.symbol.toUpperCase().startsWith(query))
                           .slice(0, 6);
                         setFilteredTokens(matches);
-                        setShowCashtagDropdown(matches.length > 0);
+                        setShowCashtagDropdown(!tokensLoading && matches.length > 0);
                       } else {
                         setShowCashtagDropdown(false);
                       }
@@ -720,7 +729,10 @@ const SmartRouter = () => {
                       setShowCashtagDropdown(false);
                     }
                   }}
-                  onBlur={() => setTimeout(() => setShowCashtagDropdown(false), 150)}
+                  onBlur={() => {
+                    setTimeout(() => setShowCashtagDropdown(false), 150);
+                    setTimeout(() => mention.closeMention(), 150);
+                  }}
                   onKeyDown={handleKeyDown}
                   placeholder={t(
                     "smart_router.input_placeholder",
@@ -729,6 +741,18 @@ const SmartRouter = () => {
                   className="w-full bg-transparent border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
                   disabled={parsing}
                   autoFocus
+                />
+                <MentionDropdown
+                  results={mention.mentionResults}
+                  open={mention.mentionOpen}
+                  activeIndex={mention.mentionIndex}
+                  onSelect={(result) => {
+                    const cursor = inputRef.current?.selectionStart ?? input.length;
+                    const newValue = mention.selectMention(result, input, cursor);
+                    setInput(newValue);
+                    setTimeout(() => inputRef.current?.focus(), 0);
+                  }}
+                  onClose={mention.closeMention}
                 />
                 {showCashtagDropdown && (
                   <div className="absolute top-full left-0 right-0 mt-1 bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl py-1 z-50 max-h-52 overflow-y-auto">

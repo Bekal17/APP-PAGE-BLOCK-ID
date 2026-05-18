@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Heart, MessageSquare, MessageSquareQuote, Repeat2, Trash2 } from "lucide-react";
 import { usePhantomAuth } from "@/hooks/usePhantomAuth";
@@ -13,6 +13,8 @@ import UserAvatar from "@/components/UserAvatar";
 import LinkPreviewCard from "@/components/LinkPreviewCard";
 import { linkifyContent } from "@/utils/linkify";
 import { formatHandle } from "@/utils/handleFormat";
+import { useMentionAutocomplete, type MentionResult } from "@/hooks/useMentionAutocomplete";
+import { MentionDropdown } from "@/components/MentionDropdown";
 
 type SocialPost = {
   id: number;
@@ -129,6 +131,8 @@ export default function PostDetailPanel({
   const [localRepostCount, setLocalRepostCount] = useState<number>(
     post.repost_count ?? 0
   );
+  const replyTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const mention = useMentionAutocomplete(publicKey?.toString());
 
   useEffect(() => {
     setReplyToId(post.id);
@@ -719,8 +723,27 @@ export default function PostDetailPanel({
               />
               <div style={{ flex: 1 }}>
                 <textarea
+                  ref={replyTextareaRef}
                   value={replyContent}
-                  onChange={(e) => setReplyContent(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const cursor = e.target.selectionStart ?? value.length;
+                    setReplyContent(value);
+                    mention.handleInputChange(value, cursor);
+                  }}
+                  onKeyDown={(e) => {
+                    mention.handleKeyDown(e, (result) => {
+                      const cursor =
+                        replyTextareaRef.current?.selectionStart ?? replyContent.length;
+                      const newValue = mention.selectMention(
+                        result,
+                        replyContent,
+                        cursor
+                      );
+                      setReplyContent(newValue);
+                      setTimeout(() => replyTextareaRef.current?.focus(), 0);
+                    });
+                  }}
                   placeholder={t("post.placeholder_reply")}
                   maxLength={280}
                   rows={2}
@@ -736,6 +759,25 @@ export default function PostDetailPanel({
                     lineHeight: 1.5,
                   }}
                 />
+                <div className="relative">
+                  <MentionDropdown
+                    results={mention.mentionResults}
+                    open={mention.mentionOpen}
+                    activeIndex={mention.mentionIndex}
+                    onSelect={(result) => {
+                      const cursor =
+                        replyTextareaRef.current?.selectionStart ?? replyContent.length;
+                      const newValue = mention.selectMention(
+                        result,
+                        replyContent,
+                        cursor
+                      );
+                      setReplyContent(newValue);
+                      setTimeout(() => replyTextareaRef.current?.focus(), 0);
+                    }}
+                    onClose={mention.closeMention}
+                  />
+                </div>
                 <div
                   style={{
                     display: "flex",
