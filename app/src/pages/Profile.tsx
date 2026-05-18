@@ -1345,7 +1345,9 @@ const Profile = () => {
   const isOwnProfile = !!effectiveWallet && (
     !walletParam ||
     walletParam === publicKey?.toString() ||
-    walletParam === embeddedWallet
+    walletParam === embeddedWallet ||
+    resolvedWallet === publicKey?.toString() ||
+    resolvedWallet === embeddedWallet
   );
   const canShowBalance =
     isOwnProfile || viewedPrivacy?.balance_visibility === "PUBLIC";
