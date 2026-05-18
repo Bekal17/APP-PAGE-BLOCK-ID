@@ -349,6 +349,8 @@ const Profile = () => {
   const sub = useSubscription();
   const { walletParam } = useParams<{ walletParam: string }>();
   const navigate = useNavigate();
+  const [resolvedWallet, setResolvedWallet] = useState<string | null>(null);
+  const [resolving, setResolving] = useState(false);
   const { toast } = useToast();
 
   const buildRiskAlerts = (riskData: {
@@ -511,6 +513,40 @@ const Profile = () => {
   const [manualLinkLoading, setManualLinkLoading] = useState(false);
 
   useEffect(() => {
+    if (!walletParam) {
+      setResolvedWallet(null);
+      return;
+    }
+    // Solana wallet address: 32-44 base58 characters
+    const isSolanaAddress = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/.test(walletParam);
+    if (isSolanaAddress) {
+      setResolvedWallet(walletParam);
+      return;
+    }
+    // Strip .Block or .sol suffix for handle lookup
+    const cleanHandle = walletParam
+      .replace(/\.Block$/i, "")
+      .replace(/\.sol$/i, "")
+      .replace(/^@/, "")
+      .toLowerCase()
+      .trim();
+
+    setResolving(true);
+    fetch(`${API_BASE}/handle/${encodeURIComponent(cleanHandle)}`)
+      .then((r) => r.json())
+      .then((data) => {
+        const w = data?.wallet ?? data?.owner_wallet ?? null;
+        if (w) {
+          setResolvedWallet(w);
+        } else {
+          setResolvedWallet(walletParam);
+        }
+      })
+      .catch(() => setResolvedWallet(walletParam))
+      .finally(() => setResolving(false));
+  }, [walletParam]);
+
+  useEffect(() => {
     if (!selectedPost?.id) return;
     getPost(selectedPost.id)
       .then((data) => setSelectedPostReplies(data.replies ?? []))
@@ -583,7 +619,8 @@ const Profile = () => {
   }, [modalAvatarMenu]);
 
   const address = publicKey?.toBase58();
-  const wallet = walletParam ?? effectiveWallet;
+  const wallet =
+    resolvedWallet ?? (walletParam ? null : effectiveWallet) ?? effectiveWallet;
 
   useEffect(() => {
     if (!address || !walletParam || walletParam === address) {
