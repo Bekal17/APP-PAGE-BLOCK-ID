@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { usePhantomAuth } from "@/hooks/usePhantomAuth";
 import DashboardLayout from "@/components/DashboardLayout";
@@ -20,6 +20,8 @@ import {
   unrepostPost,
 } from "@/services/blockidApi";
 import { useToast } from "@/hooks/use-toast";
+import { useMentionAutocomplete } from "@/hooks/useMentionAutocomplete";
+import { MentionDropdown } from "@/components/MentionDropdown";
 
 const CommunityFeed = () => {
   const { collectionAddress } = useParams<{ collectionAddress: string }>();
@@ -31,6 +33,8 @@ const CommunityFeed = () => {
   const [loading, setLoading] = useState(true);
   const [posting, setPosting] = useState(false);
   const [postContent, setPostContent] = useState("");
+  const composeRef = useRef<HTMLTextAreaElement>(null);
+  const mention = useMentionAutocomplete(wallet);
   const [feed, setFeed] = useState<SocialPost[]>([]);
   const [communitiesMeta, setCommunitiesMeta] = useState<any[]>([]);
   const [profiles, setProfiles] = useState<Record<string, WalletProfile>>({});
@@ -170,13 +174,42 @@ const CommunityFeed = () => {
 
         {wallet && (
           <div className="glass-card p-4 border border-zinc-800">
-            <textarea
-              value={postContent}
-              onChange={(e) => setPostContent(e.target.value)}
-              placeholder="Post to this community..."
-              className="w-full bg-transparent border-none outline-none text-sm text-zinc-100 placeholder:text-zinc-500 resize-none min-h-[90px]"
-              maxLength={280}
-            />
+            <div className="relative">
+              <textarea
+                ref={composeRef}
+                value={postContent}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  const cursor = e.target.selectionStart ?? value.length;
+                  setPostContent(value);
+                  mention.handleInputChange(value, cursor);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") mention.closeMention();
+                  mention.handleKeyDown(e, (result) => {
+                    const cursor = composeRef.current?.selectionStart ?? postContent.length;
+                    const newValue = mention.selectMention(result, postContent, cursor);
+                    setPostContent(newValue);
+                    setTimeout(() => composeRef.current?.focus(), 0);
+                  });
+                }}
+                placeholder="Post to this community..."
+                className="w-full bg-transparent border-none outline-none text-sm text-zinc-100 placeholder:text-zinc-500 resize-none min-h-[90px]"
+                maxLength={280}
+              />
+              <MentionDropdown
+                results={mention.mentionResults}
+                open={mention.mentionOpen}
+                activeIndex={mention.mentionIndex}
+                onSelect={(result) => {
+                  const cursor = composeRef.current?.selectionStart ?? postContent.length;
+                  const newValue = mention.selectMention(result, postContent, cursor);
+                  setPostContent(newValue);
+                  setTimeout(() => composeRef.current?.focus(), 0);
+                }}
+                onClose={mention.closeMention}
+              />
+            </div>
             <div className="pt-3 border-t border-zinc-800 flex items-center justify-between">
               <span className="text-xs text-zinc-500">{postContent.length}/280</span>
               <button
