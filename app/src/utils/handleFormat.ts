@@ -10,5 +10,6 @@ export const formatHandle = (
 ): string | null => {
   if (!handle) return null;
   if (handleType === "block") return `@${handle}.Block`;
+  if (handleType === "sns") return `@${handle}.sol`;
   return `@${handle}`;
 };
