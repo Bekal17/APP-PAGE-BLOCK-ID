@@ -2946,7 +2946,7 @@ const Profile = () => {
                           <div>
                             <p className="text-sm font-medium text-foreground flex items-center gap-1">
                               {h
-                                ? `@${h}`
+                                ? formatHandle(h, item.handle_type) ?? `@${h}`
                                 : w.length > 10
                                   ? `${w.slice(0, 6)}...${w.slice(-4)}`
                                   : w || "—"}
