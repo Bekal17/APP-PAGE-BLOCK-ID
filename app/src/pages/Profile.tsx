@@ -1853,12 +1853,14 @@ const Profile = () => {
                   key={n.name}
                   className={`px-2 py-0.5 rounded-full text-xs font-medium border ${
                     n.source === "BLOCKID"
-                      ? "bg-primary/10 text-primary border-primary/20"
+                      ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
                       : n.source === "SNS"
-                        ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
+                        ? "bg-[#00FFA3]/10 text-[#00FFA3] border-[#00FFA3]/20"
                         : n.source === "ANS"
-                          ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
-                          : "bg-zinc-500/10 text-zinc-400 border-zinc-500/20"
+                          ? "bg-[#03E1FF]/10 text-[#03E1FF] border-[#03E1FF]/20"
+                          : n.source === "BLOCK"
+                            ? "bg-white/5 text-white/80 border-white/20"
+                            : "bg-zinc-500/10 text-zinc-400 border-zinc-500/20"
                   }`}
                 >
                   {n.display}
@@ -3901,7 +3903,7 @@ const Profile = () => {
                   ))}
                 </select>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Choose from your on-chain names — BlockID handle, .sol, .abc
+                  Choose from your on-chain names — BlockID handle, .sol, .abc, .Block
                 </p>
               </div>
 
