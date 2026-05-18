@@ -54,6 +54,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useTokenList } from "@/hooks/useTokenList";
 import { formatHandle } from "@/utils/handleFormat";
+import { useMentionAutocomplete, type MentionResult } from "@/hooks/useMentionAutocomplete";
+import { MentionDropdown } from "@/components/MentionDropdown";
 
 type SocialPost = {
   id: number;
@@ -206,6 +208,9 @@ const Dashboard = () => {
   const postImageInputRef = useRef<HTMLInputElement>(null);
   const composeTextareaRef = useRef<HTMLTextAreaElement>(null);
   const composeCursorRef = useRef(0);
+  const composeMention = useMentionAutocomplete(effectiveAddress);
+  const replyMention = useMentionAutocomplete(effectiveAddress);
+  const replyTextareaRef = useRef<HTMLTextAreaElement>(null);
   const postImageBtnRef = useRef<HTMLButtonElement>(null);
   const postImageMenuRef = useRef<HTMLDivElement>(null);
   const [isPosting, setIsPosting] = useState(false);
@@ -1228,15 +1233,23 @@ const Dashboard = () => {
                 value={postContent}
                 onChange={(e) => {
                   const value = e.target.value;
-                  const cursor = e.target.selectionStart;
-                  composeCursorRef.current = cursor ?? value.length;
+                  const cursor = e.target.selectionStart ?? value.length;
+                  composeCursorRef.current = cursor;
                   setPostContent(value);
                   updateCashtagAutocomplete(value, cursor);
+                  composeMention.handleInputChange(value, cursor);
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Escape") {
                     setCashtagDropdownOpen(false);
+                    composeMention.closeMention();
                   }
+                  composeMention.handleKeyDown(e, (result) => {
+                    const cursor = composeCursorRef.current ?? postContent.length;
+                    const newValue = composeMention.selectMention(result, postContent, cursor);
+                    setPostContent(newValue);
+                    setTimeout(() => composeTextareaRef.current?.focus(), 0);
+                  });
                 }}
                 placeholder={t("dashboard.post_placeholder")}
                 className="w-full bg-transparent border-none outline-none text-sm text-foreground placeholder:text-muted-foreground"
@@ -1258,6 +1271,24 @@ const Dashboard = () => {
                   Also share to everyone feed
                 </label>
               )}
+              <div className="relative">
+                <MentionDropdown
+                  results={composeMention.mentionResults}
+                  open={composeMention.mentionOpen}
+                  activeIndex={composeMention.mentionIndex}
+                  onSelect={(result) => {
+                    const cursor = composeCursorRef.current ?? postContent.length;
+                    const newValue = composeMention.selectMention(
+                      result,
+                      postContent,
+                      cursor
+                    );
+                    setPostContent(newValue);
+                    setTimeout(() => composeTextareaRef.current?.focus(), 0);
+                  }}
+                  onClose={composeMention.closeMention}
+                />
+              </div>
               {cashtagDropdownOpen && cashtagResults.length > 0 && (
                 <div className="mt-2 bg-zinc-900 border border-zinc-700 rounded-xl shadow-xl z-50 overflow-hidden">
                   {cashtagQuery && (
@@ -1962,12 +1993,28 @@ const Dashboard = () => {
               <UserAvatar wallet={publicKey?.toString() ?? ""} size={36} />
               <div className="flex-1">
                 <textarea
+                  ref={replyTextareaRef}
                   value={replyContent}
-                  onChange={(e) => setReplyContent(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const cursor = e.target.selectionStart ?? value.length;
+                    setReplyContent(value);
+                    replyMention.handleInputChange(value, cursor);
+                  }}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-                      e.preventDefault();
-                      handleReply(replyToId!);
+                    const consumed = replyMention.handleKeyDown(e, (result) => {
+                      const cursor =
+                        replyTextareaRef.current?.selectionStart ?? replyContent.length;
+                      const newValue = replyMention.selectMention(
+                        result,
+                        replyContent,
+                        cursor
+                      );
+                      setReplyContent(newValue);
+                      setTimeout(() => replyTextareaRef.current?.focus(), 0);
+                    });
+                    if (!consumed && (e.ctrlKey || e.metaKey) && e.key === "Enter") {
+                      if (replyToId !== null) handleReply(replyToId);
                     }
                   }}
                   placeholder={t("post.placeholder_reply")}
@@ -1976,6 +2023,25 @@ const Dashboard = () => {
                   maxLength={280}
                   autoFocus
                 />
+                <div className="relative">
+                  <MentionDropdown
+                    results={replyMention.mentionResults}
+                    open={replyMention.mentionOpen}
+                    activeIndex={replyMention.mentionIndex}
+                    onSelect={(result) => {
+                      const cursor =
+                        replyTextareaRef.current?.selectionStart ?? replyContent.length;
+                      const newValue = replyMention.selectMention(
+                        result,
+                        replyContent,
+                        cursor
+                      );
+                      setReplyContent(newValue);
+                      setTimeout(() => replyTextareaRef.current?.focus(), 0);
+                    }}
+                    onClose={replyMention.closeMention}
+                  />
+                </div>
                 <div className="flex items-center justify-between pt-3 border-t border-zinc-800">
                   <span className="text-xs text-zinc-500">
                     {replyContent.length}/280
