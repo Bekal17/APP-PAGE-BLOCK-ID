@@ -11,6 +11,7 @@ import {
   Repeat2,
   Shield,
   ArrowLeft,
+  AtSign,
 } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { getNotifications } from "@/services/blockidApi";
@@ -25,10 +26,12 @@ const getNotifIcon = (type: string) => {
       return <MessageSquare className="w-4 h-4 text-green-400" />;
     case "ENDORSE":
       return <Award className="w-4 h-4 text-yellow-400" />;
-    case "REPOST":
-      return <Repeat2 className="w-4 h-4 text-purple-400" />;
-    default:
-      return <Shield className="w-4 h-4 text-primary" />;
+      case "REPOST":
+        return <Repeat2 className="w-4 h-4 text-purple-400" />;
+      case "MENTION":
+        return <AtSign className="w-4 h-4 text-[#00FFA3]" />;
+      default:
+        return <Shield className="w-4 h-4 text-primary" />;
   }
 };
 
