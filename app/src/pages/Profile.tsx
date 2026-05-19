@@ -531,12 +531,21 @@ const Profile = () => {
       .toLowerCase()
       .trim();
 
+    // Check sessionStorage cache first
+    const cacheKey = `blockid_handle_resolve_${cleanHandle}`;
+    const cached = sessionStorage.getItem(cacheKey);
+    if (cached) {
+      setResolvedWallet(cached);
+      return;
+    }
+
     setResolving(true);
     fetch(`${API_BASE}/handle/${encodeURIComponent(cleanHandle)}`)
       .then((r) => r.json())
       .then((data) => {
         const w = data?.wallet ?? data?.owner_wallet ?? null;
         if (w) {
+          sessionStorage.setItem(cacheKey, w);
           setResolvedWallet(w);
         } else {
           setResolvedWallet(walletParam);
