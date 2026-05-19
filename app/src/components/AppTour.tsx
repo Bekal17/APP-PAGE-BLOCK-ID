@@ -219,6 +219,48 @@ function SageBubble({ text }: { text: string }) {
   );
 }
 
+function Spotlight({ selector, label }: { selector: string; label?: string }) {
+  const [rect, setRect] = useState<DOMRect | null>(null);
+
+  useEffect(() => {
+    const el = document.querySelector(selector);
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    setRect(r);
+    // Scroll element into view
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [selector]);
+
+  if (!rect) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="fixed pointer-events-none z-[99]"
+      style={{
+        top: rect.top - 8,
+        left: rect.left - 8,
+        width: rect.width + 16,
+        height: rect.height + 16,
+        borderRadius: 12,
+        border: "2px solid rgba(56,189,248,0.8)",
+        boxShadow:
+          "0 0 0 9999px rgba(0,0,0,0.35), 0 0 24px rgba(56,189,248,0.4)",
+      }}
+    >
+      {label && (
+        <div
+          className="absolute -top-7 left-0 text-xs text-[#38bdf8] font-semibold
+          bg-zinc-900/90 px-2 py-1 rounded-lg border border-[#38bdf8]/30"
+        >
+          {label}
+        </div>
+      )}
+    </motion.div>
+  );
+}
+
 // ─── Language Picker ─────────────────────────────────────
 const LANGS = [
   { code: "en", label: "English", flag: "🇬🇧" },
@@ -456,7 +498,7 @@ export default function AppTour({
 
       {/* Semi-transparent overlay for slides 4-7 */}
       {["4", "5", "6", "7"].includes(slide) && (
-        <motion.div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+        <motion.div className="absolute inset-0 bg-black/30" />
       )}
 
       {/* Content */}
@@ -694,6 +736,7 @@ export default function AppTour({
               exit={{ opacity: 0, scale: 0.95 }}
               className="flex flex-col items-end gap-4 fixed bottom-8 right-8 max-w-xs"
             >
+              <Spotlight selector="textarea[placeholder]" label="Post area" />
               <SageOrb mode="excited" />
               <SageBubble text={t("tour.slide4_sage1")} />
               <SageBubble text={t("tour.slide4_sage2")} />
@@ -716,6 +759,7 @@ export default function AppTour({
               exit={{ opacity: 0, scale: 0.95 }}
               className="flex flex-col items-end gap-4 fixed bottom-8 right-8 max-w-xs"
             >
+              <Spotlight selector=".glass-card" label="Your Profile" />
               <SageOrb mode="talking" />
               <SageBubble text={t("tour.slide5_sage1")} />
               <p className="text-white/60 text-xs text-right">
@@ -740,6 +784,7 @@ export default function AppTour({
               exit={{ opacity: 0, scale: 0.95 }}
               className="flex flex-col items-end gap-4 fixed bottom-8 right-8 max-w-xs"
             >
+              <Spotlight selector="input[type='text']" label="Smart Router" />
               <SageOrb mode="excited" />
               <SageBubble text={t("tour.slide6_sage1")} />
               <SageBubble text={t("tour.slide6_sage3")} />
@@ -762,6 +807,7 @@ export default function AppTour({
               exit={{ opacity: 0, scale: 0.95 }}
               className="flex flex-col items-end gap-4 fixed bottom-8 right-8 max-w-xs"
             >
+              <Spotlight selector=".glass" label="@Handle Identity" />
               <SageOrb mode="excited" />
               <SageBubble text={t("tour.slide7_sage")} />
               <button
