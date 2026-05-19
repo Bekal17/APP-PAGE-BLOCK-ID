@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AutoLogin from "@/components/AutoLogin";
+import TourGate from "@/components/TourGate";
 import PrivateRoute from "@/components/PrivateRoute";
 import Dashboard from "./pages/Dashboard";
 import Identity from "./pages/Identity";
@@ -33,6 +34,7 @@ const App = () => (
       <BrowserRouter>
         <AutoLogin />
         <div className="relative min-h-screen w-full overflow-x-hidden">
+          <TourGate>
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/login" element={<Login />} />
@@ -59,6 +61,7 @@ const App = () => (
             <Route path="/premium" element={<PrivateRoute><PremiumHub /></PrivateRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </TourGate>
         </div>
       </BrowserRouter>
     </TooltipProvider>
