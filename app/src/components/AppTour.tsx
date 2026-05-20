@@ -265,7 +265,7 @@ function Spotlight({ selector, label }: { selector: string; label?: string }) {
       initial={{ opacity: 0, scale: 0.92 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.45, ease: "easeOut" }}
-      className="fixed pointer-events-none z-[105]"
+      className="fixed pointer-events-none z-[102]"
       style={{
         top: rect.top - 8,
         left: rect.left - 8,
@@ -356,7 +356,7 @@ function TourProgressBar({ current }: { current: string }) {
   const progress = ((index + 1) / total) * 100;
 
   return (
-    <div className="absolute top-0 left-0 right-0 z-20 h-1 bg-white/10">
+    <div className="fixed top-0 left-0 right-0 z-[120] h-1 bg-white/10">
       <motion.div
         className="h-full bg-gradient-to-r from-primary to-[#00FFA3]"
         initial={{ width: 0 }}
@@ -594,7 +594,7 @@ export default function AppTour({
   };
 
   return (
-    <motion.div className="fixed inset-0 z-[100] isolate">
+    <motion.div className="fixed inset-0 z-[100] pointer-events-none">
       {/* Canvas BG for slides 1-3 */}
       {["1", "1b", "2a", "2b", "3"].includes(slide) && (
         <>
@@ -603,21 +603,23 @@ export default function AppTour({
         </>
       )}
 
-      {/* Semi-transparent overlay for slides 4-7 */}
+      {/* Layer 2: Overlay + Spotlight */}
       {["4", "5a", "5b", "6", "7"].includes(slide) && (
-        <motion.div className="absolute inset-0 bg-black/30 z-0" />
+        <div className="fixed inset-0 z-[101] pointer-events-none">
+          <motion.div className="absolute inset-0 bg-black/30" />
+        </div>
       )}
 
       {/* Content */}
       <motion.div
-        className="relative z-10 flex flex-col items-center justify-center
-        min-h-screen px-6 py-8"
+        className="relative z-[110] flex flex-col items-center justify-center
+        min-h-screen px-6 py-8 pointer-events-auto"
       >
         {/* Progress bar */}
         <TourProgressBar current={slide} />
 
         {/* Language picker top right */}
-        <motion.div className="absolute top-4 right-4">
+        <motion.div className="fixed top-4 right-4 z-[120] pointer-events-auto">
           <LanguagePicker />
         </motion.div>
 
@@ -975,9 +977,9 @@ export default function AppTour({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 60 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
-              className="flex flex-col items-end gap-4 fixed top-20 right-4 max-w-xs z-[110]
+              className="flex flex-col items-end gap-4 fixed top-20 right-4 max-w-xs z-[112]
                 bg-zinc-950/95 backdrop-blur-md rounded-2xl p-4 border border-zinc-800/80
-                shadow-2xl"
+                shadow-2xl pointer-events-auto"
             >
               <Spotlight selector=".glass-card.p-4.flex.gap-3" label="Post here" />
               <SageOrb mode="excited" />
@@ -1013,9 +1015,9 @@ export default function AppTour({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 60 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
-              className="flex flex-col items-end gap-4 fixed top-20 right-4 max-w-xs z-[110]
+              className="flex flex-col items-end gap-4 fixed top-20 right-4 max-w-xs z-[112]
                 bg-zinc-950/95 backdrop-blur-md rounded-2xl p-4 border border-zinc-800/80
-                shadow-2xl"
+                shadow-2xl pointer-events-auto"
             >
               <Spotlight selector=".glass-card" label="Your Profile" />
               <SageOrb mode="talking" />
@@ -1053,9 +1055,9 @@ export default function AppTour({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 60 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
-              className="flex flex-col items-end gap-4 fixed top-20 right-4 max-w-xs z-[110]
+              className="flex flex-col items-end gap-4 fixed top-20 right-4 max-w-xs z-[112]
                 bg-zinc-950/95 backdrop-blur-md rounded-2xl p-4 border border-zinc-800/80
-                shadow-2xl"
+                shadow-2xl pointer-events-auto"
             >
               <SageOrb mode="excited" />
               <SageBubble text={t("tour.slide5_sage2")} />
@@ -1084,9 +1086,9 @@ export default function AppTour({
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="flex flex-col items-end gap-4 fixed top-20 right-4 max-w-xs z-[110]
+              className="flex flex-col items-end gap-4 fixed top-20 right-4 max-w-xs z-[112]
                 bg-zinc-950/95 backdrop-blur-md rounded-2xl p-4 border border-zinc-800/80
-                shadow-2xl"
+                shadow-2xl pointer-events-auto"
             >
               <Spotlight selector="input[type='text']" label="Smart Router" />
               <SageOrb mode="excited" />
@@ -1121,9 +1123,9 @@ export default function AppTour({
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="flex flex-col items-end gap-4 fixed top-20 right-4 max-w-xs z-[110]
+              className="flex flex-col items-end gap-4 fixed top-20 right-4 max-w-xs z-[112]
                 bg-zinc-950/95 backdrop-blur-md rounded-2xl p-4 border border-zinc-800/80
-                shadow-2xl"
+                shadow-2xl pointer-events-auto"
             >
               <Spotlight selector=".glass" label="@Handle Identity" />
               <SageOrb mode="excited" />
