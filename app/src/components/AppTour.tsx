@@ -977,9 +977,9 @@ export default function AppTour({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 60 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
-              className="flex flex-col items-end gap-4 fixed top-20 right-4 max-w-xs z-[112]
-                bg-zinc-950/95 backdrop-blur-md rounded-2xl p-4 border border-zinc-800/80
-                shadow-2xl pointer-events-auto"
+              className="flex flex-col gap-3 fixed top-14 right-0 w-80 z-[112]
+                bg-zinc-950 border-l border-zinc-800 shadow-2xl pointer-events-auto
+                h-auto max-h-[calc(100vh-56px)] overflow-y-auto p-4"
             >
               <Spotlight selector=".glass-card.p-4.flex.gap-3" label="Post here" />
               <SageOrb mode="excited" />
@@ -1015,9 +1015,9 @@ export default function AppTour({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 60 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
-              className="flex flex-col items-end gap-4 fixed top-20 right-4 max-w-xs z-[112]
-                bg-zinc-950/95 backdrop-blur-md rounded-2xl p-4 border border-zinc-800/80
-                shadow-2xl pointer-events-auto"
+              className="flex flex-col gap-3 fixed top-14 right-0 w-80 z-[112]
+                bg-zinc-950 border-l border-zinc-800 shadow-2xl pointer-events-auto
+                h-auto max-h-[calc(100vh-56px)] overflow-y-auto p-4"
             >
               <Spotlight selector=".glass-card" label="Your Profile" />
               <SageOrb mode="talking" />
@@ -1055,9 +1055,9 @@ export default function AppTour({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 60 }}
               transition={{ duration: 0.5, ease: "easeOut" }}
-              className="flex flex-col items-end gap-4 fixed top-20 right-4 max-w-xs z-[112]
-                bg-zinc-950/95 backdrop-blur-md rounded-2xl p-4 border border-zinc-800/80
-                shadow-2xl pointer-events-auto"
+              className="flex flex-col gap-3 fixed top-14 right-0 w-80 z-[112]
+                bg-zinc-950 border-l border-zinc-800 shadow-2xl pointer-events-auto
+                h-auto max-h-[calc(100vh-56px)] overflow-y-auto p-4"
             >
               <SageOrb mode="excited" />
               <SageBubble text={t("tour.slide5_sage2")} />
@@ -1086,9 +1086,9 @@ export default function AppTour({
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="flex flex-col items-end gap-4 fixed top-20 right-4 max-w-xs z-[112]
-                bg-zinc-950/95 backdrop-blur-md rounded-2xl p-4 border border-zinc-800/80
-                shadow-2xl pointer-events-auto"
+              className="flex flex-col gap-3 fixed top-14 right-0 w-80 z-[112]
+                bg-zinc-950 border-l border-zinc-800 shadow-2xl pointer-events-auto
+                h-auto max-h-[calc(100vh-56px)] overflow-y-auto p-4"
             >
               <Spotlight selector="input[type='text']" label="Smart Router" />
               <SageOrb mode="excited" />
@@ -1123,9 +1123,9 @@ export default function AppTour({
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="flex flex-col items-end gap-4 fixed top-20 right-4 max-w-xs z-[112]
-                bg-zinc-950/95 backdrop-blur-md rounded-2xl p-4 border border-zinc-800/80
-                shadow-2xl pointer-events-auto"
+              className="flex flex-col gap-3 fixed top-14 right-0 w-80 z-[112]
+                bg-zinc-950 border-l border-zinc-800 shadow-2xl pointer-events-auto
+                h-auto max-h-[calc(100vh-56px)] overflow-y-auto p-4"
             >
               <Spotlight selector=".glass" label="@Handle Identity" />
               <SageOrb mode="excited" />
