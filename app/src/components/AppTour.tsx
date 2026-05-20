@@ -45,6 +45,7 @@ function SageOrb({ mode }: { mode: SageMode }) {
         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
         style={{
           background: `radial-gradient(circle, white 0%, ${colors[mode]} 60%, transparent 100%)`,
+          transition: "background 0.6s ease, box-shadow 0.6s ease",
         }}
         className="w-16 h-16 rounded-full"
       />
@@ -346,6 +347,25 @@ function LanguagePicker() {
   );
 }
 
+const SLIDE_ORDER = ["1", "1b", "2a", "2b", "3", "4", "5", "6", "7"];
+
+function TourProgressBar({ current }: { current: string }) {
+  const index = SLIDE_ORDER.indexOf(current);
+  const total = SLIDE_ORDER.length;
+  const progress = ((index + 1) / total) * 100;
+
+  return (
+    <div className="absolute top-0 left-0 right-0 z-20 h-1 bg-white/10">
+      <motion.div
+        className="h-full bg-gradient-to-r from-primary to-[#00FFA3]"
+        initial={{ width: 0 }}
+        animate={{ width: `${progress}%` }}
+        transition={{ duration: 0.5, ease: "easeInOut" }}
+      />
+    </div>
+  );
+}
+
 // ─── Handle Claim Form (Slide 5) ─────────────────────────
 function HandleClaimForm({
   wallet,
@@ -554,6 +574,9 @@ export default function AppTour({
         className="relative z-10 flex flex-col items-center justify-center
         min-h-screen px-6 py-8"
       >
+        {/* Progress bar */}
+        <TourProgressBar current={slide} />
+
         {/* Language picker top right */}
         <motion.div className="absolute top-4 right-4">
           <LanguagePicker />
