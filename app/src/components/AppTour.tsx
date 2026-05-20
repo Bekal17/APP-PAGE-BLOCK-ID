@@ -973,8 +973,8 @@ export default function AppTour({
           {slide === "4" && (
             <>
               {/* Floating orb above panel */}
-              <div className="fixed top-16 right-28 z-[130] pointer-events-none
-                bg-transparent">
+              <div className="fixed z-[130] pointer-events-none"
+                style={{ top: "72px", right: "328px" }}>
                 <SageOrb mode="excited" />
               </div>
 
@@ -986,7 +986,7 @@ export default function AppTour({
                 transition={{ duration: 0.5, ease: "easeOut" }}
                 className="flex flex-col gap-3 fixed top-14 right-0 w-80 z-[115]
                   bg-zinc-950 border-l border-zinc-800 shadow-2xl pointer-events-auto
-                  h-auto max-h-[calc(100vh-56px)] overflow-y-auto p-4"
+                  h-auto max-h-[calc(100vh-56px)] overflow-y-auto pt-6 px-4 pb-4"
               >
                 <Spotlight selector=".glass-card.p-4.flex.gap-3" label="Post here" />
                 <SageBubble text={t("tour.slide4_sage1")} />
@@ -1018,8 +1018,8 @@ export default function AppTour({
           {slide === "5a" && (
             <>
               {/* Floating orb above panel */}
-              <div className="fixed top-16 right-28 z-[130] pointer-events-none
-                bg-transparent">
+              <div className="fixed z-[130] pointer-events-none"
+                style={{ top: "72px", right: "328px" }}>
                 <SageOrb mode="talking" />
               </div>
 
@@ -1031,7 +1031,7 @@ export default function AppTour({
                 transition={{ duration: 0.5, ease: "easeOut" }}
                 className="flex flex-col gap-3 fixed top-14 right-0 w-80 z-[115]
                   bg-zinc-950 border-l border-zinc-800 shadow-2xl pointer-events-auto
-                  h-auto max-h-[calc(100vh-56px)] overflow-y-auto p-4"
+                  h-auto max-h-[calc(100vh-56px)] overflow-y-auto pt-6 px-4 pb-4"
               >
                 <Spotlight selector=".glass-card" label="Your Profile" />
                 <SageBubble text={t("tour.slide5_sage1")} />
@@ -1065,8 +1065,8 @@ export default function AppTour({
           {slide === "5b" && (
             <>
               {/* Floating orb above panel */}
-              <div className="fixed top-16 right-28 z-[130] pointer-events-none
-                bg-transparent">
+              <div className="fixed z-[130] pointer-events-none"
+                style={{ top: "72px", right: "328px" }}>
                 <SageOrb mode="excited" />
               </div>
 
@@ -1078,7 +1078,7 @@ export default function AppTour({
                 transition={{ duration: 0.5, ease: "easeOut" }}
                 className="flex flex-col gap-3 fixed top-14 right-0 w-80 z-[115]
                   bg-zinc-950 border-l border-zinc-800 shadow-2xl pointer-events-auto
-                  h-auto max-h-[calc(100vh-56px)] overflow-y-auto p-4"
+                  h-auto max-h-[calc(100vh-56px)] overflow-y-auto pt-6 px-4 pb-4"
               >
                 <SageBubble text={t("tour.slide5_sage2")} />
                 <HandleClaimForm
@@ -1104,8 +1104,8 @@ export default function AppTour({
           {slide === "6" && (
             <>
               {/* Floating orb above panel */}
-              <div className="fixed top-16 right-28 z-[130] pointer-events-none
-                bg-transparent">
+              <div className="fixed z-[130] pointer-events-none"
+                style={{ top: "72px", right: "328px" }}>
                 <SageOrb mode="excited" />
               </div>
 
@@ -1116,7 +1116,7 @@ export default function AppTour({
                 exit={{ opacity: 0, scale: 0.95 }}
                 className="flex flex-col gap-3 fixed top-14 right-0 w-80 z-[115]
                   bg-zinc-950 border-l border-zinc-800 shadow-2xl pointer-events-auto
-                  h-auto max-h-[calc(100vh-56px)] overflow-y-auto p-4"
+                  h-auto max-h-[calc(100vh-56px)] overflow-y-auto pt-6 px-4 pb-4"
               >
                 <Spotlight selector="input[type='text']" label="Smart Router" />
                 <SageBubble text={t("tour.slide6_sage1")} />
@@ -1148,8 +1148,8 @@ export default function AppTour({
           {slide === "7" && (
             <>
               {/* Floating orb above panel */}
-              <div className="fixed top-16 right-28 z-[130] pointer-events-none
-                bg-transparent">
+              <div className="fixed z-[130] pointer-events-none"
+                style={{ top: "72px", right: "328px" }}>
                 <SageOrb mode="excited" />
               </div>
 
@@ -1160,7 +1160,7 @@ export default function AppTour({
                 exit={{ opacity: 0, scale: 0.95 }}
                 className="flex flex-col gap-3 fixed top-14 right-0 w-80 z-[115]
                   bg-zinc-950 border-l border-zinc-800 shadow-2xl pointer-events-auto
-                  h-auto max-h-[calc(100vh-56px)] overflow-y-auto p-4"
+                  h-auto max-h-[calc(100vh-56px)] overflow-y-auto pt-6 px-4 pb-4"
               >
                 <Spotlight selector=".glass" label="@Handle Identity" />
                 <SageBubble text={t("tour.slide7_sage")} />
