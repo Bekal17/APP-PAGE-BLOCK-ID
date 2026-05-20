@@ -207,14 +207,40 @@ function TourCanvas() {
 
 // ─── Sage Speech Bubble ──────────────────────────────────
 function SageBubble({ text }: { text: string }) {
+  const [displayed, setDisplayed] = useState("");
+  const [done, setDone] = useState(false);
+
+  useEffect(() => {
+    setDisplayed("");
+    setDone(false);
+    let i = 0;
+    const interval = setInterval(() => {
+      i++;
+      setDisplayed(text.slice(0, i));
+      if (i >= text.length) {
+        clearInterval(interval);
+        setDone(true);
+      }
+    }, 18);
+    return () => clearInterval(interval);
+  }, [text]);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
       className="bg-zinc-900/90 border border-zinc-700/60 rounded-2xl px-5 py-4
         text-sm text-white/90 leading-relaxed max-w-sm text-center backdrop-blur-sm"
     >
-      {text}
+      {displayed}
+      {!done && (
+        <motion.span
+          animate={{ opacity: [1, 0, 1] }}
+          transition={{ duration: 0.6, repeat: Infinity }}
+          className="inline-block w-0.5 h-4 bg-primary/80 ml-0.5 align-middle"
+        />
+      )}
     </motion.div>
   );
 }
