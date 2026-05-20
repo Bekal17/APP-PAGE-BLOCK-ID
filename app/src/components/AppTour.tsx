@@ -262,8 +262,9 @@ function Spotlight({ selector, label }: { selector: string; label?: string }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      initial={{ opacity: 0, scale: 0.92 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.45, ease: "easeOut" }}
       className="fixed pointer-events-none z-[99]"
       style={{
         top: rect.top - 8,
@@ -614,20 +615,31 @@ export default function AppTour({
                   variants={itemVariants}
                   className="flex flex-col gap-3 w-full"
                 >
-                  <button
+                  <motion.button
                     onClick={() => goNext("2a")}
-                    className="w-full py-3 rounded-xl bg-primary text-white font-semibold text-sm
-                      hover:bg-primary/90 transition-colors"
+                    whileHover={{
+                      scale: 1.03,
+                      boxShadow: "0 0 20px rgba(99,102,241,0.5)",
+                    }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ duration: 0.15 }}
+                    className="w-full py-3 rounded-xl bg-primary text-white font-semibold text-sm"
                   >
                     {t("tour.slide1_yes")}
-                  </button>
-                  <button
+                  </motion.button>
+                  <motion.button
                     onClick={() => goNext("1b")}
+                    whileHover={{
+                      scale: 1.03,
+                      boxShadow: "0 0 16px rgba(255,255,255,0.1)",
+                    }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ duration: 0.15 }}
                     className="w-full py-3 rounded-xl bg-zinc-800/80 border border-zinc-700
-                      text-white/80 font-semibold text-sm hover:bg-zinc-700/80 transition-colors"
+                      text-white/80 font-semibold text-sm"
                   >
                     {t("tour.slide1_no")}
-                  </button>
+                  </motion.button>
                 </motion.div>
               </motion.div>
             </motion.div>
@@ -732,13 +744,19 @@ export default function AppTour({
                   </motion.div>
                 </motion.div>
                 <motion.div variants={itemVariants}>
-                  <button
+                  <motion.button
                     onClick={() => goNext("2b")}
+                    whileHover={{
+                      scale: 1.03,
+                      boxShadow: "0 0 20px rgba(99,102,241,0.5)",
+                    }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ duration: 0.15 }}
                     className="w-full max-w-xs py-3 rounded-xl bg-primary text-white
-                    font-semibold text-sm hover:bg-primary/90 transition-colors"
+                    font-semibold text-sm"
                   >
                     {t("tour.next")}
-                  </button>
+                  </motion.button>
                 </motion.div>
               </motion.div>
             </motion.div>
@@ -814,13 +832,19 @@ export default function AppTour({
                   </p>
                 </motion.div>
                 <motion.div variants={itemVariants}>
-                  <button
+                  <motion.button
                     onClick={() => goNext("3")}
+                    whileHover={{
+                      scale: 1.03,
+                      boxShadow: "0 0 20px rgba(99,102,241,0.5)",
+                    }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ duration: 0.15 }}
                     className="w-full max-w-xs py-3 rounded-xl bg-primary text-white
-                    font-semibold text-sm hover:bg-primary/90 transition-colors"
+                    font-semibold text-sm"
                   >
                     {t("tour.next")}
-                  </button>
+                  </motion.button>
                 </motion.div>
               </motion.div>
             </motion.div>
@@ -865,13 +889,19 @@ export default function AppTour({
                   </p>
                 </motion.div>
                 <motion.div variants={itemVariants}>
-                  <button
+                  <motion.button
                     onClick={() => goNext("4")}
+                    whileHover={{
+                      scale: 1.03,
+                      boxShadow: "0 0 20px rgba(99,102,241,0.5)",
+                    }}
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ duration: 0.15 }}
                     className="w-full max-w-xs py-3 rounded-xl bg-primary text-white
-                    font-semibold text-sm hover:bg-primary/90 transition-colors"
+                    font-semibold text-sm"
                   >
                     {t("tour.next")}
-                  </button>
+                  </motion.button>
                 </motion.div>
               </motion.div>
             </motion.div>
@@ -960,13 +990,19 @@ export default function AppTour({
               <Spotlight selector=".glass" label="@Handle Identity" />
               <SageOrb mode="excited" />
               <SageBubble text={t("tour.slide7_sage")} />
-              <button
+              <motion.button
                 onClick={completeTour}
+                whileHover={{
+                  scale: 1.03,
+                  boxShadow: "0 0 24px rgba(0,255,163,0.4)",
+                }}
+                whileTap={{ scale: 0.97 }}
+                transition={{ duration: 0.15 }}
                 className="w-full py-3 rounded-xl bg-primary text-white
-                  font-semibold text-sm hover:bg-primary/90 transition-colors"
+                  font-semibold text-sm"
               >
                 {t("tour.slide7_finish")}
-              </button>
+              </motion.button>
             </motion.div>
           )}
         </AnimatePresence>
