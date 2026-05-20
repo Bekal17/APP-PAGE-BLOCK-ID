@@ -231,8 +231,8 @@ function SageBubble({ text }: { text: string }) {
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="bg-zinc-900/90 border border-zinc-700/60 rounded-2xl px-5 py-4
-        text-sm text-white/90 leading-relaxed max-w-sm text-center backdrop-blur-sm"
+      className="bg-zinc-900 border border-zinc-700/60 rounded-2xl px-5 py-4
+        text-sm text-white/90 leading-relaxed max-w-sm text-center"
     >
       {displayed}
       {!done && (
@@ -606,7 +606,7 @@ export default function AppTour({
       {/* Layer 2: Overlay + Spotlight */}
       {["4", "5a", "5b", "6", "7"].includes(slide) && (
         <div className="fixed inset-0 z-[101] pointer-events-none">
-          <motion.div className="absolute inset-0 bg-black/30" />
+          <div className="absolute inset-0 bg-black/30" />
         </div>
       )}
 
@@ -973,7 +973,8 @@ export default function AppTour({
           {slide === "4" && (
             <>
               {/* Floating orb above panel */}
-              <div className="fixed top-16 right-32 z-[120] pointer-events-none">
+              <div className="fixed top-16 right-28 z-[130] pointer-events-none
+                bg-transparent">
                 <SageOrb mode="excited" />
               </div>
 
@@ -983,7 +984,7 @@ export default function AppTour({
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 60 }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
-                className="flex flex-col gap-3 fixed top-14 right-0 w-80 z-[112]
+                className="flex flex-col gap-3 fixed top-14 right-0 w-80 z-[115]
                   bg-zinc-950 border-l border-zinc-800 shadow-2xl pointer-events-auto
                   h-auto max-h-[calc(100vh-56px)] overflow-y-auto p-4"
               >
@@ -1017,7 +1018,8 @@ export default function AppTour({
           {slide === "5a" && (
             <>
               {/* Floating orb above panel */}
-              <div className="fixed top-16 right-32 z-[120] pointer-events-none">
+              <div className="fixed top-16 right-28 z-[130] pointer-events-none
+                bg-transparent">
                 <SageOrb mode="talking" />
               </div>
 
@@ -1027,7 +1029,7 @@ export default function AppTour({
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 60 }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
-                className="flex flex-col gap-3 fixed top-14 right-0 w-80 z-[112]
+                className="flex flex-col gap-3 fixed top-14 right-0 w-80 z-[115]
                   bg-zinc-950 border-l border-zinc-800 shadow-2xl pointer-events-auto
                   h-auto max-h-[calc(100vh-56px)] overflow-y-auto p-4"
               >
@@ -1063,7 +1065,8 @@ export default function AppTour({
           {slide === "5b" && (
             <>
               {/* Floating orb above panel */}
-              <div className="fixed top-16 right-32 z-[120] pointer-events-none">
+              <div className="fixed top-16 right-28 z-[130] pointer-events-none
+                bg-transparent">
                 <SageOrb mode="excited" />
               </div>
 
@@ -1073,7 +1076,7 @@ export default function AppTour({
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 60 }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
-                className="flex flex-col gap-3 fixed top-14 right-0 w-80 z-[112]
+                className="flex flex-col gap-3 fixed top-14 right-0 w-80 z-[115]
                   bg-zinc-950 border-l border-zinc-800 shadow-2xl pointer-events-auto
                   h-auto max-h-[calc(100vh-56px)] overflow-y-auto p-4"
               >
@@ -1101,7 +1104,8 @@ export default function AppTour({
           {slide === "6" && (
             <>
               {/* Floating orb above panel */}
-              <div className="fixed top-16 right-32 z-[120] pointer-events-none">
+              <div className="fixed top-16 right-28 z-[130] pointer-events-none
+                bg-transparent">
                 <SageOrb mode="excited" />
               </div>
 
@@ -1110,7 +1114,7 @@ export default function AppTour({
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="flex flex-col gap-3 fixed top-14 right-0 w-80 z-[112]
+                className="flex flex-col gap-3 fixed top-14 right-0 w-80 z-[115]
                   bg-zinc-950 border-l border-zinc-800 shadow-2xl pointer-events-auto
                   h-auto max-h-[calc(100vh-56px)] overflow-y-auto p-4"
               >
@@ -1144,7 +1148,8 @@ export default function AppTour({
           {slide === "7" && (
             <>
               {/* Floating orb above panel */}
-              <div className="fixed top-16 right-32 z-[120] pointer-events-none">
+              <div className="fixed top-16 right-28 z-[130] pointer-events-none
+                bg-transparent">
                 <SageOrb mode="excited" />
               </div>
 
@@ -1153,7 +1158,7 @@ export default function AppTour({
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="flex flex-col gap-3 fixed top-14 right-0 w-80 z-[112]
+                className="flex flex-col gap-3 fixed top-14 right-0 w-80 z-[115]
                   bg-zinc-950 border-l border-zinc-800 shadow-2xl pointer-events-auto
                   h-auto max-h-[calc(100vh-56px)] overflow-y-auto p-4"
               >
