@@ -262,8 +262,8 @@ function Spotlight({ selector }: { selector: string }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      initial={{ opacity: 0, scale: 0.92 }}
+      animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.45, ease: "easeOut" }}
       className="fixed pointer-events-none z-[102]"
       style={{
@@ -272,7 +272,8 @@ function Spotlight({ selector }: { selector: string }) {
         width: rect.width + 16,
         height: rect.height + 16,
         borderRadius: 12,
-        boxShadow: "0 0 0 9999px rgba(0,0,0,0.4)",
+        border: "2px solid rgba(56,189,248,0.8)",
+        boxShadow: "0 0 0 9999px rgba(0,0,0,0.35), 0 0 24px rgba(56,189,248,0.4)",
       }}
     />
   );
