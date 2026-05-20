@@ -265,7 +265,7 @@ function Spotlight({ selector, label }: { selector: string; label?: string }) {
       initial={{ opacity: 0, scale: 0.92 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.45, ease: "easeOut" }}
-      className="fixed pointer-events-none z-[99]"
+      className="fixed pointer-events-none z-[105]"
       style={{
         top: rect.top - 8,
         left: rect.left - 8,
