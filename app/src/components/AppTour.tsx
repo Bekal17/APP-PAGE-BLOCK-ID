@@ -785,7 +785,7 @@ export default function AppTour({
                   </p>
                   <motion.div className="bg-primary/10 border border-primary/20 rounded-xl p-4">
                     <p className="text-primary/90 text-xs leading-relaxed">
-                      💡 {t("tour.slide2a_analogy")}
+                      {t("tour.slide2a_analogy")}
                     </p>
                   </motion.div>
                 </motion.div>
@@ -840,13 +840,13 @@ export default function AppTour({
                     </p>
                     <motion.div className="flex flex-col gap-2">
                       <p className="text-white/70 text-xs">
-                        🏦 {t("tour.slide2b_web2_1")}
+                        {t("tour.slide2b_web2_1")}
                       </p>
                       <p className="text-white/70 text-xs">
-                        📱 {t("tour.slide2b_web2_2")}
+                        {t("tour.slide2b_web2_2")}
                       </p>
                       <p className="text-red-400 text-xs">
-                        ❌ {t("tour.slide2b_web2_3")}
+                        {t("tour.slide2b_web2_3")}
                       </p>
                     </motion.div>
                   </motion.div>
@@ -857,13 +857,13 @@ export default function AppTour({
                     </p>
                     <motion.div className="flex flex-col gap-2">
                       <p className="text-white/70 text-xs">
-                        ⛓ {t("tour.slide2b_web3_1")}
+                        {t("tour.slide2b_web3_1")}
                       </p>
                       <p className="text-white/70 text-xs">
-                        🔑 {t("tour.slide2b_web3_2")}
+                        {t("tour.slide2b_web3_2")}
                       </p>
                       <p className="text-emerald-400 text-xs">
-                        ✅ {t("tour.slide2b_web3_3")}
+                        {t("tour.slide2b_web3_3")}
                       </p>
                     </motion.div>
                   </motion.div>
@@ -874,7 +874,7 @@ export default function AppTour({
                   backdrop-blur-sm w-full text-center"
                 >
                   <p className="text-white/60 text-xs">
-                    💡 {t("tour.slide2b_summary")}
+                    {t("tour.slide2b_summary")}
                   </p>
                 </motion.div>
                 <motion.div variants={itemVariants}>
@@ -927,7 +927,7 @@ export default function AppTour({
                   </p>
                   <motion.div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
                     <p className="text-amber-400 text-xs leading-relaxed">
-                      ⚠️ {t("tour.slide3_warning")}
+                      {t("tour.slide3_warning")}
                     </p>
                   </motion.div>
                   <p className="text-white/70 text-sm leading-relaxed">
@@ -989,7 +989,7 @@ export default function AppTour({
               <SageOrb mode="talking" />
               <SageBubble text={t("tour.slide5_sage1")} />
               <p className="text-white/60 text-xs text-right">
-                🏆 {t("tour.slide5_trust")}
+                {t("tour.slide5_trust")}
               </p>
               <SageBubble text={t("tour.slide5_sage2")} />
               <HandleClaimForm
