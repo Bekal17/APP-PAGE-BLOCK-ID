@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, type Easing } from "framer-motion";
 
 const API_BASE =
   import.meta.env.VITE_EXPLORER_API_URL ||
@@ -483,7 +483,7 @@ const shakeVariants = {
   idle: { x: 0 },
   shake: {
     x: [0, -10, 10, -8, 8, -4, 4, 0],
-    transition: { duration: 0.5, ease: "easeInOut" },
+    transition: { duration: 0.5, ease: "easeInOut" as Easing },
   },
 };
 
@@ -492,7 +492,7 @@ const bounceVariants = {
   bounce: {
     scale: [1, 1.15, 0.95, 1.08, 1],
     y: [0, -12, 0, -6, 0],
-    transition: { duration: 0.6, ease: "easeOut" },
+    transition: { duration: 0.6, ease: "easeOut" as Easing },
   },
 };
 
@@ -514,7 +514,7 @@ const itemVariants = {
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.4, ease: "easeOut" },
+    transition: { duration: 0.4, ease: "easeOut" as Easing },
   },
 };
 
