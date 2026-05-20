@@ -653,7 +653,7 @@
     "slide6_sage3": "Before confirming, make sure the recipient is correct! Trust Score: how trustworthy this wallet is. Badge: on-chain activity track record. Wallet address: match it with your intended recipient. Everything is visible before you confirm. This is BlockID.",
     "slide7_sage": "One more thing. You already have a free @handle.Block. But if you want an identity that is truly on-chain, permanent, and tradeable, you can buy your exclusive @handle here. The shorter the handle, the more premium its value. Like a domain on the internet, but for blockchain.",
     "slide7_finish": "Done, let's explore!",
-    "next": "Next →",
+    "next": "Next",
     "language_label": "Language"
   }
 }

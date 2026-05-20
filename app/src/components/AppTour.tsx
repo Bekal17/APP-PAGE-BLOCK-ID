@@ -348,7 +348,7 @@ function LanguagePicker() {
   );
 }
 
-const SLIDE_ORDER = ["1", "1b", "2a", "2b", "3", "4", "5", "6", "7"];
+const SLIDE_ORDER = ["1", "1b", "2a", "2b", "3", "4", "5a", "5b", "6", "7"];
 
 function TourProgressBar({ current }: { current: string }) {
   const index = SLIDE_ORDER.indexOf(current);
@@ -546,13 +546,27 @@ export default function AppTour({
     onComplete();
   }, [wallet, sessionToken, onComplete]);
 
+  const goBack = useCallback(() => {
+    const index = SLIDE_ORDER.indexOf(slide);
+    if (index <= 0) return;
+    const prev = SLIDE_ORDER[index - 1];
+    if (prev === "4") navigate("/");
+    if (prev === "5a") navigate("/profile");
+    if (prev === "5b") navigate("/profile");
+    if (prev === "6") navigate("/router");
+    if (prev === "7") navigate("/identity");
+    setSageMode("idle");
+    setSlide(prev);
+  }, [slide, navigate]);
+
   const goNext = useCallback(
     (target: string) => {
       setSageMode("talking");
       setTimeout(() => setSageMode("idle"), 1000);
       // Navigate to real pages for overlay slides
       if (target === "4") navigate("/");
-      if (target === "5") navigate("/profile");
+      if (target === "5a") navigate("/profile");
+      if (target === "5b") navigate("/profile");
       if (target === "6") navigate("/router");
       if (target === "7") navigate("/identity");
       setSlide(target);
@@ -590,7 +604,7 @@ export default function AppTour({
       )}
 
       {/* Semi-transparent overlay for slides 4-7 */}
-      {["4", "5", "6", "7"].includes(slide) && (
+      {["4", "5a", "5b", "6", "7"].includes(slide) && (
         <motion.div className="absolute inset-0 bg-black/30" />
       )}
 
@@ -798,7 +812,7 @@ export default function AppTour({
                     }}
                     whileTap={{ scale: 0.97 }}
                     transition={{ duration: 0.15 }}
-                    className="w-full max-w-xs py-3 rounded-xl bg-primary text-white
+                    className="w-full py-3 rounded-xl bg-primary text-white
                     font-semibold text-sm"
                   >
                     {t("tour.next")}
@@ -886,7 +900,7 @@ export default function AppTour({
                     }}
                     whileTap={{ scale: 0.97 }}
                     transition={{ duration: 0.15 }}
-                    className="w-full max-w-xs py-3 rounded-xl bg-primary text-white
+                    className="w-full py-3 rounded-xl bg-primary text-white
                     font-semibold text-sm"
                   >
                     {t("tour.next")}
@@ -943,7 +957,7 @@ export default function AppTour({
                     }}
                     whileTap={{ scale: 0.97 }}
                     transition={{ duration: 0.15 }}
-                    className="w-full max-w-xs py-3 rounded-xl bg-primary text-white
+                    className="w-full py-3 rounded-xl bg-primary text-white
                     font-semibold text-sm"
                   >
                     {t("tour.next")}
@@ -957,40 +971,87 @@ export default function AppTour({
           {slide === "4" && (
             <motion.div
               key="s4"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, x: 60 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 60 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
               className="flex flex-col items-end gap-4 fixed bottom-8 right-8 max-w-xs"
             >
-              <Spotlight selector="textarea[placeholder]" label="Post area" />
+              <Spotlight selector=".glass-card.p-4.flex.gap-3" label="Post here" />
               <SageOrb mode="excited" />
               <SageBubble text={t("tour.slide4_sage1")} />
               <SageBubble text={t("tour.slide4_sage2")} />
-              <button
-                onClick={() => goNext("5")}
-                className="w-full py-3 rounded-xl bg-primary text-white
-                  font-semibold text-sm hover:bg-primary/90 transition-colors"
-              >
-                {t("tour.next")}
-              </button>
+              <div className="flex gap-2 w-full">
+                <motion.button
+                  onClick={goBack}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="w-1/3 py-3 rounded-xl bg-zinc-800 border border-zinc-700
+                    text-white/60 text-sm font-semibold"
+                >
+                  Back
+                </motion.button>
+                <motion.button
+                  onClick={() => goNext("5a")}
+                  whileHover={{ scale: 1.03, boxShadow: "0 0 20px rgba(99,102,241,0.5)" }}
+                  whileTap={{ scale: 0.97 }}
+                  className="flex-1 py-3 rounded-xl bg-primary text-white font-semibold text-sm"
+                >
+                  {t("tour.next")}
+                </motion.button>
+              </div>
             </motion.div>
           )}
 
-          {/* ── SLIDE 5 (overlay Profile) ── */}
-          {slide === "5" && (
+          {/* ── SLIDE 5a (overlay Profile — info) ── */}
+          {slide === "5a" && (
             <motion.div
-              key="s5"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
+              key="s5a"
+              initial={{ opacity: 0, x: 60 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 60 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
               className="flex flex-col items-end gap-4 fixed bottom-8 right-8 max-w-xs"
             >
               <Spotlight selector=".glass-card" label="Your Profile" />
               <SageOrb mode="talking" />
               <SageBubble text={t("tour.slide5_sage1")} />
-              <p className="text-white/60 text-xs text-right">
+              <p className="text-white/60 text-xs text-right px-1">
                 {t("tour.slide5_trust")}
               </p>
+              <div className="flex gap-2 w-full">
+                <motion.button
+                  onClick={goBack}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="w-1/3 py-3 rounded-xl bg-zinc-800 border border-zinc-700
+                    text-white/60 text-sm font-semibold"
+                >
+                  Back
+                </motion.button>
+                <motion.button
+                  onClick={() => goNext("5b")}
+                  whileHover={{ scale: 1.03, boxShadow: "0 0 20px rgba(99,102,241,0.5)" }}
+                  whileTap={{ scale: 0.97 }}
+                  className="flex-1 py-3 rounded-xl bg-primary text-white font-semibold text-sm"
+                >
+                  {t("tour.next")}
+                </motion.button>
+              </div>
+            </motion.div>
+          )}
+
+          {/* ── SLIDE 5b (overlay Profile — claim handle) ── */}
+          {slide === "5b" && (
+            <motion.div
+              key="s5b"
+              initial={{ opacity: 0, x: 60 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 60 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="flex flex-col items-end gap-4 fixed bottom-8 right-8 max-w-xs"
+            >
+              <SageOrb mode="excited" />
               <SageBubble text={t("tour.slide5_sage2")} />
               <HandleClaimForm
                 wallet={wallet}
@@ -998,6 +1059,15 @@ export default function AppTour({
                 onClaimed={() => goNext("6")}
                 onSkip={() => goNext("6")}
               />
+              <motion.button
+                onClick={goBack}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="w-full py-2 rounded-xl bg-zinc-800/60 border border-zinc-700
+                  text-white/40 text-xs font-medium"
+              >
+                Back
+              </motion.button>
             </motion.div>
           )}
 
@@ -1014,13 +1084,25 @@ export default function AppTour({
               <SageOrb mode="excited" />
               <SageBubble text={t("tour.slide6_sage1")} />
               <SageBubble text={t("tour.slide6_sage3")} />
-              <button
-                onClick={() => goNext("7")}
-                className="w-full py-3 rounded-xl bg-primary text-white
-                  font-semibold text-sm hover:bg-primary/90 transition-colors"
-              >
-                {t("tour.next")}
-              </button>
+              <div className="flex gap-2 w-full">
+                <motion.button
+                  onClick={goBack}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="w-1/3 py-3 rounded-xl bg-zinc-800 border border-zinc-700
+                    text-white/60 text-sm font-semibold"
+                >
+                  Back
+                </motion.button>
+                <motion.button
+                  onClick={() => goNext("7")}
+                  whileHover={{ scale: 1.03, boxShadow: "0 0 20px rgba(99,102,241,0.5)" }}
+                  whileTap={{ scale: 0.97 }}
+                  className="flex-1 py-3 rounded-xl bg-primary text-white font-semibold text-sm"
+                >
+                  {t("tour.next")}
+                </motion.button>
+              </div>
             </motion.div>
           )}
 
@@ -1036,19 +1118,26 @@ export default function AppTour({
               <Spotlight selector=".glass" label="@Handle Identity" />
               <SageOrb mode="excited" />
               <SageBubble text={t("tour.slide7_sage")} />
-              <motion.button
-                onClick={completeTour}
-                whileHover={{
-                  scale: 1.03,
-                  boxShadow: "0 0 24px rgba(0,255,163,0.4)",
-                }}
-                whileTap={{ scale: 0.97 }}
-                transition={{ duration: 0.15 }}
-                className="w-full py-3 rounded-xl bg-primary text-white
-                  font-semibold text-sm"
-              >
-                {t("tour.slide7_finish")}
-              </motion.button>
+              <div className="flex gap-2 w-full">
+                <motion.button
+                  onClick={goBack}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="w-1/3 py-3 rounded-xl bg-zinc-800 border border-zinc-700
+                    text-white/60 text-sm font-semibold"
+                >
+                  Back
+                </motion.button>
+                <motion.button
+                  onClick={completeTour}
+                  whileHover={{ scale: 1.03, boxShadow: "0 0 24px rgba(0,255,163,0.4)" }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ duration: 0.15 }}
+                  className="flex-1 py-3 rounded-xl bg-primary text-white font-semibold text-sm"
+                >
+                  {t("tour.slide7_finish")}
+                </motion.button>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
