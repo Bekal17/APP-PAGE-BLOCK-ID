@@ -357,6 +357,21 @@ function TourProgressBar({ current }: { current: string }) {
   );
 }
 
+function FloatingOrb({ mode, panelWidth = 600 }: { mode: SageMode; panelWidth?: number }) {
+  return (
+    <div
+      className="fixed z-[130] pointer-events-none"
+      style={{
+        bottom: "200px",
+        left: "50%",
+        transform: `translateX(calc(-${panelWidth / 2}px + 40px))`,
+      }}
+    >
+      <SageOrb mode={mode} />
+    </div>
+  );
+}
+
 // ─── Handle Claim Form (Slide 5) ─────────────────────────
 function HandleClaimForm({
   wallet,
@@ -973,36 +988,28 @@ export default function AppTour({
                   max-w-[95vw] z-[115] bg-zinc-950 border-t border-zinc-800/60
                   shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6"
               >
-                <div className="flex items-start gap-4">
-                  <div className="shrink-0">
-                    <SageOrb mode="excited" />
-                  </div>
-                  <div className="flex-1 flex flex-col gap-3">
-                    <p className="text-white/90 text-sm leading-relaxed">
-                      {t("tour.slide4_sage1")}
-                    </p>
-                    <p className="text-white/70 text-sm leading-relaxed">
-                      {t("tour.slide4_sage2")}
-                    </p>
-                    <div className="flex gap-2 w-full mt-1">
-                      <motion.button
-                        onClick={goBack}
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.97 }}
-                        className="w-1/4 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700
-                          text-white/60 text-sm font-semibold"
-                      >
-                        Back
-                      </motion.button>
-                      <motion.button
-                        onClick={() => goNext("5a")}
-                        whileHover={{ scale: 1.03, boxShadow: "0 0 20px rgba(99,102,241,0.5)" }}
-                        whileTap={{ scale: 0.97 }}
-                        className="flex-1 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm"
-                      >
-                        {t("tour.next")}
-                      </motion.button>
-                    </div>
+                <FloatingOrb mode="excited" />
+                <div className="flex flex-col gap-3">
+                  <SageBubble text={t("tour.slide4_sage1")} />
+                  <SageBubble text={t("tour.slide4_sage2")} />
+                  <div className="flex gap-2 w-full mt-1">
+                    <motion.button
+                      onClick={goBack}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      className="w-1/4 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700
+                        text-white/60 text-sm font-semibold"
+                    >
+                      Back
+                    </motion.button>
+                    <motion.button
+                      onClick={() => goNext("5a")}
+                      whileHover={{ scale: 1.03, boxShadow: "0 0 20px rgba(99,102,241,0.5)" }}
+                      whileTap={{ scale: 0.97 }}
+                      className="flex-1 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm"
+                    >
+                      {t("tour.next")}
+                    </motion.button>
                   </div>
                 </div>
               </motion.div>
@@ -1023,36 +1030,28 @@ export default function AppTour({
                   max-w-[95vw] z-[115] bg-zinc-950 border-t border-zinc-800/60
                   shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6"
               >
-                <div className="flex items-start gap-4">
-                  <div className="shrink-0">
-                    <SageOrb mode="talking" />
-                  </div>
-                  <div className="flex-1 flex flex-col gap-3">
-                    <p className="text-white/90 text-sm leading-relaxed">
-                      {t("tour.slide5_sage1")}
-                    </p>
-                    <p className="text-white/60 text-xs">
-                      {t("tour.slide5_trust")}
-                    </p>
-                    <div className="flex gap-2 w-full mt-1">
-                      <motion.button
-                        onClick={goBack}
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.97 }}
-                        className="w-1/4 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700
-                          text-white/60 text-sm font-semibold"
-                      >
-                        Back
-                      </motion.button>
-                      <motion.button
-                        onClick={() => goNext("5b")}
-                        whileHover={{ scale: 1.03, boxShadow: "0 0 20px rgba(99,102,241,0.5)" }}
-                        whileTap={{ scale: 0.97 }}
-                        className="flex-1 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm"
-                      >
-                        {t("tour.next")}
-                      </motion.button>
-                    </div>
+                <FloatingOrb mode="talking" />
+                <div className="flex flex-col gap-3">
+                  <SageBubble text={t("tour.slide5_sage1")} />
+                  <SageBubble text={t("tour.slide5_trust")} />
+                  <div className="flex gap-2 w-full mt-1">
+                    <motion.button
+                      onClick={goBack}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      className="w-1/4 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700
+                        text-white/60 text-sm font-semibold"
+                    >
+                      Back
+                    </motion.button>
+                    <motion.button
+                      onClick={() => goNext("5b")}
+                      whileHover={{ scale: 1.03, boxShadow: "0 0 20px rgba(99,102,241,0.5)" }}
+                      whileTap={{ scale: 0.97 }}
+                      className="flex-1 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm"
+                    >
+                      {t("tour.next")}
+                    </motion.button>
                   </div>
                 </div>
               </motion.div>
@@ -1072,30 +1071,24 @@ export default function AppTour({
                   max-w-[95vw] z-[115] bg-zinc-950 border-t border-zinc-800/60
                   shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6"
               >
-                <div className="flex items-start gap-4">
-                  <div className="shrink-0">
-                    <SageOrb mode="excited" />
-                  </div>
-                  <div className="flex-1 flex flex-col gap-3">
-                    <p className="text-white/90 text-sm leading-relaxed">
-                      {t("tour.slide5_sage2")}
-                    </p>
-                    <HandleClaimForm
-                      wallet={wallet}
-                      sessionToken={sessionToken}
-                      onClaimed={() => goNext("6")}
-                      onSkip={() => goNext("6")}
-                    />
-                    <motion.button
-                      onClick={goBack}
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
-                      className="w-full py-2 rounded-xl bg-zinc-800/60 border border-zinc-700
-                        text-white/40 text-xs font-medium"
-                    >
-                      Back
-                    </motion.button>
-                  </div>
+                <FloatingOrb mode="excited" />
+                <div className="flex flex-col gap-3">
+                  <SageBubble text={t("tour.slide5_sage2")} />
+                  <HandleClaimForm
+                    wallet={wallet}
+                    sessionToken={sessionToken}
+                    onClaimed={() => goNext("6")}
+                    onSkip={() => goNext("6")}
+                  />
+                  <motion.button
+                    onClick={goBack}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="w-full py-2 rounded-xl bg-zinc-800/60 border border-zinc-700
+                      text-white/40 text-xs font-medium"
+                  >
+                    Back
+                  </motion.button>
                 </div>
               </motion.div>
             </>
@@ -1115,36 +1108,28 @@ export default function AppTour({
                   max-w-[95vw] z-[115] bg-zinc-950 border-t border-zinc-800/60
                   shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6"
               >
-                <div className="flex items-start gap-4">
-                  <div className="shrink-0">
-                    <SageOrb mode="excited" />
-                  </div>
-                  <div className="flex-1 flex flex-col gap-3">
-                    <p className="text-white/90 text-sm leading-relaxed">
-                      {t("tour.slide6_sage1")}
-                    </p>
-                    <p className="text-white/70 text-sm leading-relaxed">
-                      {t("tour.slide6_sage3")}
-                    </p>
-                    <div className="flex gap-2 w-full mt-1">
-                      <motion.button
-                        onClick={goBack}
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.97 }}
-                        className="w-1/4 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700
-                          text-white/60 text-sm font-semibold"
-                      >
-                        Back
-                      </motion.button>
-                      <motion.button
-                        onClick={() => goNext("7")}
-                        whileHover={{ scale: 1.03, boxShadow: "0 0 20px rgba(99,102,241,0.5)" }}
-                        whileTap={{ scale: 0.97 }}
-                        className="flex-1 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm"
-                      >
-                        {t("tour.next")}
-                      </motion.button>
-                    </div>
+                <FloatingOrb mode="excited" />
+                <div className="flex flex-col gap-3">
+                  <SageBubble text={t("tour.slide6_sage1")} />
+                  <SageBubble text={t("tour.slide6_sage3")} />
+                  <div className="flex gap-2 w-full mt-1">
+                    <motion.button
+                      onClick={goBack}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      className="w-1/4 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700
+                        text-white/60 text-sm font-semibold"
+                    >
+                      Back
+                    </motion.button>
+                    <motion.button
+                      onClick={() => goNext("7")}
+                      whileHover={{ scale: 1.03, boxShadow: "0 0 20px rgba(99,102,241,0.5)" }}
+                      whileTap={{ scale: 0.97 }}
+                      className="flex-1 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm"
+                    >
+                      {t("tour.next")}
+                    </motion.button>
                   </div>
                 </div>
               </motion.div>
@@ -1165,34 +1150,28 @@ export default function AppTour({
                   max-w-[95vw] z-[115] bg-zinc-950 border-t border-zinc-800/60
                   shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6"
               >
-                <div className="flex items-start gap-4">
-                  <div className="shrink-0">
-                    <SageOrb mode="excited" />
-                  </div>
-                  <div className="flex-1 flex flex-col gap-3">
-                    <p className="text-white/90 text-sm leading-relaxed">
-                      {t("tour.slide7_sage")}
-                    </p>
-                    <div className="flex gap-2 w-full mt-1">
-                      <motion.button
-                        onClick={goBack}
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.97 }}
-                        className="w-1/4 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700
-                          text-white/60 text-sm font-semibold"
-                      >
-                        Back
-                      </motion.button>
-                      <motion.button
-                        onClick={completeTour}
-                        whileHover={{ scale: 1.03, boxShadow: "0 0 24px rgba(0,255,163,0.4)" }}
-                        whileTap={{ scale: 0.97 }}
-                        transition={{ duration: 0.15 }}
-                        className="flex-1 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm"
-                      >
-                        {t("tour.slide7_finish")}
-                      </motion.button>
-                    </div>
+                <FloatingOrb mode="excited" />
+                <div className="flex flex-col gap-3">
+                  <SageBubble text={t("tour.slide7_sage")} />
+                  <div className="flex gap-2 w-full mt-1">
+                    <motion.button
+                      onClick={goBack}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      className="w-1/4 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700
+                        text-white/60 text-sm font-semibold"
+                    >
+                      Back
+                    </motion.button>
+                    <motion.button
+                      onClick={completeTour}
+                      whileHover={{ scale: 1.03, boxShadow: "0 0 24px rgba(0,255,163,0.4)" }}
+                      whileTap={{ scale: 0.97 }}
+                      transition={{ duration: 0.15 }}
+                      className="flex-1 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm"
+                    >
+                      {t("tour.slide7_finish")}
+                    </motion.button>
                   </div>
                 </div>
               </motion.div>
