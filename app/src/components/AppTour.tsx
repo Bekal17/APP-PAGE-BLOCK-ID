@@ -457,6 +457,28 @@ function HandleClaimForm({
   );
 }
 
+// ─── Stagger Variants ────────────────────────────────────
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15,
+      delayChildren: 0.1,
+    },
+  },
+  exit: { opacity: 0, transition: { duration: 0.2 } },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.4, ease: "easeOut" },
+  },
+};
+
 // ─── Main AppTour Component ──────────────────────────────
 export default function AppTour({
   wallet,
@@ -545,28 +567,45 @@ export default function AppTour({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="flex flex-col items-center gap-6 max-w-sm w-full"
             >
-              <SageOrb mode={sageMode} />
-              <SageBubble text={t("tour.slide1_greeting")} />
-              <p className="text-white/80 text-center text-sm leading-relaxed">
-                {t("tour.slide1_question")}
-              </p>
-              <motion.div className="flex flex-col gap-3 w-full">
-                <button
-                  onClick={() => goNext("2a")}
-                  className="w-full py-3 rounded-xl bg-primary text-white font-semibold text-sm
-                    hover:bg-primary/90 transition-colors"
+              <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                className="flex flex-col items-center gap-6 max-w-sm w-full"
+              >
+                <motion.div variants={itemVariants}>
+                  <SageOrb mode={sageMode} />
+                </motion.div>
+                <motion.div variants={itemVariants}>
+                  <SageBubble text={t("tour.slide1_greeting")} />
+                </motion.div>
+                <motion.p
+                  variants={itemVariants}
+                  className="text-white/80 text-center text-sm leading-relaxed"
                 >
-                  {t("tour.slide1_yes")}
-                </button>
-                <button
-                  onClick={() => goNext("1b")}
-                  className="w-full py-3 rounded-xl bg-zinc-800/80 border border-zinc-700
-                    text-white/80 font-semibold text-sm hover:bg-zinc-700/80 transition-colors"
+                  {t("tour.slide1_question")}
+                </motion.p>
+                <motion.div
+                  variants={itemVariants}
+                  className="flex flex-col gap-3 w-full"
                 >
-                  {t("tour.slide1_no")}
-                </button>
+                  <button
+                    onClick={() => goNext("2a")}
+                    className="w-full py-3 rounded-xl bg-primary text-white font-semibold text-sm
+                      hover:bg-primary/90 transition-colors"
+                  >
+                    {t("tour.slide1_yes")}
+                  </button>
+                  <button
+                    onClick={() => goNext("1b")}
+                    className="w-full py-3 rounded-xl bg-zinc-800/80 border border-zinc-700
+                      text-white/80 font-semibold text-sm hover:bg-zinc-700/80 transition-colors"
+                  >
+                    {t("tour.slide1_no")}
+                  </button>
+                </motion.div>
               </motion.div>
             </motion.div>
           )}
@@ -578,39 +617,56 @@ export default function AppTour({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="flex flex-col items-center gap-6 max-w-sm w-full"
             >
-              <SageOrb mode={sageMode} />
-              <SageBubble
-                text={
-                  quizAnswer === CORRECT
-                    ? t("tour.slide1b_correct")
-                    : quizAnswer
-                      ? t("tour.slide1b_wrong")
-                      : t("tour.slide1b_sage")
-                }
-              />
-              {!quizAnswer && (
-                <>
-                  <p className="text-white font-semibold text-center">
-                    {t("tour.slide1b_question")}
-                  </p>
-                  <motion.div className="flex flex-col gap-2 w-full">
-                    {(["a", "b", "c", "d"] as const).map((opt) => (
-                      <button
-                        key={opt}
-                        onClick={() => handleQuiz(opt)}
-                        className="w-full py-3 px-4 rounded-xl bg-zinc-800/80 border
-                          border-zinc-700 text-white/80 text-sm text-left
-                          hover:bg-zinc-700/80 hover:border-primary/50 transition-colors"
-                      >
-                        {String.fromCharCode(65 + ["a", "b", "c", "d"].indexOf(opt))}.{" "}
-                        {t(`tour.slide1b_${opt}`)}
-                      </button>
-                    ))}
-                  </motion.div>
-                </>
-              )}
+              <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                className="flex flex-col items-center gap-6 max-w-sm w-full"
+              >
+                <motion.div variants={itemVariants}>
+                  <SageOrb mode={sageMode} />
+                </motion.div>
+                <motion.div variants={itemVariants}>
+                  <SageBubble
+                    text={
+                      quizAnswer === CORRECT
+                        ? t("tour.slide1b_correct")
+                        : quizAnswer
+                          ? t("tour.slide1b_wrong")
+                          : t("tour.slide1b_sage")
+                    }
+                  />
+                </motion.div>
+                {!quizAnswer && (
+                  <>
+                    <motion.p
+                      variants={itemVariants}
+                      className="text-white font-semibold text-center"
+                    >
+                      {t("tour.slide1b_question")}
+                    </motion.p>
+                    <motion.div
+                      variants={itemVariants}
+                      className="flex flex-col gap-2 w-full"
+                    >
+                      {(["a", "b", "c", "d"] as const).map((opt) => (
+                        <button
+                          key={opt}
+                          onClick={() => handleQuiz(opt)}
+                          className="w-full py-3 px-4 rounded-xl bg-zinc-800/80 border
+                            border-zinc-700 text-white/80 text-sm text-left
+                            hover:bg-zinc-700/80 hover:border-primary/50 transition-colors"
+                        >
+                          {String.fromCharCode(65 + ["a", "b", "c", "d"].indexOf(opt))}.{" "}
+                          {t(`tour.slide1b_${opt}`)}
+                        </button>
+                      ))}
+                    </motion.div>
+                  </>
+                )}
+              </motion.div>
             </motion.div>
           )}
 
@@ -621,33 +677,47 @@ export default function AppTour({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="flex flex-col items-center gap-5 max-w-md w-full"
             >
-              <SageOrb mode="talking" />
-              <SageBubble text={t("tour.slide2a_sage")} />
               <motion.div
-                className="bg-zinc-900/80 border border-zinc-700/60 rounded-2xl p-5
-                backdrop-blur-sm w-full"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                className="flex flex-col items-center gap-5 max-w-md w-full"
               >
-                <h2 className="text-white font-bold text-lg mb-3 text-center">
-                  {t("tour.slide2a_title")}
-                </h2>
-                <p className="text-white/70 text-sm leading-relaxed mb-4">
-                  {t("tour.slide2a_body")}
-                </p>
-                <motion.div className="bg-primary/10 border border-primary/20 rounded-xl p-4">
-                  <p className="text-primary/90 text-xs leading-relaxed">
-                    💡 {t("tour.slide2a_analogy")}
+                <motion.div variants={itemVariants}>
+                  <SageOrb mode="talking" />
+                </motion.div>
+                <motion.div variants={itemVariants}>
+                  <SageBubble text={t("tour.slide2a_sage")} />
+                </motion.div>
+                <motion.div
+                  variants={itemVariants}
+                  className="bg-zinc-900/80 border border-zinc-700/60 rounded-2xl p-5
+                  backdrop-blur-sm w-full"
+                >
+                  <h2 className="text-white font-bold text-lg mb-3 text-center">
+                    {t("tour.slide2a_title")}
+                  </h2>
+                  <p className="text-white/70 text-sm leading-relaxed mb-4">
+                    {t("tour.slide2a_body")}
                   </p>
+                  <motion.div className="bg-primary/10 border border-primary/20 rounded-xl p-4">
+                    <p className="text-primary/90 text-xs leading-relaxed">
+                      💡 {t("tour.slide2a_analogy")}
+                    </p>
+                  </motion.div>
+                </motion.div>
+                <motion.div variants={itemVariants}>
+                  <button
+                    onClick={() => goNext("2b")}
+                    className="w-full max-w-xs py-3 rounded-xl bg-primary text-white
+                    font-semibold text-sm hover:bg-primary/90 transition-colors"
+                  >
+                    {t("tour.next")}
+                  </button>
                 </motion.div>
               </motion.div>
-              <button
-                onClick={() => goNext("2b")}
-                className="w-full max-w-xs py-3 rounded-xl bg-primary text-white
-                  font-semibold text-sm hover:bg-primary/90 transition-colors"
-              >
-                {t("tour.next")}
-              </button>
             </motion.div>
           )}
 
@@ -658,61 +728,78 @@ export default function AppTour({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="flex flex-col items-center gap-5 max-w-md w-full"
             >
-              <SageOrb mode="talking" />
-              <SageBubble text={t("tour.slide2b_sage")} />
-              <motion.div className="grid grid-cols-2 gap-3 w-full">
-                {/* Web2 */}
-                <motion.div className="bg-zinc-900/80 border border-zinc-700/60 rounded-2xl p-4 backdrop-blur-sm">
-                  <p className="text-white/50 text-xs font-bold uppercase tracking-wider mb-3">
-                    {t("tour.slide2b_web2_title")}
-                  </p>
-                  <motion.div className="flex flex-col gap-2">
-                    <p className="text-white/70 text-xs">
-                      🏦 {t("tour.slide2b_web2_1")}
-                    </p>
-                    <p className="text-white/70 text-xs">
-                      📱 {t("tour.slide2b_web2_2")}
-                    </p>
-                    <p className="text-red-400 text-xs">
-                      ❌ {t("tour.slide2b_web2_3")}
-                    </p>
-                  </motion.div>
-                </motion.div>
-                {/* Web3 */}
-                <motion.div className="bg-primary/10 border border-primary/30 rounded-2xl p-4 backdrop-blur-sm">
-                  <p className="text-primary text-xs font-bold uppercase tracking-wider mb-3">
-                    {t("tour.slide2b_web3_title")}
-                  </p>
-                  <motion.div className="flex flex-col gap-2">
-                    <p className="text-white/70 text-xs">
-                      ⛓ {t("tour.slide2b_web3_1")}
-                    </p>
-                    <p className="text-white/70 text-xs">
-                      🔑 {t("tour.slide2b_web3_2")}
-                    </p>
-                    <p className="text-emerald-400 text-xs">
-                      ✅ {t("tour.slide2b_web3_3")}
-                    </p>
-                  </motion.div>
-                </motion.div>
-              </motion.div>
               <motion.div
-                className="bg-zinc-900/80 border border-zinc-700/60 rounded-xl px-5 py-3
-                backdrop-blur-sm w-full text-center"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                className="flex flex-col items-center gap-5 max-w-md w-full"
               >
-                <p className="text-white/60 text-xs">
-                  💡 {t("tour.slide2b_summary")}
-                </p>
+                <motion.div variants={itemVariants}>
+                  <SageOrb mode="talking" />
+                </motion.div>
+                <motion.div variants={itemVariants}>
+                  <SageBubble text={t("tour.slide2b_sage")} />
+                </motion.div>
+                <motion.div
+                  variants={itemVariants}
+                  className="grid grid-cols-2 gap-3 w-full"
+                >
+                  {/* Web2 */}
+                  <motion.div className="bg-zinc-900/80 border border-zinc-700/60 rounded-2xl p-4 backdrop-blur-sm">
+                    <p className="text-white/50 text-xs font-bold uppercase tracking-wider mb-3">
+                      {t("tour.slide2b_web2_title")}
+                    </p>
+                    <motion.div className="flex flex-col gap-2">
+                      <p className="text-white/70 text-xs">
+                        🏦 {t("tour.slide2b_web2_1")}
+                      </p>
+                      <p className="text-white/70 text-xs">
+                        📱 {t("tour.slide2b_web2_2")}
+                      </p>
+                      <p className="text-red-400 text-xs">
+                        ❌ {t("tour.slide2b_web2_3")}
+                      </p>
+                    </motion.div>
+                  </motion.div>
+                  {/* Web3 */}
+                  <motion.div className="bg-primary/10 border border-primary/30 rounded-2xl p-4 backdrop-blur-sm">
+                    <p className="text-primary text-xs font-bold uppercase tracking-wider mb-3">
+                      {t("tour.slide2b_web3_title")}
+                    </p>
+                    <motion.div className="flex flex-col gap-2">
+                      <p className="text-white/70 text-xs">
+                        ⛓ {t("tour.slide2b_web3_1")}
+                      </p>
+                      <p className="text-white/70 text-xs">
+                        🔑 {t("tour.slide2b_web3_2")}
+                      </p>
+                      <p className="text-emerald-400 text-xs">
+                        ✅ {t("tour.slide2b_web3_3")}
+                      </p>
+                    </motion.div>
+                  </motion.div>
+                </motion.div>
+                <motion.div
+                  variants={itemVariants}
+                  className="bg-zinc-900/80 border border-zinc-700/60 rounded-xl px-5 py-3
+                  backdrop-blur-sm w-full text-center"
+                >
+                  <p className="text-white/60 text-xs">
+                    💡 {t("tour.slide2b_summary")}
+                  </p>
+                </motion.div>
+                <motion.div variants={itemVariants}>
+                  <button
+                    onClick={() => goNext("3")}
+                    className="w-full max-w-xs py-3 rounded-xl bg-primary text-white
+                    font-semibold text-sm hover:bg-primary/90 transition-colors"
+                  >
+                    {t("tour.next")}
+                  </button>
+                </motion.div>
               </motion.div>
-              <button
-                onClick={() => goNext("3")}
-                className="w-full max-w-xs py-3 rounded-xl bg-primary text-white
-                  font-semibold text-sm hover:bg-primary/90 transition-colors"
-              >
-                {t("tour.next")}
-              </button>
             </motion.div>
           )}
 
@@ -723,33 +810,47 @@ export default function AppTour({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="flex flex-col items-center gap-5 max-w-md w-full"
             >
-              <SageOrb mode="serious" />
-              <SageBubble text={t("tour.slide3_sage")} />
               <motion.div
-                className="bg-zinc-900/80 border border-zinc-700/60 rounded-2xl p-5
-                backdrop-blur-sm w-full flex flex-col gap-4"
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                className="flex flex-col items-center gap-5 max-w-md w-full"
               >
-                <p className="text-white/80 text-sm leading-relaxed">
-                  {t("tour.slide3_body")}
-                </p>
-                <motion.div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
-                  <p className="text-amber-400 text-xs leading-relaxed">
-                    ⚠️ {t("tour.slide3_warning")}
+                <motion.div variants={itemVariants}>
+                  <SageOrb mode="serious" />
+                </motion.div>
+                <motion.div variants={itemVariants}>
+                  <SageBubble text={t("tour.slide3_sage")} />
+                </motion.div>
+                <motion.div
+                  variants={itemVariants}
+                  className="bg-zinc-900/80 border border-zinc-700/60 rounded-2xl p-5
+                  backdrop-blur-sm w-full flex flex-col gap-4"
+                >
+                  <p className="text-white/80 text-sm leading-relaxed">
+                    {t("tour.slide3_body")}
+                  </p>
+                  <motion.div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
+                    <p className="text-amber-400 text-xs leading-relaxed">
+                      ⚠️ {t("tour.slide3_warning")}
+                    </p>
+                  </motion.div>
+                  <p className="text-white/70 text-sm leading-relaxed">
+                    {t("tour.slide3_blockid")}
                   </p>
                 </motion.div>
-                <p className="text-white/70 text-sm leading-relaxed">
-                  {t("tour.slide3_blockid")}
-                </p>
+                <motion.div variants={itemVariants}>
+                  <button
+                    onClick={() => goNext("4")}
+                    className="w-full max-w-xs py-3 rounded-xl bg-primary text-white
+                    font-semibold text-sm hover:bg-primary/90 transition-colors"
+                  >
+                    {t("tour.next")}
+                  </button>
+                </motion.div>
               </motion.div>
-              <button
-                onClick={() => goNext("4")}
-                className="w-full max-w-xs py-3 rounded-xl bg-primary text-white
-                  font-semibold text-sm hover:bg-primary/90 transition-colors"
-              >
-                {t("tour.next")}
-              </button>
             </motion.div>
           )}
 
