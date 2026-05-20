@@ -478,6 +478,24 @@ function HandleClaimForm({
   );
 }
 
+// ─── Quiz Feedback Variants ──────────────────────────────
+const shakeVariants = {
+  idle: { x: 0 },
+  shake: {
+    x: [0, -10, 10, -8, 8, -4, 4, 0],
+    transition: { duration: 0.5, ease: "easeInOut" },
+  },
+};
+
+const bounceVariants = {
+  idle: { scale: 1, y: 0 },
+  bounce: {
+    scale: [1, 1.15, 0.95, 1.08, 1],
+    y: [0, -12, 0, -6, 0],
+    transition: { duration: 0.6, ease: "easeOut" },
+  },
+};
+
 // ─── Stagger Variants ────────────────────────────────────
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -510,6 +528,9 @@ export default function AppTour({
   const navigate = useNavigate();
   const [slide, setSlide] = useState<string>("1");
   const [quizAnswer, setQuizAnswer] = useState<string | null>(null);
+  const [quizFeedback, setQuizFeedback] = useState<
+    "idle" | "correct" | "wrong"
+  >("idle");
   const [sageMode, setSageMode] = useState<SageMode>("idle");
 
   const completeTour = useCallback(async () => {
@@ -545,10 +566,13 @@ export default function AppTour({
     setQuizAnswer(answer);
     if (answer === CORRECT) {
       setSageMode("excited");
+      setQuizFeedback("correct");
       setTimeout(() => completeTour(), 2000);
     } else {
       setSageMode("serious");
+      setQuizFeedback("wrong");
       setTimeout(() => {
+        setQuizFeedback("idle");
         setSlide("2a");
         setSageMode("idle");
       }, 2000);
@@ -674,32 +698,54 @@ export default function AppTour({
                     }
                   />
                 </motion.div>
-                {!quizAnswer && (
-                  <>
-                    <motion.p
-                      variants={itemVariants}
-                      className="text-white font-semibold text-center"
-                    >
+                {(!quizAnswer || quizFeedback !== "idle") && (
+                  <motion.div
+                    variants={
+                      quizFeedback === "wrong"
+                        ? shakeVariants
+                        : quizFeedback === "correct"
+                          ? bounceVariants
+                          : itemVariants
+                    }
+                    animate={
+                      quizFeedback === "wrong"
+                        ? "shake"
+                        : quizFeedback === "correct"
+                          ? "bounce"
+                          : "visible"
+                    }
+                    className="flex flex-col gap-3 w-full"
+                  >
+                    <p className="text-white font-semibold text-center">
                       {t("tour.slide1b_question")}
-                    </motion.p>
-                    <motion.div
-                      variants={itemVariants}
-                      className="flex flex-col gap-2 w-full"
-                    >
+                    </p>
+                    <div className="flex flex-col gap-2 w-full">
                       {(["a", "b", "c", "d"] as const).map((opt) => (
-                        <button
+                        <motion.button
                           key={opt}
                           onClick={() => handleQuiz(opt)}
-                          className="w-full py-3 px-4 rounded-xl bg-zinc-800/80 border
-                            border-zinc-700 text-white/80 text-sm text-left
-                            hover:bg-zinc-700/80 hover:border-primary/50 transition-colors"
+                          whileHover={{
+                            scale: 1.02,
+                            borderColor: "rgba(99,102,241,0.6)",
+                          }}
+                          whileTap={{ scale: 0.98 }}
+                          transition={{ duration: 0.15 }}
+                          className={`w-full py-3 px-4 rounded-xl border text-sm text-left
+                            transition-colors
+                            ${
+                              quizAnswer === opt && opt === CORRECT
+                                ? "bg-emerald-500/20 border-emerald-500/60 text-emerald-400"
+                                : quizAnswer === opt
+                                  ? "bg-red-500/20 border-red-500/60 text-red-400"
+                                  : "bg-zinc-800/80 border-zinc-700 text-white/80"
+                            }`}
                         >
                           {String.fromCharCode(65 + ["a", "b", "c", "d"].indexOf(opt))}.{" "}
                           {t(`tour.slide1b_${opt}`)}
-                        </button>
+                        </motion.button>
                       ))}
-                    </motion.div>
-                  </>
+                    </div>
+                  </motion.div>
                 )}
               </motion.div>
             </motion.div>
