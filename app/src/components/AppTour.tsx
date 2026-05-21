@@ -338,7 +338,7 @@ function LanguagePicker() {
   );
 }
 
-const SLIDE_ORDER = ["1", "1b", "2a", "2b", "3", "4a", "4b", "5a", "5b", "6", "7"];
+const SLIDE_ORDER = ["1", "1b", "2a", "2b", "3", "4a", "4b", "5a", "5a2", "5b", "6", "7"];
 
 function TourProgressBar({ current }: { current: string }) {
   const index = SLIDE_ORDER.indexOf(current);
@@ -543,6 +543,7 @@ export default function AppTour({
     if (prev === "4a") navigate("/");
     if (prev === "4b") navigate("/");
     if (prev === "5a") navigate("/profile");
+    if (prev === "5a2") navigate("/profile");
     if (prev === "5b") navigate("/profile");
     if (prev === "6") navigate("/router");
     if (prev === "7") navigate("/identity");
@@ -558,6 +559,7 @@ export default function AppTour({
       if (target === "4a") navigate("/");
       if (target === "4b") navigate("/");
       if (target === "5a") navigate("/profile");
+      if (target === "5a2") navigate("/profile");
       if (target === "5b") navigate("/profile");
       if (target === "6") navigate("/router");
       if (target === "7") navigate("/identity");
@@ -596,7 +598,7 @@ export default function AppTour({
       )}
 
       {/* Layer 2: Overlay + Spotlight */}
-      {["4a", "4b", "5a", "5b", "6", "7"].includes(slide) && (
+      {["4a", "4b", "5a", "5a2", "5b", "6", "7"].includes(slide) && (
         <div className="fixed inset-0 z-[101] pointer-events-none">
           <div className="absolute inset-0 bg-black/30" />
         </div>
@@ -1045,7 +1047,7 @@ export default function AppTour({
             </>
           )}
 
-          {/* ── SLIDE 5a (overlay Profile — info) ── */}
+          {/* ── SLIDE 5a (overlay Profile — identity) ── */}
           {slide === "5a" && (
             <>
               <Spotlight selector=".glass-card" />
@@ -1058,10 +1060,51 @@ export default function AppTour({
                 className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px]
                   max-w-[95vw] z-[115] pointer-events-auto px-6 pt-5 pb-8"
               >
-                <div className="flex items-start gap-4">
-                  <div className="shrink-0"><SageOrb mode="talking" /></div>
-                  <div className="flex flex-col gap-3 flex-1">
+                <div className="flex flex-col items-center gap-4">
+                  <SageOrb mode="talking" />
+                  <div className="flex flex-col gap-3 w-full">
                     <SageBubble text={t("tour.slide5_sage1")} />
+                    <div className="flex gap-2 w-full mt-1">
+                      <motion.button
+                        onClick={goBack}
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        className="w-1/4 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700
+                          text-white/60 text-sm font-semibold"
+                      >
+                        Back
+                      </motion.button>
+                      <motion.button
+                        onClick={() => goNext("5a2")}
+                        whileHover={{ scale: 1.03, boxShadow: "0 0 20px rgba(99,102,241,0.5)" }}
+                        whileTap={{ scale: 0.97 }}
+                        className="flex-1 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm"
+                      >
+                        {t("tour.next")}
+                      </motion.button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </>
+          )}
+
+          {/* ── SLIDE 5a2 (overlay Profile — trust score) ── */}
+          {slide === "5a2" && (
+            <>
+              <Spotlight selector="span.px-2.py-0\.5.rounded-full.text-xs.font-bold.bg-orange-500\/20.text-orange-400" />
+              <motion.div
+                key="s5a2"
+                initial={{ opacity: 0, y: 60 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 60 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px]
+                  max-w-[95vw] z-[115] pointer-events-auto px-6 pt-5 pb-8"
+              >
+                <div className="flex flex-col items-center gap-4">
+                  <SageOrb mode="talking" />
+                  <div className="flex flex-col gap-3 w-full">
                     <SageBubble text={t("tour.slide5_trust")} />
                     <div className="flex gap-2 w-full mt-1">
                       <motion.button
