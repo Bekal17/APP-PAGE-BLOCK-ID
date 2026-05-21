@@ -360,11 +360,10 @@ function TourProgressBar({ current }: { current: string }) {
 function FloatingOrb({ mode }: { mode: SageMode }) {
   return (
     <div
-      className="fixed z-[130] pointer-events-none"
+      className="absolute z-[130] pointer-events-none"
       style={{
-        bottom: "248px",
-        left: "50%",
-        transform: "translateX(-280px)",
+        top: "-100px",
+        left: "40px",
       }}
     >
       <SageOrb mode={mode} />
@@ -989,7 +988,7 @@ export default function AppTour({
                 className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px]
                   max-w-[95vw] z-[115] bg-zinc-950 border-t border-zinc-800/60
                   shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6
-                  min-h-[200px]"
+                  min-h-[200px] relative overflow-visible"
               >
                 <FloatingOrb mode="excited" />
                 <div className="flex flex-col gap-3">
@@ -1031,7 +1030,7 @@ export default function AppTour({
                 className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px]
                   max-w-[95vw] z-[115] bg-zinc-950 border-t border-zinc-800/60
                   shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6
-                  min-h-[200px]"
+                  min-h-[200px] relative overflow-visible"
               >
                 <FloatingOrb mode="serious" />
                 <div className="flex flex-col gap-3">
@@ -1073,7 +1072,7 @@ export default function AppTour({
                 className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px]
                   max-w-[95vw] z-[115] bg-zinc-950 border-t border-zinc-800/60
                   shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6
-                  min-h-[200px]"
+                  min-h-[200px] relative overflow-visible"
               >
                 <FloatingOrb mode="talking" />
                 <div className="flex flex-col gap-3">
@@ -1115,7 +1114,7 @@ export default function AppTour({
                 className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px]
                   max-w-[95vw] z-[115] bg-zinc-950 border-t border-zinc-800/60
                   shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6
-                  min-h-[200px]"
+                  min-h-[200px] relative overflow-visible"
               >
                 <FloatingOrb mode="excited" />
                 <div className="flex flex-col gap-3">
@@ -1153,7 +1152,7 @@ export default function AppTour({
                 className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px]
                   max-w-[95vw] z-[115] bg-zinc-950 border-t border-zinc-800/60
                   shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6
-                  min-h-[200px]"
+                  min-h-[200px] relative overflow-visible"
               >
                 <FloatingOrb mode="excited" />
                 <div className="flex flex-col gap-3">
@@ -1196,7 +1195,7 @@ export default function AppTour({
                 className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px]
                   max-w-[95vw] z-[115] bg-zinc-950 border-t border-zinc-800/60
                   shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6
-                  min-h-[200px]"
+                  min-h-[200px] relative overflow-visible"
               >
                 <FloatingOrb mode="excited" />
                 <div className="flex flex-col gap-3">
