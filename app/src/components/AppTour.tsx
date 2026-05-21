@@ -33,22 +33,32 @@ function SageOrb({ mode }: { mode: SageMode }) {
 
   return (
     <div className="flex flex-col items-center gap-3">
-      <motion.div
-        animate={{
-          scale: [1, 1.08, 1],
-          boxShadow: [
-            `0 0 32px 8px ${glow[mode]}`,
-            `0 0 56px 16px ${glow[mode]}`,
-            `0 0 32px 8px ${glow[mode]}`,
-          ],
-        }}
-        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-        style={{
-          background: `radial-gradient(circle, white 0%, ${colors[mode]} 60%, transparent 100%)`,
-          transition: "background 0.6s ease, box-shadow 0.6s ease",
-        }}
-        className="w-16 h-16 rounded-full"
-      />
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={mode}
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{
+            opacity: 1,
+            scale: [1, 1.08, 1],
+            boxShadow: [
+              `0 0 32px 8px ${glow[mode]}`,
+              `0 0 56px 16px ${glow[mode]}`,
+              `0 0 32px 8px ${glow[mode]}`,
+            ],
+          }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{
+            opacity: { duration: 0.2 },
+            scale: { duration: 2, repeat: Infinity, ease: "easeInOut" as Easing },
+            boxShadow: { duration: 2, repeat: Infinity, ease: "easeInOut" as Easing },
+          }}
+          style={{
+            background: `radial-gradient(circle, white 0%, ${colors[mode]} 60%, transparent 100%)`,
+            transition: "background 0.6s ease, box-shadow 0.6s ease",
+          }}
+          className="w-16 h-16 rounded-full"
+        />
+      </AnimatePresence>
       <span className="text-xs text-white/60 font-medium tracking-widest uppercase">
         @sage
       </span>
@@ -250,12 +260,14 @@ function Spotlight({ selector }: { selector: string }) {
   const [rect, setRect] = useState<DOMRect | null>(null);
 
   useEffect(() => {
-    const el = document.querySelector(selector);
-    if (!el) return;
-    const r = el.getBoundingClientRect();
-    setRect(r);
-    // Scroll element into view
-    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    const timer = setTimeout(() => {
+      const el = document.querySelector(selector);
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      setRect(r);
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 300);
+    return () => clearTimeout(timer);
   }, [selector]);
 
   if (!rect) return null;
@@ -508,6 +520,15 @@ const itemVariants = {
   },
 };
 
+// ─── Slide Direction Variants ────────────────────────────
+const slideVariants = {
+  enterNext: { opacity: 0, x: 48, y: 0 },
+  enterBack: { opacity: 0, x: -48, y: 0 },
+  center: { opacity: 1, x: 0, y: 0, transition: { duration: 0.35, ease: "easeOut" as Easing } },
+  exitNext: { opacity: 0, x: -48, y: 0, transition: { duration: 0.25, ease: "easeIn" as Easing } },
+  exitBack: { opacity: 0, x: 48, y: 0, transition: { duration: 0.25, ease: "easeIn" as Easing } },
+};
+
 // ─── Main AppTour Component ──────────────────────────────
 export default function AppTour({
   wallet,
@@ -522,6 +543,7 @@ export default function AppTour({
     "idle" | "correct" | "wrong"
   >("idle");
   const [sageMode, setSageMode] = useState<SageMode>("idle");
+  const [direction, setDirection] = useState<"next" | "back">("next");
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -544,6 +566,7 @@ export default function AppTour({
   }, [wallet, sessionToken, onComplete]);
 
   const goBack = useCallback(() => {
+    setDirection("back");
     const index = SLIDE_ORDER.indexOf(slide);
     if (index <= 0) return;
     const prev = SLIDE_ORDER[index - 1];
@@ -560,6 +583,7 @@ export default function AppTour({
 
   const goNext = useCallback(
     (target: string) => {
+      setDirection("next");
       setSageMode("talking");
       setTimeout(() => setSageMode("idle"), 1000);
       // Navigate to real pages for overlay slides
@@ -629,9 +653,12 @@ export default function AppTour({
           {slide === "1" && (
             <motion.div
               key="s1"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
+              custom={direction}
+              variants={slideVariants}
+              initial={direction === "next" ? "enterNext" : "enterBack"}
+              animate="center"
+              exit={direction === "next" ? "exitNext" : "exitBack"}
+              transition={{ duration: 0.35, ease: "easeOut" as Easing }}
             >
               <motion.div
                 variants={containerVariants}
@@ -690,9 +717,12 @@ export default function AppTour({
           {slide === "1b" && (
             <motion.div
               key="s1b"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
+              custom={direction}
+              variants={slideVariants}
+              initial={direction === "next" ? "enterNext" : "enterBack"}
+              animate="center"
+              exit={direction === "next" ? "exitNext" : "exitBack"}
+              transition={{ duration: 0.35, ease: "easeOut" as Easing }}
             >
               <motion.div
                 variants={containerVariants}
@@ -772,9 +802,12 @@ export default function AppTour({
           {slide === "2a" && (
             <motion.div
               key="s2a"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
+              custom={direction}
+              variants={slideVariants}
+              initial={direction === "next" ? "enterNext" : "enterBack"}
+              animate="center"
+              exit={direction === "next" ? "exitNext" : "exitBack"}
+              transition={{ duration: 0.35, ease: "easeOut" as Easing }}
             >
               <motion.div
                 variants={containerVariants}
@@ -829,9 +862,12 @@ export default function AppTour({
           {slide === "2b" && (
             <motion.div
               key="s2b"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
+              custom={direction}
+              variants={slideVariants}
+              initial={direction === "next" ? "enterNext" : "enterBack"}
+              animate="center"
+              exit={direction === "next" ? "exitNext" : "exitBack"}
+              transition={{ duration: 0.35, ease: "easeOut" as Easing }}
             >
               <motion.div
                 variants={containerVariants}
@@ -917,9 +953,12 @@ export default function AppTour({
           {slide === "3" && (
             <motion.div
               key="s3"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
+              custom={direction}
+              variants={slideVariants}
+              initial={direction === "next" ? "enterNext" : "enterBack"}
+              animate="center"
+              exit={direction === "next" ? "exitNext" : "exitBack"}
+              transition={{ duration: 0.35, ease: "easeOut" as Easing }}
             >
               <motion.div
                 variants={containerVariants}
@@ -976,10 +1015,10 @@ export default function AppTour({
               <Spotlight selector="div.glass-card.p-4.flex.gap-3.animate-slide-up" />
               <motion.div
                 key="s4a"
-                initial={{ opacity: 0, y: 60 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 60 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
+                initial={{ opacity: 0, x: direction === "next" ? 48 : -48, y: 0 }}
+                animate={{ opacity: 1, x: 0, y: 0 }}
+                exit={{ opacity: 0, x: direction === "next" ? -48 : 48, y: 0 }}
+                transition={{ duration: 0.35, ease: "easeOut" as Easing }}
                 className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px]
                   max-w-[95vw] z-[115] pointer-events-auto px-6 pt-5 pb-8"
               >
@@ -1018,10 +1057,10 @@ export default function AppTour({
               <Spotlight selector={".glass-card .text-amber-500\\/70"} />
               <motion.div
                 key="s4b"
-                initial={{ opacity: 0, y: 60 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 60 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
+                initial={{ opacity: 0, x: direction === "next" ? 48 : -48, y: 0 }}
+                animate={{ opacity: 1, x: 0, y: 0 }}
+                exit={{ opacity: 0, x: direction === "next" ? -48 : 48, y: 0 }}
+                transition={{ duration: 0.35, ease: "easeOut" as Easing }}
                 className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px]
                   max-w-[95vw] z-[115] pointer-events-auto px-6 pt-5 pb-8"
               >
@@ -1060,10 +1099,10 @@ export default function AppTour({
               <Spotlight selector=".flex-1.pb-2.mt-20" />
               <motion.div
                 key="s5a"
-                initial={{ opacity: 0, y: 60 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 60 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
+                initial={{ opacity: 0, x: direction === "next" ? 48 : -48, y: 0 }}
+                animate={{ opacity: 1, x: 0, y: 0 }}
+                exit={{ opacity: 0, x: direction === "next" ? -48 : 48, y: 0 }}
+                transition={{ duration: 0.35, ease: "easeOut" as Easing }}
                 className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px]
                   max-w-[95vw] z-[115] pointer-events-auto px-6 pt-5 pb-8"
               >
@@ -1102,10 +1141,10 @@ export default function AppTour({
               <Spotlight selector="span.px-2.py-0\.5.rounded-full.text-xs.font-bold.bg-orange-500\/20.text-orange-400" />
               <motion.div
                 key="s5a2"
-                initial={{ opacity: 0, y: 60 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 60 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
+                initial={{ opacity: 0, x: direction === "next" ? 48 : -48, y: 0 }}
+                animate={{ opacity: 1, x: 0, y: 0 }}
+                exit={{ opacity: 0, x: direction === "next" ? -48 : 48, y: 0 }}
+                transition={{ duration: 0.35, ease: "easeOut" as Easing }}
                 className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px]
                   max-w-[95vw] z-[115] pointer-events-auto px-6 pt-5 pb-8"
               >
@@ -1143,10 +1182,10 @@ export default function AppTour({
             <>
               <motion.div
                 key="s5b"
-                initial={{ opacity: 0, y: 60 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 60 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
+                initial={{ opacity: 0, x: direction === "next" ? 48 : -48, y: 0 }}
+                animate={{ opacity: 1, x: 0, y: 0 }}
+                exit={{ opacity: 0, x: direction === "next" ? -48 : 48, y: 0 }}
+                transition={{ duration: 0.35, ease: "easeOut" as Easing }}
                 className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px]
                   max-w-[95vw] z-[115] pointer-events-auto px-6 pt-5 pb-8"
               >
@@ -1181,10 +1220,10 @@ export default function AppTour({
               <Spotlight selector="input[type='text']" />
               <motion.div
                 key="s6"
-                initial={{ opacity: 0, y: 60 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 60 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
+                initial={{ opacity: 0, x: direction === "next" ? 48 : -48, y: 0 }}
+                animate={{ opacity: 1, x: 0, y: 0 }}
+                exit={{ opacity: 0, x: direction === "next" ? -48 : 48, y: 0 }}
+                transition={{ duration: 0.35, ease: "easeOut" as Easing }}
                 className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px]
                   max-w-[95vw] z-[115] pointer-events-auto px-6 pt-5 pb-8"
               >
@@ -1224,10 +1263,10 @@ export default function AppTour({
               <Spotlight selector=".glass" />
               <motion.div
                 key="s7"
-                initial={{ opacity: 0, y: 60 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 60 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
+                initial={{ opacity: 0, x: direction === "next" ? 48 : -48, y: 0 }}
+                animate={{ opacity: 1, x: 0, y: 0 }}
+                exit={{ opacity: 0, x: direction === "next" ? -48 : 48, y: 0 }}
+                transition={{ duration: 0.35, ease: "easeOut" as Easing }}
                 className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px]
                   max-w-[95vw] z-[115] pointer-events-auto px-6 pt-5 pb-8"
               >
