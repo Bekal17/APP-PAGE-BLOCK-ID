@@ -357,14 +357,14 @@ function TourProgressBar({ current }: { current: string }) {
   );
 }
 
-function FloatingOrb({ mode, panelWidth = 600 }: { mode: SageMode; panelWidth?: number }) {
+function FloatingOrb({ mode }: { mode: SageMode }) {
   return (
     <div
       className="fixed z-[130] pointer-events-none"
       style={{
-        bottom: "200px",
+        bottom: "248px",
         left: "50%",
-        transform: `translateX(calc(-${panelWidth / 2}px + 40px))`,
+        transform: "translateX(-280px)",
       }}
     >
       <SageOrb mode={mode} />
@@ -988,7 +988,8 @@ export default function AppTour({
                 transition={{ duration: 0.4, ease: "easeOut" }}
                 className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px]
                   max-w-[95vw] z-[115] bg-zinc-950 border-t border-zinc-800/60
-                  shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6"
+                  shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6
+                  min-h-[200px]"
               >
                 <FloatingOrb mode="excited" />
                 <div className="flex flex-col gap-3">
@@ -1029,7 +1030,8 @@ export default function AppTour({
                 transition={{ duration: 0.4, ease: "easeOut" }}
                 className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px]
                   max-w-[95vw] z-[115] bg-zinc-950 border-t border-zinc-800/60
-                  shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6"
+                  shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6
+                  min-h-[200px]"
               >
                 <FloatingOrb mode="serious" />
                 <div className="flex flex-col gap-3">
@@ -1070,7 +1072,8 @@ export default function AppTour({
                 transition={{ duration: 0.4, ease: "easeOut" }}
                 className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px]
                   max-w-[95vw] z-[115] bg-zinc-950 border-t border-zinc-800/60
-                  shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6"
+                  shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6
+                  min-h-[200px]"
               >
                 <FloatingOrb mode="talking" />
                 <div className="flex flex-col gap-3">
@@ -1111,7 +1114,8 @@ export default function AppTour({
                 transition={{ duration: 0.4, ease: "easeOut" }}
                 className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px]
                   max-w-[95vw] z-[115] bg-zinc-950 border-t border-zinc-800/60
-                  shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6"
+                  shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6
+                  min-h-[200px]"
               >
                 <FloatingOrb mode="excited" />
                 <div className="flex flex-col gap-3">
@@ -1148,7 +1152,8 @@ export default function AppTour({
                 transition={{ duration: 0.4, ease: "easeOut" }}
                 className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px]
                   max-w-[95vw] z-[115] bg-zinc-950 border-t border-zinc-800/60
-                  shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6"
+                  shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6
+                  min-h-[200px]"
               >
                 <FloatingOrb mode="excited" />
                 <div className="flex flex-col gap-3">
@@ -1190,7 +1195,8 @@ export default function AppTour({
                 transition={{ duration: 0.4, ease: "easeOut" }}
                 className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px]
                   max-w-[95vw] z-[115] bg-zinc-950 border-t border-zinc-800/60
-                  shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6"
+                  shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6
+                  min-h-[200px]"
               >
                 <FloatingOrb mode="excited" />
                 <div className="flex flex-col gap-3">
