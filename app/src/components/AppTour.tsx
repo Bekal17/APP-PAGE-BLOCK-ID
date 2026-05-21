@@ -338,7 +338,7 @@ function LanguagePicker() {
   );
 }
 
-const SLIDE_ORDER = ["1", "1b", "2a", "2b", "3", "4", "5a", "5b", "6", "7"];
+const SLIDE_ORDER = ["1", "1b", "2a", "2b", "3", "4a", "4b", "5a", "5b", "6", "7"];
 
 function TourProgressBar({ current }: { current: string }) {
   const index = SLIDE_ORDER.indexOf(current);
@@ -555,7 +555,8 @@ export default function AppTour({
     const index = SLIDE_ORDER.indexOf(slide);
     if (index <= 0) return;
     const prev = SLIDE_ORDER[index - 1];
-    if (prev === "4") navigate("/");
+    if (prev === "4a") navigate("/");
+    if (prev === "4b") navigate("/");
     if (prev === "5a") navigate("/profile");
     if (prev === "5b") navigate("/profile");
     if (prev === "6") navigate("/router");
@@ -569,7 +570,8 @@ export default function AppTour({
       setSageMode("talking");
       setTimeout(() => setSageMode("idle"), 1000);
       // Navigate to real pages for overlay slides
-      if (target === "4") navigate("/");
+      if (target === "4a") navigate("/");
+      if (target === "4b") navigate("/");
       if (target === "5a") navigate("/profile");
       if (target === "5b") navigate("/profile");
       if (target === "6") navigate("/router");
@@ -609,7 +611,7 @@ export default function AppTour({
       )}
 
       {/* Layer 2: Overlay + Spotlight */}
-      {["4", "5a", "5b", "6", "7"].includes(slide) && (
+      {["4a", "4b", "5a", "5b", "6", "7"].includes(slide) && (
         <div className="fixed inset-0 z-[101] pointer-events-none">
           <div className="absolute inset-0 bg-black/30" />
         </div>
@@ -957,7 +959,7 @@ export default function AppTour({
                 </motion.div>
                 <motion.div variants={itemVariants}>
                   <motion.button
-                    onClick={() => goNext("4")}
+                    onClick={() => goNext("4a")}
                     whileHover={{
                       scale: 1.03,
                       boxShadow: "0 0 20px rgba(99,102,241,0.5)",
@@ -974,12 +976,11 @@ export default function AppTour({
             </motion.div>
           )}
 
-          {/* ── SLIDE 4 (overlay Dashboard) ── */}
-          {slide === "4" && (
+          {/* ── SLIDE 4a (Dashboard welcome) ── */}
+          {slide === "4a" && (
             <>
-              <Spotlight selector=".glass-card.p-4.flex.gap-3" />
               <motion.div
-                key="s4"
+                key="s4a"
                 initial={{ opacity: 0, y: 60 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 60 }}
@@ -991,6 +992,46 @@ export default function AppTour({
                 <FloatingOrb mode="excited" />
                 <div className="flex flex-col gap-3">
                   <SageBubble text={t("tour.slide4_sage1")} />
+                  <div className="flex gap-2 w-full mt-1">
+                    <motion.button
+                      onClick={goBack}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      className="w-1/4 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700
+                        text-white/60 text-sm font-semibold"
+                    >
+                      Back
+                    </motion.button>
+                    <motion.button
+                      onClick={() => goNext("4b")}
+                      whileHover={{ scale: 1.03, boxShadow: "0 0 20px rgba(99,102,241,0.5)" }}
+                      whileTap={{ scale: 0.97 }}
+                      className="flex-1 py-2.5 rounded-xl bg-primary text-white font-semibold text-sm"
+                    >
+                      {t("tour.next")}
+                    </motion.button>
+                  </div>
+                </div>
+              </motion.div>
+            </>
+          )}
+
+          {/* ── SLIDE 4b (Dashboard warning + spotlight) ── */}
+          {slide === "4b" && (
+            <>
+              <Spotlight selector={".glass-card .text-amber-500\\/70"} />
+              <motion.div
+                key="s4b"
+                initial={{ opacity: 0, y: 60 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 60 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px]
+                  max-w-[95vw] z-[115] bg-zinc-950 border-t border-zinc-800/60
+                  shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6"
+              >
+                <FloatingOrb mode="serious" />
+                <div className="flex flex-col gap-3">
                   <SageBubble text={t("tour.slide4_sage2")} />
                   <div className="flex gap-2 w-full mt-1">
                     <motion.button
