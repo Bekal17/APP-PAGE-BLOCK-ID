@@ -523,6 +523,13 @@ export default function AppTour({
   >("idle");
   const [sageMode, setSageMode] = useState<SageMode>("idle");
 
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
+
   const completeTour = useCallback(async () => {
     try {
       await fetch(`${API_BASE}/social/tour/complete`, {
@@ -1050,7 +1057,7 @@ export default function AppTour({
           {/* ── SLIDE 5a (overlay Profile — identity) ── */}
           {slide === "5a" && (
             <>
-              <Spotlight selector=".glass-card" />
+              <Spotlight selector=".flex-1.pb-2.mt-20" />
               <motion.div
                 key="s5a"
                 initial={{ opacity: 0, y: 60 }}
