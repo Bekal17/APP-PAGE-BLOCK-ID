@@ -979,6 +979,7 @@ export default function AppTour({
           {/* ── SLIDE 4a (Dashboard welcome) ── */}
           {slide === "4a" && (
             <>
+              <Spotlight selector="div.glass-card.p-4.flex.gap-3.animate-slide-up" />
               <motion.div
                 key="s4a"
                 initial={{ opacity: 0, y: 60 }}
