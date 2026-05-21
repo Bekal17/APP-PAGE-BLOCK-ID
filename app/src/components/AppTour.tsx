@@ -666,23 +666,34 @@ export default function AppTour({
           <LanguagePicker />
         </motion.div>
 
-        {/* Persistent SageOrb — always visible, animates position per slide group */}
-        <motion.div
-          key="persistent-orb"
-          animate={
-            ["1", "1b", "2a", "2b", "3"].includes(slide)
-              ? { position: "relative", x: 0, y: 0, scale: 1, opacity: 1 }
-              : { position: "fixed", x: 0, y: 0, scale: 0.85, opacity: 1 }
-          }
-          transition={{ duration: 0.5, ease: "easeInOut" }}
-          className={
-            ["1", "1b", "2a", "2b", "3"].includes(slide)
-              ? "flex flex-col items-center mb-6"
-              : "fixed bottom-24 left-1/2 -translate-x-[260px] z-[130]"
-          }
-        >
-          <SageOrb mode={sageMode} />
-        </motion.div>
+        {/* Persistent SageOrb — canvas slides: relative center top */}
+        {["1", "1b", "2a", "2b", "3"].includes(slide) && (
+          <motion.div
+            key="orb-canvas"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.4 }}
+            className="flex flex-col items-center mb-6"
+          >
+            <SageOrb mode={sageMode} />
+          </motion.div>
+        )}
+
+        {/* Persistent SageOrb — overlay slides: fixed bottom center-left of panel */}
+        {["4a", "4b", "5a", "5a2", "5b", "6", "7"].includes(slide) && (
+          <motion.div
+            key="orb-overlay"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.4 }}
+            className="fixed z-[130] pointer-events-none"
+            style={{ bottom: "180px", left: "50%", transform: "translateX(-260px)" }}
+          >
+            <SageOrb mode={sageMode} />
+          </motion.div>
+        )}
 
         <AnimatePresence mode="wait">
           {/* ── SLIDE 1 ── */}
