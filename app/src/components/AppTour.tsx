@@ -972,8 +972,7 @@ export default function AppTour({
                 exit={{ opacity: 0, y: 60 }}
                 transition={{ duration: 0.4, ease: "easeOut" }}
                 className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px]
-                  max-w-[95vw] z-[115] bg-zinc-950 border-t border-zinc-800/60
-                  shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6"
+                  max-w-[95vw] z-[115] pointer-events-auto px-6 pt-5 pb-8"
               >
                 <div className="flex items-start gap-4">
                   <div className="shrink-0"><SageOrb mode="excited" /></div>
@@ -1015,8 +1014,7 @@ export default function AppTour({
                 exit={{ opacity: 0, y: 60 }}
                 transition={{ duration: 0.4, ease: "easeOut" }}
                 className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px]
-                  max-w-[95vw] z-[115] bg-zinc-950 border-t border-zinc-800/60
-                  shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6"
+                  max-w-[95vw] z-[115] pointer-events-auto px-6 pt-5 pb-8"
               >
                 <div className="flex items-start gap-4">
                   <div className="shrink-0"><SageOrb mode="serious" /></div>
@@ -1058,8 +1056,7 @@ export default function AppTour({
                 exit={{ opacity: 0, y: 60 }}
                 transition={{ duration: 0.4, ease: "easeOut" }}
                 className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px]
-                  max-w-[95vw] z-[115] bg-zinc-950 border-t border-zinc-800/60
-                  shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6"
+                  max-w-[95vw] z-[115] pointer-events-auto px-6 pt-5 pb-8"
               >
                 <div className="flex items-start gap-4">
                   <div className="shrink-0"><SageOrb mode="talking" /></div>
@@ -1101,8 +1098,7 @@ export default function AppTour({
                 exit={{ opacity: 0, y: 60 }}
                 transition={{ duration: 0.4, ease: "easeOut" }}
                 className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px]
-                  max-w-[95vw] z-[115] bg-zinc-950 border-t border-zinc-800/60
-                  shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6"
+                  max-w-[95vw] z-[115] pointer-events-auto px-6 pt-5 pb-8"
               >
                 <div className="flex items-start gap-4">
                   <div className="shrink-0"><SageOrb mode="excited" /></div>
@@ -1140,8 +1136,7 @@ export default function AppTour({
                 exit={{ opacity: 0, y: 60 }}
                 transition={{ duration: 0.4, ease: "easeOut" }}
                 className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px]
-                  max-w-[95vw] z-[115] bg-zinc-950 border-t border-zinc-800/60
-                  shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6"
+                  max-w-[95vw] z-[115] pointer-events-auto px-6 pt-5 pb-8"
               >
                 <div className="flex items-start gap-4">
                   <div className="shrink-0"><SageOrb mode="excited" /></div>
@@ -1184,8 +1179,7 @@ export default function AppTour({
                 exit={{ opacity: 0, y: 60 }}
                 transition={{ duration: 0.4, ease: "easeOut" }}
                 className="fixed bottom-0 left-1/2 -translate-x-1/2 w-[600px]
-                  max-w-[95vw] z-[115] bg-zinc-950 border-t border-zinc-800/60
-                  shadow-2xl pointer-events-auto rounded-t-2xl px-6 pt-5 pb-6"
+                  max-w-[95vw] z-[115] pointer-events-auto px-6 pt-5 pb-8"
               >
                 <div className="flex items-start gap-4">
                   <div className="shrink-0"><SageOrb mode="excited" /></div>
