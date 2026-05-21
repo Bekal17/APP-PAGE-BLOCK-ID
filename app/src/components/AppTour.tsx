@@ -1062,7 +1062,7 @@ export default function AppTour({
           {/* ── SLIDE 4b (Dashboard warning + spotlight) ── */}
           {slide === "4b" && (
             <>
-              <Spotlight selector={".glass-card .text-amber-500\\/70"} />
+              <Spotlight selector=".text-amber-500\\/70" />
               <motion.div
                 key="s4b"
                 initial={{ opacity: 0, x: direction === "next" ? 48 : -48, y: 0 }}
