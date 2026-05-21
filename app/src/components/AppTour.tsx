@@ -1268,7 +1268,7 @@ export default function AppTour({
           {/* ── SLIDE 7 (overlay Identity) ── */}
           {slide === "7" && (
             <>
-              <Spotlight selector=".glass" />
+              <Spotlight selector="div.glass-card.p-5:has(h3)" />
               <motion.div
                 key="s7"
                 initial={{ opacity: 0, x: direction === "next" ? 48 : -48, y: 0 }}
