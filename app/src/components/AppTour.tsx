@@ -656,6 +656,18 @@ export default function AppTour({
           <LanguagePicker />
         </motion.div>
 
+        {/* Persistent SageOrb for canvas slides 1-3 */}
+        {["1", "1b", "2a", "2b", "3"].includes(slide) && (
+          <motion.div
+            key="persistent-orb"
+            className="flex flex-col items-center mb-6"
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <SageOrb mode={sageMode} />
+          </motion.div>
+        )}
+
         <AnimatePresence mode="wait">
           {/* ── SLIDE 1 ── */}
           {slide === "1" && (
@@ -675,9 +687,6 @@ export default function AppTour({
                 exit="exit"
                 className="flex flex-col items-center gap-6 max-w-sm w-full"
               >
-                <motion.div variants={itemVariants}>
-                  <SageOrb mode={sageMode} />
-                </motion.div>
                 <motion.div variants={itemVariants}>
                   <SageBubble text={t("tour.slide1_greeting")} />
                 </motion.div>
@@ -739,9 +748,6 @@ export default function AppTour({
                 exit="exit"
                 className="flex flex-col items-center gap-6 max-w-sm w-full"
               >
-                <motion.div variants={itemVariants}>
-                  <SageOrb mode={sageMode} />
-                </motion.div>
                 <motion.div variants={itemVariants}>
                   <SageBubble
                     text={
@@ -825,9 +831,6 @@ export default function AppTour({
                 className="flex flex-col items-center gap-5 max-w-md w-full"
               >
                 <motion.div variants={itemVariants}>
-                  <SageOrb mode="talking" />
-                </motion.div>
-                <motion.div variants={itemVariants}>
                   <SageBubble text={t("tour.slide2a_sage")} />
                 </motion.div>
                 <motion.div
@@ -884,9 +887,6 @@ export default function AppTour({
                 exit="exit"
                 className="flex flex-col items-center gap-5 max-w-md w-full"
               >
-                <motion.div variants={itemVariants}>
-                  <SageOrb mode="talking" />
-                </motion.div>
                 <motion.div variants={itemVariants}>
                   <SageBubble text={t("tour.slide2b_sage")} />
                 </motion.div>
@@ -975,9 +975,6 @@ export default function AppTour({
                 exit="exit"
                 className="flex flex-col items-center gap-5 max-w-md w-full"
               >
-                <motion.div variants={itemVariants}>
-                  <SageOrb mode="serious" />
-                </motion.div>
                 <motion.div variants={itemVariants}>
                   <SageBubble text={t("tour.slide3_sage")} />
                 </motion.div>
