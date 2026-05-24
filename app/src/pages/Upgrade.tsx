@@ -109,10 +109,10 @@ export default function Upgrade() {
       lastValidBlockHeight = result.lastValidBlockHeight;
     }
 
-    const tx = new Transaction({
-      recentBlockhash: blockhash,
-      feePayer: publicKey,
-    }).add(
+    const tx = new Transaction();
+    tx.recentBlockhash = blockhash;
+    tx.feePayer = publicKey;
+    tx.add(
       createTransferInstruction(
         fromATA,
         toATA,
@@ -122,7 +122,8 @@ export default function Upgrade() {
         TOKEN_PROGRAM_ID
       )
     );
-
+    // Compile transaction before signing (required by Phantom)
+    tx.compileMessage();
     const signed = await signTransaction(tx);
     const serialized = typeof (signed as any).serialize === "function"
       ? (signed as any).serialize()
@@ -166,17 +167,18 @@ export default function Upgrade() {
       lastValidBlockHeight = result.lastValidBlockHeight;
     }
 
-    const tx = new Transaction({
-      recentBlockhash: blockhash,
-      feePayer: publicKey,
-    }).add(
+    const tx = new Transaction();
+    tx.recentBlockhash = blockhash;
+    tx.feePayer = publicKey;
+    tx.add(
       SystemProgram.transfer({
         fromPubkey: publicKey,
         toPubkey: TREASURY,
         lamports,
       })
     );
-
+    // Compile transaction before signing (required by Phantom)
+    tx.compileMessage();
     const signed = await signTransaction(tx);
     const serialized = typeof (signed as any).serialize === "function"
       ? (signed as any).serialize()
