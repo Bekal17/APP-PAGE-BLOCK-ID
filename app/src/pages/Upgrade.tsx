@@ -52,7 +52,7 @@ const PLANS: Record<
 export default function Upgrade() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { publicKey, signTransaction } = useBlockIDWallet();
+  const { publicKey, signTransaction, isPrivyWallet } = useBlockIDWallet();
   const { connection } = useConnection();
   const sub = useSubscription();
   const { toast } = useToast();
@@ -124,8 +124,8 @@ export default function Upgrade() {
     );
 
     const signed = await signTransaction(tx);
-    const serialized = signed instanceof Transaction
-      ? signed.serialize()
+    const serialized = typeof (signed as any).serialize === "function"
+      ? (signed as any).serialize()
       : Buffer.from((signed as any).serializedTransaction ?? (signed as any).transaction, "base64");
     const sig = await connection.sendRawTransaction(serialized);
     await connection.confirmTransaction(
@@ -178,8 +178,8 @@ export default function Upgrade() {
     );
 
     const signed = await signTransaction(tx);
-    const serialized = signed instanceof Transaction
-      ? signed.serialize()
+    const serialized = typeof (signed as any).serialize === "function"
+      ? (signed as any).serialize()
       : Buffer.from((signed as any).serializedTransaction ?? (signed as any).transaction, "base64");
     const sig = await connection.sendRawTransaction(serialized);
     await connection.confirmTransaction(
@@ -195,6 +195,13 @@ export default function Upgrade() {
       toast({
         title: t("upgrade.connect_wallet_first", "Connect your wallet first"),
         variant: "destructive",
+      });
+      return;
+    }
+    if (isPrivyWallet) {
+      toast({
+        title: "🚧 Coming soon for Google login",
+        description: "Upgrade payment via Google login is coming soon. Please connect a Phantom wallet to upgrade.",
       });
       return;
     }
