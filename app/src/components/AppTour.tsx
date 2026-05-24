@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence, type Easing } from "framer-motion";
+import { getSessionToken } from "@/services/blockidApi";
 
 const API_BASE =
   import.meta.env.VITE_EXPLORER_API_URL ||
@@ -562,10 +563,11 @@ export default function AppTour({
 
   const completeTour = useCallback(async () => {
     try {
+      const token = sessionToken || getSessionToken() || "";
       await fetch(`${API_BASE}/social/tour/complete`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ wallet, session_token: sessionToken }),
+        body: JSON.stringify({ wallet, session_token: token }),
       });
     } catch {
       /* silent */
