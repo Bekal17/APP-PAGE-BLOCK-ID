@@ -243,10 +243,6 @@ export default function Upgrade() {
       // Show welcome modal instead of reload
       setShowWelcome({ plan, period: billing });
     } catch (err: unknown) {
-      console.error("[handleUpgrade] caught error:", err);
-      console.error("[handleUpgrade] error type:", typeof err);
-      console.error("[handleUpgrade] error constructor:", (err as any)?.constructor?.name);
-      console.error("[handleUpgrade] error message:", (err as any)?.message);
       const msg =
         err instanceof Error
           ? err.message
