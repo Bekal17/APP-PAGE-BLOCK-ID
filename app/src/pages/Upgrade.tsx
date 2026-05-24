@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { useConnection } from "@solana/wallet-adapter-react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
 import {
   PublicKey,
@@ -52,7 +52,9 @@ const PLANS: Record<
 export default function Upgrade() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { publicKey, signTransaction, isPrivyWallet } = useBlockIDWallet();
+  const { publicKey, isPrivyWallet } = useBlockIDWallet();
+  const { signTransaction, publicKey: phantomPublicKey } = useWallet();
+  const effectivePublicKey = phantomPublicKey ?? publicKey;
   const { connection } = useConnection();
   const sub = useSubscription();
   const { toast } = useToast();
@@ -88,11 +90,11 @@ export default function Upgrade() {
     plan: "explorer" | "pro",
     period: "monthly" | "annual"
   ) => {
-    if (!publicKey || !signTransaction) return;
+    if (!effectivePublicKey || !signTransaction) return;
     const amount = PLANS[plan][period];
     const amountRaw = Math.round(amount * 1_000_000); // USDC 6 decimals
 
-    const fromATA = await getAssociatedTokenAddress(USDC_MINT, publicKey);
+    const fromATA = await getAssociatedTokenAddress(USDC_MINT, effectivePublicKey);
     const toATA = await getAssociatedTokenAddress(USDC_MINT, TREASURY);
 
     let blockhash: string;
@@ -111,12 +113,12 @@ export default function Upgrade() {
 
     const tx = new Transaction();
     tx.recentBlockhash = blockhash;
-    tx.feePayer = publicKey;
+    tx.feePayer = effectivePublicKey;
     tx.add(
       createTransferInstruction(
         fromATA,
         toATA,
-        publicKey,
+        effectivePublicKey,
         amountRaw,
         [],
         TOKEN_PROGRAM_ID
@@ -141,7 +143,7 @@ export default function Upgrade() {
     plan: "explorer" | "pro",
     period: "monthly" | "annual"
   ) => {
-    if (!publicKey || !signTransaction) return;
+    if (!effectivePublicKey || !signTransaction) return;
     const price = await fetchSolPrice();
     if (!price)
       throw new Error(
@@ -169,10 +171,10 @@ export default function Upgrade() {
 
     const tx = new Transaction();
     tx.recentBlockhash = blockhash;
-    tx.feePayer = publicKey;
+    tx.feePayer = effectivePublicKey;
     tx.add(
       SystemProgram.transfer({
-        fromPubkey: publicKey,
+        fromPubkey: effectivePublicKey,
         toPubkey: TREASURY,
         lamports,
       })
