@@ -57,7 +57,23 @@ export default function SolanaWalletProvider({
       }}
     >
       <ConnectionProvider endpoint={RPC_URL}>
-        <WalletProvider wallets={wallets} autoConnect={!intentionalLogout}>
+        <WalletProvider
+          wallets={wallets}
+          autoConnect={!intentionalLogout}
+          onError={(error) => {
+            const msg = error?.message ?? "";
+            // Suppress internal wallet adapter errors that don't affect functionality
+            if (
+              msg.includes("not iterable") ||
+              msg.includes("fall off the curve") ||
+              msg.includes("read only property") ||
+              msg.includes("WalletNotSelected")
+            ) {
+              return;
+            }
+            console.warn("[WalletProvider] error:", error);
+          }}
+        >
           <WalletModalProvider>
             {children}
           </WalletModalProvider>
