@@ -69,32 +69,18 @@ export default function Upgrade() {
     period: string;
   } | null>(null);
 
-  // Fetch SOL price from Jupiter
-  const fetchSolPrice = async () => {
-    // Try Jupiter v2 first, fallback to CoinGecko
-    let price = 0;
+  const fetchSolPrice = async (): Promise<number> => {
     try {
       const res = await fetch(
-        "https://api.jup.ag/price/v2?ids=So11111111111111111111111111111111111111112"
+        "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
       );
       const data = await res.json();
-      price =
-        data?.data?.["So11111111111111111111111111111111111111112"]
-          ?.price ?? 0;
+      const price = Number(data?.solana?.usd ?? 0);
+      if (price > 0) setSolPrice(price);
+      return price;
     } catch {
-      // fallback to CoinGecko
-      try {
-        const res = await fetch(
-          "https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd"
-        );
-        const data = await res.json();
-        price = data?.solana?.usd ?? 0;
-      } catch {
-        price = 0;
-      }
+      return 0;
     }
-    setSolPrice(price);
-    return price;
   };
 
   // Pay with USDC
