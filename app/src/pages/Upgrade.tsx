@@ -124,7 +124,10 @@ export default function Upgrade() {
     );
 
     const signed = await signTransaction(tx);
-    const sig = await connection.sendRawTransaction(signed.serialize());
+    const serialized = signed instanceof Transaction
+      ? signed.serialize()
+      : Buffer.from((signed as any).serializedTransaction ?? (signed as any).transaction, "base64");
+    const sig = await connection.sendRawTransaction(serialized);
     await connection.confirmTransaction(
       { signature: sig, blockhash, lastValidBlockHeight },
       "confirmed"
@@ -175,7 +178,10 @@ export default function Upgrade() {
     );
 
     const signed = await signTransaction(tx);
-    const sig = await connection.sendRawTransaction(signed.serialize());
+    const serialized = signed instanceof Transaction
+      ? signed.serialize()
+      : Buffer.from((signed as any).serializedTransaction ?? (signed as any).transaction, "base64");
+    const sig = await connection.sendRawTransaction(serialized);
     await connection.confirmTransaction(
       { signature: sig, blockhash, lastValidBlockHeight },
       "confirmed"
