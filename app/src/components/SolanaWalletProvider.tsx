@@ -4,7 +4,7 @@ import { toSolanaWalletConnectors } from '@privy-io/react-auth/solana';
 import { createSolanaRpc, createSolanaRpcSubscriptions } from '@solana/kit';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
-import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
+import { SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
 import '@solana/wallet-adapter-react-ui/styles.css';
 
 const intentionalLogout = localStorage.getItem("blockid_logged_out") === "true";
@@ -14,7 +14,6 @@ const solanaConnectors = toSolanaWalletConnectors({
 });
 
 const wallets = [
-  new PhantomWalletAdapter(),
   new SolflareWalletAdapter(),
 ];
 
