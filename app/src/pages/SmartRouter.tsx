@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, type KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { useConnection } from "@solana/wallet-adapter-react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
 import { useSearchParams } from "react-router-dom";
 import { Buffer } from "buffer";
@@ -140,7 +140,10 @@ interface ResolveResult {
 
 const SmartRouter = () => {
   const { t } = useTranslation();
-  const { publicKey, signTransaction, sendTransaction, isPrivyWallet } = useBlockIDWallet();
+  const { publicKey, signTransaction: privySignTransaction, sendTransaction, isPrivyWallet } = useBlockIDWallet();
+  const { signTransaction: phantomSignTransaction, publicKey: phantomPublicKey } = useWallet();
+  const signTransaction = isPrivyWallet ? privySignTransaction : (phantomSignTransaction as typeof privySignTransaction ?? privySignTransaction);
+  const effectivePublicKey = phantomPublicKey ?? publicKey;
   const { connection } = useConnection();
   const [searchParams] = useSearchParams();
   const { getByTicker, tokens, isLoading: tokensLoading } = useTokenList();
@@ -197,16 +200,16 @@ const SmartRouter = () => {
   })();
 
   useEffect(() => {
-    if (!publicKey) {
+    if (!effectivePublicKey) {
       setBalance(null);
       return;
     }
     setBalanceLoading(true);
-    getWalletBalance(publicKey.toString())
+    getWalletBalance(effectivePublicKey.toString())
       .then(setBalance)
       .catch(() => setBalance(null))
       .finally(() => setBalanceLoading(false));
-  }, [publicKey]);
+  }, [effectivePublicKey]);
 
   const handleParse = async (overrideInput?: string) => {
     const text = (overrideInput ?? input).trim();
@@ -338,7 +341,7 @@ const SmartRouter = () => {
   };
 
   const handleSwapExecute = async () => {
-    if (!publicKey || !signTransaction || !connection || !parseResult) return;
+    if (!effectivePublicKey || !signTransaction || !connection || !parseResult) return;
 
     setSwapStep("signing");
     setExecuting(true);
@@ -350,8 +353,8 @@ const SmartRouter = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          sender_wallet: publicKey.toString(),
-          recipient_wallet: publicKey.toString(),
+          sender_wallet: effectivePublicKey.toString(),
+          recipient_wallet: effectivePublicKey.toString(),
           amount: parseFloat(String(parseResult.amount)),
           input_token: (parseResult.token ?? "SOL").toUpperCase(),
           output_token: (parseResult.output_token ?? "USDC").toUpperCase(),
@@ -393,8 +396,8 @@ const SmartRouter = () => {
         setSwapStep("idle");
         setStep("input");
         // Refresh balance after swap
-        if (publicKey) {
-          getWalletBalance(publicKey.toString())
+        if (effectivePublicKey) {
+          getWalletBalance(effectivePublicKey.toString())
             .then(setBalance)
             .catch(() => {});
         }
@@ -415,7 +418,7 @@ const SmartRouter = () => {
   };
 
   const handleExecute = async () => {
-    if (!publicKey || !resolveResult || !parseResult?.amount || !connection)
+    if (!effectivePublicKey || !resolveResult || !parseResult?.amount || !connection)
       return;
 
     if (isPrivyWallet) {
@@ -443,10 +446,10 @@ const SmartRouter = () => {
 
         const transaction = new Transaction({
           recentBlockhash: blockhash,
-          feePayer: publicKey,
+          feePayer: effectivePublicKey,
         }).add(
           SystemProgram.transfer({
-            fromPubkey: publicKey,
+            fromPubkey: effectivePublicKey,
             toPubkey: recipientPubkey,
             lamports,
           }),
@@ -469,12 +472,12 @@ const SmartRouter = () => {
                   [getTransferSolInstruction({
                     amount: BigInt(Math.round(amount * LAMPORTS_PER_SOL)),
                     destination: address(recipientPubkey.toString()),
-                    source: createNoopSigner(address(publicKey.toString())),
+                    source: createNoopSigner(address(effectivePublicKey.toString())),
                   })],
                   setTransactionMessageLifetimeUsingBlockhash(
                     latestBlockhash,
                     setTransactionMessageFeePayer(
-                      address(publicKey.toString()),
+                      address(effectivePublicKey.toString()),
                       createTransactionMessage({ version: 0 })
                     )
                   )
@@ -485,7 +488,7 @@ const SmartRouter = () => {
           const sig = await sendTransaction(kitTx, connection);
           setTxSignature(typeof sig === 'string' ? sig : Buffer.from(sig).toString('base64'));
           setStep("input");
-          getWalletBalance(publicKey.toString()).then(setBalance).catch(() => {});
+          getWalletBalance(effectivePublicKey.toString()).then(setBalance).catch(() => {});
           return;
         }
 
@@ -499,8 +502,8 @@ const SmartRouter = () => {
         setTxSignature(signature);
         setStep("input");
         // Refresh balance after send
-        if (publicKey) {
-          getWalletBalance(publicKey.toString())
+        if (effectivePublicKey) {
+          getWalletBalance(effectivePublicKey.toString())
             .then(setBalance)
             .catch(() => {});
         }
@@ -512,7 +515,7 @@ const SmartRouter = () => {
         }
 
         const mintPubkey = new PublicKey(tokenInfo.mint);
-        const senderATA = getAssociatedTokenAddressSync(mintPubkey, publicKey);
+        const senderATA = getAssociatedTokenAddressSync(mintPubkey, effectivePublicKey);
         const recipientATA = getAssociatedTokenAddressSync(
           mintPubkey,
           recipientPubkey,
@@ -523,7 +526,7 @@ const SmartRouter = () => {
 
         const transaction = new Transaction({
           recentBlockhash: blockhash,
-          feePayer: publicKey,
+          feePayer: effectivePublicKey,
         });
 
         // Check if recipient ATA exists; if not, create it (sender pays rent).
@@ -531,7 +534,7 @@ const SmartRouter = () => {
         if (!recipientATAInfo) {
           transaction.add(
             createAssociatedTokenAccountInstruction(
-              publicKey,
+              effectivePublicKey,
               recipientATA,
               recipientPubkey,
               mintPubkey,
@@ -548,7 +551,7 @@ const SmartRouter = () => {
           createTransferInstruction(
             senderATA,
             recipientATA,
-            publicKey,
+            effectivePublicKey,
             rawAmount,
             [],
             TOKEN_PROGRAM_ID,
@@ -574,8 +577,8 @@ const SmartRouter = () => {
 
         setTxSignature(signature);
         setStep("input");
-        if (publicKey) {
-          getWalletBalance(publicKey.toString())
+        if (effectivePublicKey) {
+          getWalletBalance(effectivePublicKey.toString())
             .then(setBalance)
             .catch(() => {});
         }
