@@ -374,7 +374,9 @@ const SmartRouter = () => {
       // Jupiter v2 returns VersionedTransaction (v0)
       const transaction = VersionedTransaction.deserialize(transactionBuf);
       const signed = await signTransaction(transaction);
-      const serialized = signed.serialize();
+      const serialized = typeof (signed as any).serialize === "function"
+        ? (signed as any).serialize()
+        : Buffer.from((signed as any).serializedTransaction ?? (signed as any).transaction, "base64");
       const base64Signed = Buffer.from(serialized).toString("base64");
 
       const execRes = await fetch(`${API_BASE}/router/execute`, {
@@ -493,7 +495,10 @@ const SmartRouter = () => {
         }
 
         const signed = await signTransaction(transaction);
-        const signature = await connection.sendRawTransaction(signed.serialize());
+        const serialized = typeof (signed as any).serialize === "function"
+          ? (signed as any).serialize()
+          : Buffer.from((signed as any).serializedTransaction ?? (signed as any).transaction, "base64");
+        const signature = await connection.sendRawTransaction(serialized);
         await connection.confirmTransaction(
           { signature, blockhash, lastValidBlockHeight },
           "confirmed",
@@ -568,7 +573,10 @@ const SmartRouter = () => {
           signature = typeof sig === 'string' ? sig : Buffer.from(sig).toString('base64');
         } else {
           const signed = await signTransaction(transaction);
-          signature = await connection.sendRawTransaction(signed.serialize());
+          const serializedTx = typeof (signed as any).serialize === "function"
+            ? (signed as any).serialize()
+            : Buffer.from((signed as any).serializedTransaction ?? (signed as any).transaction, "base64");
+          signature = await connection.sendRawTransaction(serializedTx);
         }
         await connection.confirmTransaction(
           { signature, blockhash, lastValidBlockHeight },
