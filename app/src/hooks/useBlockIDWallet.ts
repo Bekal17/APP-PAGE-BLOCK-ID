@@ -1,36 +1,44 @@
-import { usePrivy } from '@privy-io/react-auth';
-import { useWallets } from '@privy-io/react-auth/solana';
-import { PublicKey, Transaction, VersionedTransaction } from '@solana/web3.js';
+import { useCrossmintAuth as useAuth, useWallet as useCrossmintWallet } from '@crossmint/client-sdk-react-ui';
+import { PublicKey, Transaction } from '@solana/web3.js';
 import { useMemo } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 
 export function useBlockIDWallet() {
-  const { logout, authenticated } = usePrivy();
-  const { connected: phantomConnected } = useWallet();
-  const { wallets, ready } = useWallets();
+  const { user, logout: crossmintLogout } = useAuth();
+  const { wallet: crossmintWallet, status: walletStatus } = useCrossmintWallet();
+  const { connected: phantomConnected, publicKey: phantomPublicKey, signTransaction: phantomSignTransaction } = useWallet();
 
-  const activeWallet = wallets[0] ?? null;
+  // Prefer Phantom if connected, fallback to Crossmint embedded wallet
+  const isCrossmintWallet = !phantomConnected && !!crossmintWallet;
+  const ready = walletStatus !== 'in-progress';
+
+  const address = useMemo(() => {
+    if (phantomConnected && phantomPublicKey) return phantomPublicKey.toString();
+    if (crossmintWallet?.address) return crossmintWallet.address;
+    return null;
+  }, [phantomConnected, phantomPublicKey, crossmintWallet?.address]);
 
   const publicKey = useMemo(() => {
-    if (!activeWallet?.address) return null;
-    try {
-      return new PublicKey(activeWallet.address);
-    } catch {
-      return null;
-    }
-  }, [activeWallet?.address]);
+    if (!address) return null;
+    try { return new PublicKey(address); } catch { return null; }
+  }, [address]);
 
-  const connected = authenticated && !!activeWallet;
+  const connected = phantomConnected || !!crossmintWallet;
 
   const signTransaction = useMemo(() => {
-    if (!activeWallet) return undefined;
-    return async (tx: any) => {
-      return await activeWallet.signTransaction(tx);
-    };
-  }, [activeWallet]);
+    if (phantomConnected && phantomSignTransaction) {
+      return phantomSignTransaction as (tx: any) => Promise<any>;
+    }
+    if (crossmintWallet) {
+      return async (tx: any) => {
+        return await (crossmintWallet as any).signTransaction(tx);
+      };
+    }
+    return undefined;
+  }, [phantomConnected, phantomSignTransaction, crossmintWallet]);
 
   const sendTransaction = useMemo(() => {
-    if (!activeWallet) return undefined;
+    if (!crossmintWallet || phantomConnected) return undefined;
     return async (tx: any, _connection: any) => {
       let encoded: Uint8Array;
       if (tx instanceof Uint8Array) {
@@ -43,36 +51,26 @@ export function useBlockIDWallet() {
       } else {
         encoded = new Uint8Array(tx.serialize());
       }
-      console.log('[BlockID] encoded type:', encoded?.constructor?.name);
-      console.log('[BlockID] encoded instanceof Uint8Array:', encoded instanceof Uint8Array);
-      console.log('[BlockID] encoded length:', encoded?.length);
-      console.log('[BlockID] activeWallet:', activeWallet?.address, activeWallet?.walletClientType);
-      const result = await activeWallet.signAndSendTransaction({
+      const result = await (crossmintWallet as any).signAndSendTransaction({
         chain: 'solana:mainnet',
         transaction: encoded,
       });
-      console.log('[BlockID] result:', result);
       return result.signature;
     };
-  }, [activeWallet]);
+  }, [crossmintWallet, phantomConnected]);
 
   const signMessage = useMemo(() => {
-    if (!activeWallet) return undefined;
+    if (!crossmintWallet || phantomConnected) return undefined;
     return async (message: Uint8Array) => {
-      return await activeWallet.signMessage(message);
+      return await (crossmintWallet as any).signMessage(message);
     };
-  }, [activeWallet]);
+  }, [crossmintWallet, phantomConnected]);
 
   const disconnect = async () => {
-    // Privy logout handled by WalletIndicator directly
-    // This only handles wallet-adapter state
+    if (isCrossmintWallet) {
+      await crossmintLogout();
+    }
   };
-
-  // For CustomWalletModal compatibility
-  const walletAdapters = wallets.map((w) => ({
-    adapter: { name: w.walletClientType, icon: '' },
-    readyState: 'Installed',
-  }));
 
   const select = (_name: string) => {};
 
@@ -83,10 +81,12 @@ export function useBlockIDWallet() {
     signTransaction,
     signMessage,
     sendTransaction,
-    wallets: walletAdapters,
+    wallets: [],
     select,
     ready,
-    address: activeWallet?.address ?? null,
-    isPrivyWallet: authenticated && !!activeWallet && !phantomConnected,
+    address,
+    isPrivyWallet: false,
+    isCrossmintWallet,
+    user,
   };
 }
