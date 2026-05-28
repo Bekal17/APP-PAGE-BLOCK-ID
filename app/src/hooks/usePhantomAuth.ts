@@ -1,29 +1,12 @@
 import { useWallet } from "@solana/wallet-adapter-react";
-import { usePrivy } from "@privy-io/react-auth";
-import { useWallets } from "@privy-io/react-auth/solana";
 import { useNavigate } from "react-router-dom";
-import { PublicKey } from "@solana/web3.js";
-import { useMemo } from "react";
 
 export function usePhantomAuth() {
   const { wallets, select, disconnect, connected, publicKey } = useWallet();
-  const { authenticated } = usePrivy();
-  const { wallets: privyWallets } = useWallets();
   const navigate = useNavigate();
 
-  // Privy SVM wallet address fallback
-  const privySolanaAddress = privyWallets?.find(
-    w => w.type === "solana" || w.walletClientType === "privy"
-  )?.address ?? privyWallets?.[0]?.address ?? null;
-
-  const privyPublicKey = useMemo(() => {
-    if (!privySolanaAddress) return null;
-    try { return new PublicKey(privySolanaAddress); } catch { return null; }
-  }, [privySolanaAddress]);
-
-  // Use Phantom publicKey if connected, else Privy SVM wallet
-  const effectivePublicKey = publicKey ?? privyPublicKey;
-  const effectiveConnected = connected || (authenticated && !!privySolanaAddress);
+  const effectivePublicKey = publicKey;
+  const effectiveConnected = connected;
 
   const connectWallet = (walletName: string) => {
     localStorage.removeItem("blockid_logged_out");

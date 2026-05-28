@@ -1,7 +1,7 @@
-import { usePrivy } from "@privy-io/react-auth";
+import { useCrossmintAuth as useAuth } from "@crossmint/client-sdk-react-ui";
 
 export function usePrivyAuth() {
-  const { login, logout, authenticated, user } = usePrivy();
+  const { login, logout, user } = useAuth();
 
   const loginWithGoogle = () => {
     localStorage.removeItem("blockid_logged_out");
@@ -15,7 +15,6 @@ export function usePrivyAuth() {
 
   const logoutPrivy = async () => {
     try { await logout(); } catch {}
-    sessionStorage.clear();
     localStorage.clear();
     localStorage.setItem("blockid_logged_out", "true");
     window.location.replace("/login");
@@ -25,7 +24,7 @@ export function usePrivyAuth() {
     loginWithGoogle,
     loginWithEmail,
     logoutPrivy,
-    authenticated,
+    authenticated: !!user,
     user,
   };
 }

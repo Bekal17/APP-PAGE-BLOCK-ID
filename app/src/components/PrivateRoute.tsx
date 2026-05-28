@@ -1,17 +1,16 @@
-import { usePhantomAuth } from "@/hooks/usePhantomAuth";
-import { usePrivy } from "@privy-io/react-auth";
+import { useCrossmintAuth as useAuth } from "@crossmint/client-sdk-react-ui";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { Navigate } from "react-router-dom";
 
 export default function PrivateRoute({ children }: { children: React.ReactNode }) {
-  const { connected } = usePhantomAuth();
-  const { authenticated, ready } = usePrivy();
+  const { user, status } = useAuth();
+  const { connected } = useWallet();
 
-  // Wait for Privy to finish loading before deciding
-  if (!ready) {
+  if (status === "loading") {
     return null;
   }
 
-  if (!connected && !authenticated) {
+  if (!connected && !user) {
     return <Navigate to="/login" replace />;
   }
 
