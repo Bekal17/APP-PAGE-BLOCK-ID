@@ -1,14 +1,19 @@
 import { useCrossmintAuth as useAuth, useWallet as useCrossmintWallet } from '@crossmint/client-sdk-react-ui';
+import { SolanaWallet } from '@crossmint/wallets-sdk';
 import { PublicKey, Transaction } from '@solana/web3.js';
 import { useMemo } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { Buffer } from 'buffer';
 
 export function useBlockIDWallet() {
   const { user, logout: crossmintLogout } = useAuth();
   const { wallet: crossmintWallet, status: walletStatus } = useCrossmintWallet();
-  const { connected: phantomConnected, publicKey: phantomPublicKey, signTransaction: phantomSignTransaction } = useWallet();
+  const {
+    connected: phantomConnected,
+    publicKey: phantomPublicKey,
+    signTransaction: phantomSignTransaction,
+  } = useWallet();
 
-  // Prefer Phantom if connected, fallback to Crossmint embedded wallet
   const isCrossmintWallet = !phantomConnected && !!crossmintWallet;
   const ready = walletStatus !== 'in-progress';
 
@@ -25,46 +30,47 @@ export function useBlockIDWallet() {
 
   const connected = phantomConnected || !!crossmintWallet;
 
+  // signTransaction: only for Phantom users
+  // Crossmint users use sendTransaction which handles sign+send in one call
   const signTransaction = useMemo(() => {
     if (phantomConnected && phantomSignTransaction) {
       return phantomSignTransaction as (tx: any) => Promise<any>;
     }
-    if (crossmintWallet) {
-      return async (tx: any) => {
-        return await (crossmintWallet as any).signTransaction(tx);
-      };
-    }
+    // Crossmint does not support client-side signTransaction
     return undefined;
-  }, [phantomConnected, phantomSignTransaction, crossmintWallet]);
+  }, [phantomConnected, phantomSignTransaction]);
 
+  // sendTransaction: for Crossmint users - sign+send in one server-side call
   const sendTransaction = useMemo(() => {
-    if (!crossmintWallet || phantomConnected) return undefined;
-    return async (tx: any, _connection: any) => {
-      let encoded: Uint8Array;
-      if (tx instanceof Uint8Array) {
-        encoded = tx;
-      } else if (tx instanceof Transaction) {
-        encoded = new Uint8Array(tx.serialize({
-          requireAllSignatures: false,
-          verifySignatures: false,
-        }));
+    if (!isCrossmintWallet || !crossmintWallet) return undefined;
+    return async (tx: Transaction | any, _connection: any): Promise<string> => {
+      const solWallet = SolanaWallet.from(crossmintWallet as any);
+      let serialized: string;
+      if (tx instanceof Transaction) {
+        serialized = Buffer.from(
+          tx.serialize({ requireAllSignatures: false, verifySignatures: false })
+        ).toString('base64');
+      } else if (tx instanceof Uint8Array) {
+        serialized = Buffer.from(tx).toString('base64');
       } else {
-        encoded = new Uint8Array(tx.serialize());
+        serialized = Buffer.from(tx.serialize()).toString('base64');
       }
-      const result = await (crossmintWallet as any).signAndSendTransaction({
-        chain: 'solana:mainnet',
-        transaction: encoded,
-      });
-      return result.signature;
+      const result = await solWallet.sendTransaction({
+        serializedTransaction: serialized,
+      }) as any;
+      return result.txId ?? result.signature ?? result.hash ?? result.transactionId ?? '';
     };
-  }, [crossmintWallet, phantomConnected]);
+  }, [isCrossmintWallet, crossmintWallet]);
 
   const signMessage = useMemo(() => {
-    if (!crossmintWallet || phantomConnected) return undefined;
-    return async (message: Uint8Array) => {
-      return await (crossmintWallet as any).signMessage(message);
+    if (phantomConnected) return undefined;
+    if (!crossmintWallet) return undefined;
+    return async (message: Uint8Array): Promise<Uint8Array> => {
+      const solWallet = SolanaWallet.from(crossmintWallet as any);
+      const result = await (solWallet as any).signMessage({ message: Buffer.from(message).toString('base64') });
+      return new Uint8Array(Buffer.from(result.signature, 'base64'));
     };
-  }, [crossmintWallet, phantomConnected]);
+  }, [phantomConnected, crossmintWallet]);
 
   const disconnect = async () => {
     if (isCrossmintWallet) {
