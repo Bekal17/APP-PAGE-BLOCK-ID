@@ -16,6 +16,14 @@ export default function CrossmintAppProvider({
     <CrossmintProvider apiKey={CROSSMINT_API_KEY}>
       <CrossmintAuthProvider
         loginMethods={["google", "email"]}
+        appearance={{
+          borderRadius: "16px",
+          colors: {
+            background: "#0d1117",
+            textPrimary: "#f0f8ff",
+            accent: "#38bdf8",
+          },
+        }}
       >
         <CrossmintWalletProvider
           createOnLogin={{
