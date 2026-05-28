@@ -128,6 +128,8 @@ export default function Login() {
       position:'fixed', inset:0,
       background:'#06050f',
       display:'flex', alignItems:'center', justifyContent:'center',
+      overflowY:'auto',
+      padding:'20px 0',
       fontFamily:"'Inter',sans-serif",
       zIndex: 9999,
     }}>
@@ -139,9 +141,11 @@ export default function Login() {
         background:'rgba(255,255,255,0.04)',
         border:'1px solid rgba(56,189,248,0.15)',
         borderRadius:20, backdropFilter:'blur(24px)',
-        padding:'40px 36px', width:'100%', maxWidth:420,
+        padding:'24px 28px', width:'100%', maxWidth:460,
         margin:'0 16px',
         boxShadow:'0 0 60px -20px rgba(56,189,248,0.2)',
+        maxHeight:'90vh',
+        overflowY:'auto',
       }}>
         {/* Logo */}
         <div style={{textAlign:'center', marginBottom:28}}>
