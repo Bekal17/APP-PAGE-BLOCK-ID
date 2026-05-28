@@ -1,8 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { usePhantomAuth } from "@/hooks/usePhantomAuth";
-import { usePrivyAuth } from "@/hooks/usePrivyAuth";
-import { usePrivy } from "@privy-io/react-auth";
-import { useWallets } from "@privy-io/react-auth/solana";
+import { useCrossmintAuth as useAuth } from "@crossmint/client-sdk-react-ui";
+import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
 import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
@@ -21,20 +20,16 @@ const formatAddress = (address: string) => {
 export default function WalletIndicator() {
   const { t } = useTranslation();
   const { publicKey, connected, disconnectWallet } = usePhantomAuth();
-  const { logoutPrivy } = usePrivyAuth();
-  const { authenticated, user } = usePrivy();
-  const { wallets: privyWallets } = useWallets();
+  const { user, logout } = useAuth();
+  const { address: crossmintAddress, isCrossmintWallet } = useBlockIDWallet();
   const navigate = useNavigate();
-  const embeddedWallet = localStorage.getItem("blockid_embedded_wallet");
-  const privyWalletAddress = privyWallets?.[0]?.address ?? null;
-  const privyEmail = user?.email?.address ?? user?.google?.email ?? null;
-  const displayKey = publicKey?.toString() ?? privyWalletAddress ?? embeddedWallet ?? null;
+  const crossmintEmail = (user as any)?.email ?? null;
+  const displayKey = publicKey?.toString() ?? crossmintAddress ?? null;
   const displayLabel = displayKey 
     ? formatAddress(displayKey) 
-    : privyEmail 
-    ? (privyEmail.length > 16 ? privyEmail.slice(0, 16) + "..." : privyEmail)
+    : crossmintEmail
+    ? (crossmintEmail.length > 16 ? crossmintEmail.slice(0, 16) + "..." : crossmintEmail)
     : null;
-  const isPrivyUser = authenticated && !connected;
 
   const handleCopyAddress = () => {
     if (publicKey) {
@@ -43,14 +38,18 @@ export default function WalletIndicator() {
   };
 
   const handleLogOut = () => {
-    if (isPrivyUser) {
-      logoutPrivy();
+    if (isCrossmintWallet) {
+      logout().then(() => {
+        localStorage.clear();
+        localStorage.setItem("blockid_logged_out", "true");
+        window.location.replace("/login");
+      });
     } else {
       disconnectWallet();
     }
   };
 
-  if (!displayKey && !authenticated) {
+  if (!displayKey && !user) {
     return (
       <Button
         onClick={() => navigate("/login")}

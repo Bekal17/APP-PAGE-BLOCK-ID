@@ -1,6 +1,6 @@
 import { useConnection } from "@solana/wallet-adapter-react";
 import { usePhantomAuth } from "@/hooks/usePhantomAuth";
-import { useWallets } from "@privy-io/react-auth/solana";
+import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
 import {
   LAMPORTS_PER_SOL,
   PublicKey,
@@ -341,10 +341,8 @@ const useCountdown = (releaseAt: string | null) => {
 const Profile = () => {
   const { t } = useTranslation();
   const { publicKey, connected } = usePhantomAuth();
-  const { wallets: privyWallets } = useWallets();
-  const privySolanaAddress = privyWallets?.[0]?.address ?? null;
-  const embeddedWallet = localStorage.getItem("blockid_embedded_wallet");
-  const effectiveWallet = publicKey?.toString() ?? privySolanaAddress ?? embeddedWallet ?? "";
+  const { address: crossmintAddress } = useBlockIDWallet();
+  const effectiveWallet = publicKey?.toString() ?? crossmintAddress ?? "";
   const { connection } = useConnection();
   const sub = useSubscription();
   const { walletParam } = useParams<{ walletParam: string }>();
@@ -1354,9 +1352,9 @@ const Profile = () => {
   const isOwnProfile = !!effectiveWallet && (
     !walletParam ||
     walletParam === publicKey?.toString() ||
-    walletParam === embeddedWallet ||
+    walletParam === crossmintAddress ||
     resolvedWallet === publicKey?.toString() ||
-    resolvedWallet === embeddedWallet
+    resolvedWallet === crossmintAddress
   );
   const canShowBalance =
     isOwnProfile || viewedPrivacy?.balance_visibility === "PUBLIC";

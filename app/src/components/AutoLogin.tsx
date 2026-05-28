@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { usePrivy } from "@privy-io/react-auth";
-import { useWallets } from "@privy-io/react-auth/solana";
+import { useCrossmintAuth as useAuth } from "@crossmint/client-sdk-react-ui";
+import { useBlockIDWallet } from "@/hooks/useBlockIDWallet";
 import { useNavigate } from "react-router-dom";
 import {
   loginWithSignature,
@@ -15,11 +15,11 @@ const API_BASE = import.meta.env.VITE_EXPLORER_API_URL ||
 
 const AutoLogin = () => {
   const { publicKey, connected, signMessage } = useWallet();
-  const { authenticated } = usePrivy();
-  const { wallets: privyWallets } = useWallets();
+  const { user } = useAuth();
+  const { address: crossmintAddress } = useBlockIDWallet();
   const navigate = useNavigate();
   const hasRedirected = useRef(false);
-  const privyLoginDone = useRef(false);
+  const crossmintLoginDone = useRef(false);
 
   // Phantom wallet: login with signature
   useEffect(() => {
@@ -49,39 +49,32 @@ const AutoLogin = () => {
     }
   }, [connected]);
 
-  // Privy user: get BlockID session token via embedded-login
+  // Crossmint user: get BlockID session token via embedded-login
   useEffect(() => {
-    if (!authenticated || connected) return;
+    if (!user || connected) return;
+    if (!crossmintAddress) return;
+    if (crossmintLoginDone.current) return;
 
-    const privySolanaWallet = privyWallets?.find(
-      w => w.type === "solana" || w.walletClientType === "privy"
-    ) ?? privyWallets?.[0];
-
-    if (!privySolanaWallet?.address) return;
-    if (privyLoginDone.current) return;
-
-    const wallet = privySolanaWallet.address;
     const existingToken = getSessionToken();
-
     if (existingToken) {
       try {
         const payload = JSON.parse(atob(existingToken.split(".")[1]));
         const isExpired = payload.exp < Math.floor(Date.now() / 1000);
-        const isCorrectWallet = payload.wallet === wallet;
+        const isCorrectWallet = payload.wallet === crossmintAddress;
         if (!isExpired && isCorrectWallet) {
-          privyLoginDone.current = true;
+          crossmintLoginDone.current = true;
           return;
         }
       } catch {}
     }
 
-    privyLoginDone.current = true;
+    crossmintLoginDone.current = true;
     fetch(`${API_BASE}/auth/embedded-login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ 
-        wallet_address: wallet,
-        auth_provider: "google",
+      body: JSON.stringify({
+        wallet_address: crossmintAddress,
+        auth_provider: "crossmint",
       }),
     })
       .then(r => r.json())
@@ -90,18 +83,17 @@ const AutoLogin = () => {
           setSessionToken(data.session_token);
         }
       })
-      .catch(err => console.warn("Privy embedded login failed:", err));
-  }, [authenticated, connected, privyWallets]);
+      .catch(err => console.warn("Crossmint embedded login failed:", err));
+  }, [user, connected, crossmintAddress]);
 
-  // Privy user: redirect to "/" only when coming from /login
   useEffect(() => {
-    if (authenticated && !hasRedirected.current) {
+    if (user && !hasRedirected.current) {
       if (window.location.pathname === "/login") {
         hasRedirected.current = true;
         navigate("/");
       }
     }
-  }, [authenticated, navigate]);
+  }, [user, navigate]);
 
   return null;
 };
