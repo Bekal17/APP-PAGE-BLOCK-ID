@@ -128,8 +128,6 @@ export default function Login() {
       position:'fixed', inset:0,
       background:'#06050f',
       display:'flex', alignItems:'center', justifyContent:'center',
-      overflowY:'auto',
-      padding:'20px 0',
       fontFamily:"'Inter',sans-serif",
       zIndex: 9999,
     }}>
@@ -141,24 +139,22 @@ export default function Login() {
         background:'rgba(255,255,255,0.04)',
         border:'1px solid rgba(56,189,248,0.15)',
         borderRadius:20, backdropFilter:'blur(24px)',
-        padding:'24px 28px', width:'100%', maxWidth:460,
+        padding:'20px 28px', width:'100%', maxWidth:520,
         margin:'0 16px',
         boxShadow:'0 0 60px -20px rgba(56,189,248,0.2)',
-        maxHeight:'90vh',
-        overflowY:'auto',
       }}>
         {/* Logo */}
-        <div style={{textAlign:'center', marginBottom:28}}>
+        <div style={{textAlign:'center', marginBottom:12}}>
           <img src="/blockid-logo.svg" alt="BlockID" 
-            style={{height:80, marginBottom:16, display:'block', margin:'0 auto 16px'}} />
+            style={{height:56, marginBottom:8, display:'block', margin:'0 auto 8px'}} />
           <div style={{
             fontFamily:"'Inter',sans-serif",
-            fontSize:22, fontWeight:700,
+            fontSize:20, fontWeight:700,
             letterSpacing:'-.03em',
             background:'linear-gradient(135deg,#38bdf8,#818cf8)',
             WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent',
             backgroundClip:'text',
-            marginBottom:8,
+            marginBottom:4,
           }}>Welcome to BlockID</div>
           <div style={{fontSize:13, color:'#64748b', lineHeight:1.618}}>
             Your on-chain identity starts here
@@ -166,7 +162,7 @@ export default function Login() {
         </div>
 
         {/* Divider */}
-        <div style={{display:'flex',alignItems:'center',gap:12,margin:'24px 0 16px'}}>
+        <div style={{display:'flex',alignItems:'center',gap:12,margin:'12px 0 10px'}}>
           <div style={{flex:1,height:1,background:'rgba(56,189,248,0.1)'}}/>
           <span style={{fontSize:11,color:'#64748b',letterSpacing:'.08em',textTransform:'uppercase'}}>Connect Wallet</span>
           <div style={{flex:1,height:1,background:'rgba(56,189,248,0.1)'}}/>
@@ -240,7 +236,7 @@ export default function Login() {
         )}
 
         {/* Divider */}
-        <div style={{display:'flex',alignItems:'center',gap:12,margin:'20px 0 16px'}}>
+        <div style={{display:'flex',alignItems:'center',gap:12,margin:'12px 0 10px'}}>
           <div style={{flex:1,height:1,background:'rgba(56,189,248,0.1)'}}/>
           <span style={{fontSize:11,color:'#64748b',letterSpacing:'.08em',textTransform:'uppercase'}}>or continue with</span>
           <div style={{flex:1,height:1,background:'rgba(56,189,248,0.1)'}}/>
