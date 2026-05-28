@@ -14,7 +14,6 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ["@openfort/openfort-js", "@privy-io/react-auth"],
     esbuildOptions: {
       target: "esnext",
     },
@@ -22,7 +21,6 @@ export default defineConfig({
   build: {
     target: "esnext",
     commonjsOptions: {
-      include: [/@openfort\/openfort-js/, /node_modules/],
       transformMixedEsModules: true,
     },
   },
