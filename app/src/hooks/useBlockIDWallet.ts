@@ -1,4 +1,4 @@
-import { useAuth, useWallet as useCrossmintWallet } from '@crossmint/client-sdk-react-ui';
+import { useCrossmintAuth, useWallet as useCrossmintWallet } from '@crossmint/client-sdk-react-ui';
 import { SolanaWallet } from '@crossmint/wallets-sdk';
 import { PublicKey, Transaction } from '@solana/web3.js';
 import { useMemo } from 'react';
@@ -6,7 +6,7 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { Buffer } from 'buffer';
 
 export function useBlockIDWallet() {
-  const { user, logout: crossmintLogout } = useAuth();
+  const { user, logout: crossmintLogout } = useCrossmintAuth();
   const { wallet: crossmintWallet, status: walletStatus } = useCrossmintWallet();
   const {
     connected: phantomConnected,

@@ -1,7 +1,7 @@
-import { useAuth } from "@crossmint/client-sdk-react-ui";
+import { useCrossmintAuth as useCrossmintSDKAuth } from "@crossmint/client-sdk-react-ui";
 
 export function useCrossmintAuth() {
-  const { login, logout, user } = useAuth();
+  const { login, logout, user } = useCrossmintSDKAuth();
 
   const loginWithGoogle = () => {
     localStorage.removeItem("blockid_logged_out");
