@@ -85,7 +85,6 @@ export function useBlockIDWallet() {
     select,
     ready,
     address,
-    isPrivyWallet: false,
     isCrossmintWallet,
     user,
   };
