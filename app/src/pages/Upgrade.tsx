@@ -52,7 +52,7 @@ const PLANS: Record<
 export default function Upgrade() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { publicKey, isCrossmintWallet } = useBlockIDWallet();
+  const { publicKey, isCrossmintWallet, sendTransaction: crossmintSendTransaction } = useBlockIDWallet();
   const { signTransaction, publicKey: phantomPublicKey } = useWallet();
   const effectivePublicKey = phantomPublicKey ?? publicKey;
   const { connection } = useConnection();
@@ -90,7 +90,7 @@ export default function Upgrade() {
     plan: "explorer" | "pro",
     period: "monthly" | "annual"
   ) => {
-    if (!effectivePublicKey || !signTransaction) return;
+    if (!effectivePublicKey || (!signTransaction && !isCrossmintWallet)) return;
     const amount = PLANS[plan][period];
     const amountRaw = Math.round(amount * 1_000_000); // USDC 6 decimals
 
@@ -126,6 +126,15 @@ export default function Upgrade() {
     );
     // Compile transaction before signing (required by Phantom)
     tx.compileMessage();
+    if (isCrossmintWallet && crossmintSendTransaction) {
+      const sig = await crossmintSendTransaction(tx, connection);
+      await connection.confirmTransaction(
+        { signature: sig, blockhash, lastValidBlockHeight },
+        "confirmed"
+      );
+      return sig;
+    }
+    if (!signTransaction) throw new Error("Wallet does not support signing.");
     const signed = await signTransaction(tx);
     const serialized = typeof (signed as any).serialize === "function"
       ? (signed as any).serialize()
@@ -143,7 +152,7 @@ export default function Upgrade() {
     plan: "explorer" | "pro",
     period: "monthly" | "annual"
   ) => {
-    if (!effectivePublicKey || !signTransaction) return;
+    if (!effectivePublicKey || (!signTransaction && !isCrossmintWallet)) return;
     const price = await fetchSolPrice();
     if (!price)
       throw new Error(
@@ -181,6 +190,15 @@ export default function Upgrade() {
     );
     // Compile transaction before signing (required by Phantom)
     tx.compileMessage();
+    if (isCrossmintWallet && crossmintSendTransaction) {
+      const sig = await crossmintSendTransaction(tx, connection);
+      await connection.confirmTransaction(
+        { signature: sig, blockhash, lastValidBlockHeight },
+        "confirmed"
+      );
+      return sig;
+    }
+    if (!signTransaction) throw new Error("Wallet does not support signing.");
     const signed = await signTransaction(tx);
     const serialized = typeof (signed as any).serialize === "function"
       ? (signed as any).serialize()
@@ -199,13 +217,6 @@ export default function Upgrade() {
       toast({
         title: t("upgrade.connect_wallet_first", "Connect your wallet first"),
         variant: "destructive",
-      });
-      return;
-    }
-    if (isCrossmintWallet) {
-      toast({
-        title: "🚧 Coming soon for Google login",
-        description: "Upgrade payment via Google login is coming soon. Please connect a Phantom wallet to upgrade.",
       });
       return;
     }

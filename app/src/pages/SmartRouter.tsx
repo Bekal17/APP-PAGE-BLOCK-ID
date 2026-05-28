@@ -423,10 +423,6 @@ const SmartRouter = () => {
     if (!effectivePublicKey || !resolveResult || !parseResult?.amount || !connection)
       return;
 
-    if (isCrossmintWallet) {
-      setTxError("🚧 Google login transactions are coming soon. For now, please connect a Phantom wallet to send.");
-      return;
-    }
     setExecuting(true);
     setTxError(null);
     setTxSignature(null);
@@ -457,12 +453,12 @@ const SmartRouter = () => {
           }),
         );
 
-        if (!signTransaction) {
+        if (!signTransaction && !isCrossmintWallet) {
           throw new Error("Wallet does not support signing. Please reconnect.");
         }
 
         if (isCrossmintWallet && sendTransaction) {
-          // Build transaction using @solana/kit for Privy v3
+          // Build transaction using @solana/kit for Crossmint embedded wallet
           const { getLatestBlockhash } = createSolanaRpc(
             import.meta.env.VITE_HELIUS_RPC_URL || 'https://api.mainnet-beta.solana.com'
           );
@@ -563,7 +559,7 @@ const SmartRouter = () => {
           ),
         );
 
-        if (!signTransaction) {
+        if (!signTransaction && !isCrossmintWallet) {
           throw new Error("Wallet does not support signing. Please reconnect.");
         }
 
