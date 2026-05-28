@@ -21,7 +21,12 @@ export default function CrossmintAppProvider({
           colors: {
             background: "#0d1117",
             textPrimary: "#f0f8ff",
+            textSecondary: "#94a3b8",
             accent: "#38bdf8",
+            buttonBackground: "rgba(56,189,248,0.15)",
+            buttonText: "#f0f8ff",
+            border: "rgba(56,189,248,0.3)",
+            danger: "#f87171",
           },
         }}
       >
