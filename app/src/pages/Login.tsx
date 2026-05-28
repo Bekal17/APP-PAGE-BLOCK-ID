@@ -124,6 +124,20 @@ export default function Login() {
     };
   }, []);
 
+  // Ensure Crossmint modal appears above our login UI
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      const crossmintModal = document.querySelector(
+        '[data-crossmint-modal], [class*="crossmint-auth"], div[style*="position: fixed"]'
+      ) as HTMLElement | null;
+      if (crossmintModal) {
+        crossmintModal.style.zIndex = '99999';
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    return () => observer.disconnect();
+  }, []);
+
   const handleGoogle = () => loginWithGoogle();
   const handleEmail = () => loginWithEmail();
 
@@ -139,7 +153,7 @@ export default function Login() {
       
       {/* Card */}
       <div style={{
-        position:'relative', zIndex:1,
+        position:'relative', zIndex:10,
         background:'rgba(255,255,255,0.04)',
         border:'1px solid rgba(56,189,248,0.15)',
         borderRadius:20, backdropFilter:'blur(24px)',
