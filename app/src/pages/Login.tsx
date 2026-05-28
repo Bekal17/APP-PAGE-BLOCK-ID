@@ -127,7 +127,10 @@ export default function Login() {
     <div style={{
       position:'fixed', inset:0,
       background:'#06050f',
-      display:'flex', alignItems:'center', justifyContent:'center',
+      display:'flex', alignItems:'flex-start', justifyContent:'center',
+      overflowY:'auto',
+      paddingTop:'clamp(8px, 2vh, 20px)',
+      paddingBottom:'8px',
       fontFamily:"'Inter',sans-serif",
       zIndex: 9999,
     }}>
@@ -146,7 +149,7 @@ export default function Login() {
         {/* Logo */}
         <div style={{textAlign:'center', marginBottom:12}}>
           <img src="/blockid-logo.svg" alt="BlockID" 
-            style={{height:56, marginBottom:8, display:'block', margin:'0 auto 8px'}} />
+            style={{height:44, display:'block', margin:'0 auto 6px'}} />
           <div style={{
             fontFamily:"'Inter',sans-serif",
             fontSize:20, fontWeight:700,
@@ -174,7 +177,7 @@ export default function Login() {
             onClick={() => connectWallet(phantomWallet.adapter.name)}
             style={{
               width:'100%', display:'flex', alignItems:'center', gap:12,
-              padding:'13px 16px', borderRadius:12, marginBottom:10,
+              padding:'13px 16px', borderRadius:12, marginBottom:6,
               background:'rgba(255,255,255,0.04)',
               border:'1px solid rgba(56,189,248,0.12)',
               color:'#f0f8ff', fontSize:14, fontWeight:600,
@@ -199,7 +202,7 @@ export default function Login() {
             onClick={() => connectWallet(solflareWallet.adapter.name)}
             style={{
               width:'100%', display:'flex', alignItems:'center', gap:12,
-              padding:'13px 16px', borderRadius:12, marginBottom:10,
+              padding:'13px 16px', borderRadius:12, marginBottom:6,
               background:'rgba(255,255,255,0.04)',
               border:'1px solid rgba(56,189,248,0.12)',
               color:'#f0f8ff', fontSize:14, fontWeight:600,
@@ -220,7 +223,7 @@ export default function Login() {
             onClick={() => connectWallet(backpackWallet.adapter.name)}
             style={{
               width:'100%', display:'flex', alignItems:'center', gap:12,
-              padding:'13px 16px', borderRadius:12, marginBottom:10,
+              padding:'13px 16px', borderRadius:12, marginBottom:6,
               background:'rgba(255,255,255,0.04)',
               border:'1px solid rgba(56,189,248,0.12)',
               color:'#f0f8ff', fontSize:14, fontWeight:600,
@@ -236,7 +239,7 @@ export default function Login() {
         )}
 
         {/* Divider */}
-        <div style={{display:'flex',alignItems:'center',gap:12,margin:'12px 0 10px'}}>
+        <div style={{display:'flex',alignItems:'center',gap:12,margin:'8px 0 6px'}}>
           <div style={{flex:1,height:1,background:'rgba(56,189,248,0.1)'}}/>
           <span style={{fontSize:11,color:'#64748b',letterSpacing:'.08em',textTransform:'uppercase'}}>or continue with</span>
           <div style={{flex:1,height:1,background:'rgba(56,189,248,0.1)'}}/>
@@ -246,7 +249,7 @@ export default function Login() {
           style={{
             width:'100%',
             borderRadius:12,
-            marginBottom:10,
+            marginBottom:6,
             background:'rgba(56,189,248,0.15)',
             border:'1px solid rgba(56,189,248,0.4)',
             color:'#f0f8ff',
