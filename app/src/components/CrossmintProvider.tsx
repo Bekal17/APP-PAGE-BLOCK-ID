@@ -20,7 +20,7 @@ export default function CrossmintAppProvider({
         <CrossmintWalletProvider
           createOnLogin={{
             chain: "solana-devnet",
-            recovery: { type: "email" },
+            signer: { type: "email" },
           }}
         >
           {children}
