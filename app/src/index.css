@@ -295,3 +295,19 @@
     to { transform: rotate(360deg); }
   }
 }
+
+/* Override Crossmint modal button hover styles */
+[class*="crossmint"] button:hover,
+[class*="crossmint"] [role="button"]:hover {
+  background-color: rgba(56,189,248,0.25) !important;
+  color: #f0f8ff !important;
+  opacity: 1 !important;
+}
+
+/* Override Crossmint input focus styles */
+[class*="crossmint"] input:focus,
+[class*="crossmint"] input:hover {
+  background-color: rgba(255,255,255,0.08) !important;
+  color: #f0f8ff !important;
+  border-color: rgba(56,189,248,0.5) !important;
+}
