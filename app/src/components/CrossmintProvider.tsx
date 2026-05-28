@@ -26,6 +26,9 @@ export default function CrossmintAppProvider({
             buttonBackground: "rgba(56,189,248,0.15)",
             buttonText: "#f0f8ff",
             border: "rgba(56,189,248,0.3)",
+            inputBackground: "rgba(255,255,255,0.06)",
+            inputText: "#f0f8ff",
+            inputPlaceholder: "#64748b",
             danger: "#f87171",
           },
         }}
