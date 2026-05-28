@@ -30,6 +30,7 @@ export default function CrossmintAppProvider({
             chain: "solana-devnet",
             signer: { type: "email" },
           }}
+          showPasskeyHelpers={false}
         >
           {children}
         </CrossmintWalletProvider>
