@@ -1,4 +1,4 @@
-import { useCrossmintAuth as useAuth, useWallet as useCrossmintWallet } from '@crossmint/client-sdk-react-ui';
+import { useAuth, useWallet as useCrossmintWallet } from '@crossmint/client-sdk-react-ui';
 import { SolanaWallet } from '@crossmint/wallets-sdk';
 import { PublicKey, Transaction } from '@solana/web3.js';
 import { useMemo } from 'react';
