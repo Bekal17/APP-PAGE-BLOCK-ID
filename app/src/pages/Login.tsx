@@ -149,7 +149,7 @@ export default function Login() {
         {/* Logo */}
         <div style={{textAlign:'center', marginBottom:12}}>
           <img src="/blockid-logo.svg" alt="BlockID" 
-            style={{height:44, display:'block', margin:'0 auto 6px'}} />
+            style={{height:64, display:'block', margin:'0 auto 10px'}} />
           <div style={{
             fontFamily:"'Inter',sans-serif",
             fontSize:20, fontWeight:700,
