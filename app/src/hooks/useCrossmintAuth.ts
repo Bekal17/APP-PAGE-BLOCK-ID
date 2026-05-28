@@ -1,4 +1,4 @@
-import { useCrossmintAuth as useAuth } from "@crossmint/client-sdk-react-ui";
+import { useAuth } from "@crossmint/client-sdk-react-ui";
 
 export function useCrossmintAuth() {
   const { login, logout, user } = useAuth();
