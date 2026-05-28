@@ -14,8 +14,18 @@ export function useCrossmintAuth() {
   };
 
   const logoutCrossmint = async () => {
-    try { await logout(); } catch {}
+    try { 
+      await logout();
+    } catch {}
+    // Clear all storage
     localStorage.clear();
+    sessionStorage.clear();
+    // Clear all cookies
+    document.cookie.split(";").forEach((c) => {
+      document.cookie = c
+        .replace(/^ +/, "")
+        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
     localStorage.setItem("blockid_logged_out", "true");
     window.location.replace("/login");
   };
