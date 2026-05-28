@@ -140,9 +140,9 @@ interface ResolveResult {
 
 const SmartRouter = () => {
   const { t } = useTranslation();
-  const { publicKey, signTransaction: privySignTransaction, sendTransaction, isPrivyWallet } = useBlockIDWallet();
+  const { publicKey, signTransaction: privySignTransaction, sendTransaction, isCrossmintWallet } = useBlockIDWallet();
   const { signTransaction: phantomSignTransaction, publicKey: phantomPublicKey } = useWallet();
-  const signTransaction = isPrivyWallet ? privySignTransaction : (phantomSignTransaction as typeof privySignTransaction ?? privySignTransaction);
+  const signTransaction = isCrossmintWallet ? privySignTransaction : (phantomSignTransaction as typeof privySignTransaction ?? privySignTransaction);
   const effectivePublicKey = phantomPublicKey ?? publicKey;
   const { connection } = useConnection();
   const [searchParams] = useSearchParams();
@@ -423,7 +423,7 @@ const SmartRouter = () => {
     if (!effectivePublicKey || !resolveResult || !parseResult?.amount || !connection)
       return;
 
-    if (isPrivyWallet) {
+    if (isCrossmintWallet) {
       setTxError("🚧 Google login transactions are coming soon. For now, please connect a Phantom wallet to send.");
       return;
     }
@@ -461,7 +461,7 @@ const SmartRouter = () => {
           throw new Error("Wallet does not support signing. Please reconnect.");
         }
 
-        if (isPrivyWallet && sendTransaction) {
+        if (isCrossmintWallet && sendTransaction) {
           // Build transaction using @solana/kit for Privy v3
           const { getLatestBlockhash } = createSolanaRpc(
             import.meta.env.VITE_HELIUS_RPC_URL || 'https://api.mainnet-beta.solana.com'
@@ -568,7 +568,7 @@ const SmartRouter = () => {
         }
 
         let signature: string;
-        if (isPrivyWallet && sendTransaction) {
+        if (isCrossmintWallet && sendTransaction) {
           const sig = await sendTransaction(transaction, connection);
           signature = typeof sig === 'string' ? sig : Buffer.from(sig).toString('base64');
         } else {

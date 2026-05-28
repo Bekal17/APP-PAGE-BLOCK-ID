@@ -52,7 +52,7 @@ const PLANS: Record<
 export default function Upgrade() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { publicKey, isPrivyWallet } = useBlockIDWallet();
+  const { publicKey, isCrossmintWallet } = useBlockIDWallet();
   const { signTransaction, publicKey: phantomPublicKey } = useWallet();
   const effectivePublicKey = phantomPublicKey ?? publicKey;
   const { connection } = useConnection();
@@ -202,7 +202,7 @@ export default function Upgrade() {
       });
       return;
     }
-    if (isPrivyWallet) {
+    if (isCrossmintWallet) {
       toast({
         title: "🚧 Coming soon for Google login",
         description: "Upgrade payment via Google login is coming soon. Please connect a Phantom wallet to upgrade.",
