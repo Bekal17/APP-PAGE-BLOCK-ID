@@ -1,6 +1,6 @@
 import { useCrossmintAuth as useAuth } from "@crossmint/client-sdk-react-ui";
 
-export function usePrivyAuth() {
+export function useCrossmintAuth() {
   const { login, logout, user } = useAuth();
 
   const loginWithGoogle = () => {
@@ -13,7 +13,7 @@ export function usePrivyAuth() {
     login();
   };
 
-  const logoutPrivy = async () => {
+  const logoutCrossmint = async () => {
     try { await logout(); } catch {}
     localStorage.clear();
     localStorage.setItem("blockid_logged_out", "true");
@@ -23,7 +23,7 @@ export function usePrivyAuth() {
   return {
     loginWithGoogle,
     loginWithEmail,
-    logoutPrivy,
+    logoutCrossmint,
     authenticated: !!user,
     user,
   };

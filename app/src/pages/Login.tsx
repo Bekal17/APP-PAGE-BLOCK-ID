@@ -1,12 +1,12 @@
 import { useEffect, useRef } from "react";
 import { usePhantomAuth } from "@/hooks/usePhantomAuth";
-import { usePrivyAuth } from "@/hooks/usePrivyAuth";
+import { useCrossmintAuth } from "@/hooks/useCrossmintAuth";
 import { useNavigate } from "react-router-dom";
 
 export default function Login() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { phantomWallet, solflareWallet, backpackWallet, connectWallet, connected } = usePhantomAuth();
-  const { loginWithGoogle, loginWithEmail } = usePrivyAuth();
+  const { loginWithGoogle, loginWithEmail } = useCrossmintAuth();
   const navigate = useNavigate();
 
   // Redirect if already connected
